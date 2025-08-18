@@ -2,7 +2,47 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+// ไอคอนจาก React-Icons (แนะนำให้ติดตั้ง: npm install react-icons)
+import { 
+    FaPlus, FaFilter, FaBroom, FaEdit, FaTrashAlt,
+    FaClock, FaSpinner, FaCheckCircle, FaTimesCircle, FaExclamationTriangle
+} from 'react-icons/fa';
+
 const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
+
+// --- (Component ใหม่) ไอคอนสำหรับสถานะ ---
+const StatusIcon = ({ status }) => {
+    switch (status) {
+        case 'In Progress': return <FaSpinner className="animate-spin" />;
+        case 'Success': return <FaCheckCircle />;
+        case 'Wait': return <FaClock />;
+        case 'Cancel': return <FaTimesCircle />;
+        default: return <FaExclamationTriangle />;
+    }
+};
+
+// --- (Component ใหม่) สีสำหรับ Status Badge ---
+const getStatusColor = (status) => {
+    switch (status) {
+      case 'In Progress': return 'status-badge-in-progress';
+      case 'Success': return 'status-badge-success';
+      case 'Wait': return 'status-badge-wait';
+      case 'Cancel': return 'status-badge-cancel';
+      default: return 'bg-gray-200 text-gray-600';
+    }
+};
+
+// --- (Component ใหม่) สีสำหรับขอบการ์ด ---
+const getStatusBorder = (status) => {
+    switch (status) {
+      case 'In Progress': return 'status-in-progress';
+      case 'Success': return 'status-success';
+      case 'Wait': return 'status-wait';
+      case 'Cancel': return 'status-cancel';
+      default: return '';
+    }
+}
+
 
 function TicketListPage() {
   const [tickets, setTickets] = useState([]);
@@ -10,7 +50,6 @@ function TicketListPage() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // --- 1. เพิ่ม State สำหรับเก็บค่า Filters ---
   const [filters, setFilters] = useState({
     status: '',
     startDate: '',
@@ -24,7 +63,6 @@ function TicketListPage() {
         const token = localStorage.getItem('token');
         const res = await axios.get(`${API_URL}/tickets`, {
           headers: { 'x-auth-token': token || '' },
-          // --- 2. ส่งค่า Filters ทั้งหมดไปกับ Request ---
           params: filters 
         });
         setTickets(res.data);
@@ -36,7 +74,7 @@ function TicketListPage() {
       }
     };
     fetchTickets();
-  }, [filters]); // --- 3. ให้ useEffect ทำงานใหม่ทุกครั้งที่ค่า filters เปลี่ยน ---
+  }, [filters]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -45,15 +83,9 @@ function TicketListPage() {
       [name]: value
     }));
   };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'In Progress': return 'bg-yellow-200 text-yellow-600';
-      case 'Success': return 'bg-green-200 text-green-600';
-      case 'Wait': return 'bg-sky-200 text-sky-600';
-      case 'Cancel': return 'bg-red-200 text-red-600';
-      default: return 'bg-gray-200 text-gray-600';
-    }
+  
+  const handleClearFilters = () => {
+    setFilters({ status: '', startDate: '', endDate: '' });
   };
 
   const handleUpdateClick = (ticketId) => {
@@ -79,120 +111,119 @@ function TicketListPage() {
   const handleAddTicketClick = () => {
     navigate('/admin/create-ticket');
   };
-
-  if (loading) return <div className="text-center p-4">กำลังโหลดรายการแจ้งซ่อม...</div>;
-  if (error) return <div className="text-center p-4 text-red-600">{error}</div>;
-
+  
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md max-w-7xl mx-auto my-8">
+    <div className="max-w-7xl mx-auto my-8 px-4">
+      {/* --- Header Section --- */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">รายการแจ้งซ่อมทั้งหมด</h2>
+        <h2 className="text-3xl font-bold text-gray-900">รายการแจ้งซ่อม</h2>
         <button
           onClick={handleAddTicketClick}
-          className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700"
+          className="bg-blue-600 text-white font-bold py-2 px-6 rounded-md hover:bg-blue-700 flex items-center gap-2"
         >
-          เพิ่มแจ้งซ่อมใหม่
+          <FaPlus />
+          <span>สร้างใบแจ้งซ่อม</span>
         </button>
       </div>
 
-      {/* --- 4. ส่วนของ Filter UI --- */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-lg bg-gray-50">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">กรองตามสถานะ</label>
-          <select 
-            name="status"
-            value={filters.status} 
-            onChange={handleFilterChange}
-            className="w-full"
-          >
-            <option value="">All Statuses</option>
-            <option value="Wait">Wait</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Success">Success</option>
-            <option value="Cancel">Cancel</option>
-          </select>
+      {/* --- Filter Section --- */}
+      <div className="mb-8 p-4 border rounded-lg bg-gray-50">
+         <div className="flex items-center gap-2 text-lg font-semibold text-gray-700 mb-4">
+            <FaFilter />
+            <span>ตัวกรอง</span>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มต้น</label>
-          <input 
-            type="date" 
-            name="startDate"
-            value={filters.startDate} 
-            onChange={handleFilterChange}
-            className="w-full" 
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">วันที่สิ้นสุด</label>
-          <input 
-            type="date" 
-            name="endDate"
-            value={filters.endDate} 
-            onChange={handleFilterChange}
-            className="w-full"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">สถานะ</label>
+              <select name="status" value={filters.status} onChange={handleFilterChange} className="w-full">
+                <option value="">ทั้งหมด</option>
+                <option value="Wait">Wait</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Success">Success</option>
+                <option value="Cancel">Cancel</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มต้น</label>
+              <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">วันที่สิ้นสุด</label>
+              <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="w-full" />
+            </div>
+            <div>
+                <button
+                    onClick={handleClearFilters}
+                    className="w-full bg-white text-gray-700 font-semibold py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-100 flex items-center justify-center gap-2"
+                >
+                    <FaBroom />
+                    <span>ล้างค่า</span>
+                </button>
+            </div>
         </div>
       </div>
-      {/* --- สิ้นสุดส่วน Filter UI --- */}
 
-      {tickets.length === 0 ? (
-        <p className="text-gray-600 text-center py-10">ไม่พบรายการแจ้งซ่อมตามเงื่อนไขที่เลือก</p>
+      {/* --- Content Display --- */}
+      {loading ? (
+        <div className="text-center p-16 text-gray-500 text-xl">กำลังโหลดข้อมูล...</div>
+      ) : error ? (
+        <div className="text-center p-16 text-red-600">{error}</div>
+      ) : tickets.length === 0 ? (
+        <div className="text-center py-16 text-gray-500 bg-white rounded-lg shadow-md">
+            <h3 className="text-2xl font-semibold">ไม่พบรายการแจ้งซ่อม</h3>
+            <p className="mt-2">ลองเปลี่ยนเงื่อนไขการกรอง หรือกด "ล้างค่า" เพื่อแสดงทั้งหมด</p>
+        </div>
       ) : (
-        <div className="overflow-x-auto border rounded-lg">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 border-b-2 border-gray-200">
-              <tr>
-                <th className="p-3 font-semibold text-gray-600">วันที่แจ้ง</th>
-                <th className="p-3 font-semibold text-gray-600">ผู้แจ้ง</th>
-                <th className="p-3 font-semibold text-gray-600">รหัสอุปกรณ์</th>
-                <th className="p-3 font-semibold text-gray-600">ปัญหา</th>
-                <th className="p-3 font-semibold text-gray-600">วิธีแก้ปัญหา</th>
-                <th className="p-3 font-semibold text-gray-600">ผู้ดำเนินการ</th>
-                <th className="p-3 font-semibold text-gray-600">สถานะ</th>
-                <th className="p-3 font-semibold text-gray-600 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {tickets.map(ticket => (
-                <tr key={ticket.id} className="hover:bg-gray-50">
-                  <td className="p-3 text-gray-700 whitespace-nowrap">
-                    {new Date(ticket.report_date).toLocaleDateString('th-TH', {
-                      year: 'numeric', month: '2-digit', day: '2-digit',
-                      hour: '2-digit', minute: '2-digit',
-                    })}
-                  </td>
-                  <td className="p-3 text-gray-700">{ticket.reporter_name}</td>
-                  <td className="p-3 font-medium text-gray-800">{ticket.asset_code}</td>
-                  <td className="p-3 text-gray-700 max-w-[200px] whitespace-normal break-words">
-                    {ticket.problem_description}
-                  </td>
-                  <td className="p-3 text-gray-700 max-w-[200px] whitespace-normal break-words">
-                    {ticket.solution || 'ยังไม่มี'}
-                  </td>
-                  <td className="p-3 text-gray-700 whitespace-nowrap">{ticket.handler_name || 'ยังไม่มี'}</td>
-                  <td className="p-3 text-gray-700 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
-                      {ticket.status}
+        <div>
+          {/* --- Ticket Card List --- */}
+          {tickets.map(ticket => (
+            <div key={ticket.id} className={`ticket-card ${getStatusBorder(ticket.status)}`}>
+                <div className="ticket-card-header">
+                    <h3 className="ticket-card-title">{ticket.problem_description}</h3>
+                    <span className={`ticket-status-badge ${getStatusColor(ticket.status)}`}>
+                        <StatusIcon status={ticket.status} />
+                        {ticket.status}
                     </span>
-                  </td>
-                  <td className="p-3 space-x-2 text-center align-middle whitespace-nowrap">
-                    <button
-                      onClick={() => handleUpdateClick(ticket.id)}
-                      className="bg-blue-500 hover:bg-blue-600 table-action-button"
-                    >
-                      Update
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClick(ticket.id)}
-                      className="bg-red-500 hover:bg-red-600 table-action-button"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                </div>
+                
+                <div className="ticket-card-body">
+                    <p className="mb-2"><strong>รหัสอุปกรณ์:</strong> {ticket.asset_code}</p>
+                    <p><strong>วิธีแก้ปัญหา:</strong> {ticket.solution || 'ยังไม่ระบุ'}</p>
+                </div>
+
+                <div className="ticket-card-footer">
+                    <div className="ticket-card-reporter">
+                        <div className="font-medium text-gray-800">{ticket.reporter_name}</div>
+                        <div className="text-xs text-gray-600">
+                           แจ้งเมื่อ: {new Date(ticket.report_date).toLocaleDateString('th-TH', {
+                                year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                            })}
+                        </div>
+                         <div className="text-xs text-gray-600 mt-1">
+                            ผู้ดำเนินการ: {ticket.handler_name || 'ยังไม่มี'}
+                        </div>
+                    </div>
+                    <div className="ticket-card-actions">
+                         <button
+                            onClick={() => handleUpdateClick(ticket.id)}
+                            className="action-btn update"
+                            title="Update Ticket"
+                        >
+                            <FaEdit />
+                            <span>Update</span>
+                        </button>
+                        <button
+                            onClick={() => handleDeleteClick(ticket.id)}
+                            className="action-btn delete"
+                            title="Delete Ticket"
+                        >
+                            <FaTrashAlt />
+                           <span>Delete</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

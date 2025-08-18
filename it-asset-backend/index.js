@@ -6,6 +6,7 @@ const sequelize = require('./config/database');
 // Import routes
 const Asset = require('./models/asset');
 const SwitchPort = require('./models/SwitchPort');
+const BitlockerKey = require('./models/bitlockerKey');
 const authRoutes = require('./routes/auth');
 const assetRoutes = require('./routes/assets');
 const ticketRoutes = require('./routes/tickets');
@@ -14,7 +15,9 @@ const masterDataRoutes = require('./routes/masterData');
 const userRoutes = require('./routes/users');
 const employeeRoutes = require('./routes/employees');
 const dashboardRoutes = require('./routes/dashboard');
-
+const portRoutes = require('./routes/portRoutes');
+const switchRoutes = require('./routes/switchRoutes');
+const rackRoutes = require('./routes/rackRoutes');
 // Import middleware
 const authMiddleware = require('./middleware/authMiddleware');
 
@@ -26,6 +29,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   `http://${process.env.SERVER_IP || '172.18.1.61'}:3000` // เพิ่ม IP ของคุณที่นี่
 ];
+
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -63,9 +67,13 @@ app.use('/api/master-data', authMiddleware, masterDataRoutes);
 app.use('/api/users', authMiddleware, userRoutes);
 app.use('/api/employees', authMiddleware, employeeRoutes);
 app.use('/api/dashboard', authMiddleware, dashboardRoutes);
+app.use('/api/ports', authMiddleware, portRoutes);
+app.use('/api/switches', authMiddleware, switchRoutes);
+app.use('/api/racks', authMiddleware, rackRoutes);
 const HOST = '0.0.0.0'; // ทำให้รับการเชื่อมต่อจากทุก IP Address
 
 app.listen(PORT, HOST, () => {
   console.log(`Server is running on http://${HOST}:${PORT}`);
   console.log(`Ready to accept connections from your network.`);
 });
+

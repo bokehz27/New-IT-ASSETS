@@ -1,0 +1,344 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-size: 80%; /* คงขนาด Font เดิมไว้ */
+}
+
+/* --- เริ่มต้นโค้ดสำหรับธีม "Fresh & Friendly" --- */
+
+/* Import Google Font - Poppins for a friendly, modern feel */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* "Fresh & Friendly" Color Palette */
+  --color-primary: #14b8a6; /* Teal */
+  --color-primary-light: #5eead4;
+  --color-primary-dark: #0f766e;
+
+  --color-secondary: #f97316; /* Orange */
+  --color-secondary-light: #fb923c;
+  --color-secondary-dark: #c2410c;
+
+  --color-background: #f8fafc; /* Lighter, cooler gray */
+  --color-surface: #ffffff;    /* White for cards, forms */
+
+  --color-text-on-primary: #ffffff;
+  --color-text-on-secondary: #ffffff;
+  --color-text-primary: #1f2937;    /* Darker text for better contrast */
+  --color-text-secondary: #6b7280;  /* Muted text */
+  --color-text-disabled: #9ca3af;
+
+  --color-divider: #e5e7eb; /* Light divider */
+  --color-error: #ef4444;   /* Red error color */
+  --color-success: #22c55e; /* Green success color */
+  --color-warning: #f59e0b; /* Amber warning color */
+
+  /* Softer, more modern shadows */
+  --elevation-0: none;
+  --elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --elevation-2: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --elevation-3: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --elevation-4: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --elevation-6: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+  /* Consistent Border Radius */
+  --border-radius: 8px;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+/* Card / Panel Backgrounds */
+.bg-white {
+  background-color: var(--color-surface);
+  border-radius: var(--border-radius);
+  box-shadow: var(--elevation-2);
+  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+.bg-white:hover {
+  box-shadow: var(--elevation-3);
+  transform: translateY(-2px);
+}
+
+/* Shadows (Override Tailwind's default shadows) */
+.shadow-sm { box-shadow: var(--elevation-1); }
+.shadow-md { box-shadow: var(--elevation-2); }
+.shadow-lg { box-shadow: var(--elevation-3); }
+.shadow-xl { box-shadow: var(--elevation-4); }
+.shadow-2xl { box-shadow: var(--elevation-6); }
+
+/* Text Colors */
+.text-gray-800, .text-gray-900 { color: var(--color-text-primary); }
+.text-gray-700, .text-gray-600, .text-gray-500 { color: var(--color-text-secondary); }
+
+/* Border Colors */
+.border, .border-gray-200, .border-gray-300 {
+  border-color: var(--color-divider) !important;
+}
+
+/* Form Controls (Inputs, Textareas, Selects) */
+input[type="text"], 
+input[type="password"], 
+textarea, 
+select {
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-divider) !important;
+  color: var(--color-text-primary) !important;
+  border-radius: var(--border-radius) !important;
+  padding: 10px 12px !important;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+input[type="text"]:focus, 
+input[type="password"]:focus, 
+textarea:focus, 
+select:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 25%, transparent) !important;
+  outline: none !important;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--color-text-secondary) !important;
+  opacity: 1 !important;
+}
+
+/* Custom File Input */
+.file-input-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: var(--elevation-1);
+}
+.file-input-label:hover {
+  background-color: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  border-color: var(--color-primary);
+  box-shadow: var(--elevation-2);
+  transform: translateY(-1px);
+}
+.file-input-label svg { margin-right: 8px; }
+
+/* React-Select Customizations */
+.react-select__control {
+    background-color: var(--color-surface) !important;
+    border: 1px solid var(--color-divider) !important;
+    border-radius: var(--border-radius) !important;
+    min-height: 42px;
+    box-shadow: none !important;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.react-select__control--is-focused {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 25%, transparent) !important;
+}
+.react-select__value-container { padding: 2px 8px !important; }
+.react-select__single-value { color: var(--color-text-primary) !important; margin: 0 2px !important; }
+.react-select__input-container, .react-select__placeholder { margin: 0 2px !important; padding: 0 !important; }
+.react-select__placeholder { color: var(--color-text-secondary) !important; }
+
+.react-select__menu {
+    background-color: var(--color-surface) !important;
+    border: 1px solid var(--color-divider) !important;
+    box-shadow: var(--elevation-4) !important;
+    border-radius: var(--border-radius) !important;
+    z-index: 20;
+}
+.react-select__option {
+    color: var(--color-text-primary) !important;
+    background-color: var(--color-surface) !important;
+    padding: 10px 16px !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.15s ease-in-out;
+    cursor: pointer;
+}
+.react-select__option--is-focused {
+    background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
+}
+.react-select__option--is-selected {
+    background-color: var(--color-primary) !important;
+    color: var(--color-text-on-primary) !important;
+    font-weight: 500;
+}
+.react-select__option--is-selected::after { content: '✓'; font-weight: 700; margin-left: 12px; }
+.react-select__indicator-separator { background-color: var(--color-divider) !important; }
+.react-select__indicator { color: var(--color-text-secondary) !important; }
+
+
+/* Primary Buttons */
+.bg-blue-500, .bg-blue-600, .bg-indigo-600, .bg-green-600, .bg-green-500 {
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-on-primary) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--elevation-2);
+  transition: all 0.2s ease-in-out;
+  transform: translateY(0);
+}
+.hover\:bg-blue-600:hover, .hover\:bg-blue-700:hover, .hover\:bg-indigo-700:hover, .hover\:bg-green-700:hover, .hover\:bg-green-600:hover {
+  background-color: var(--color-primary-dark) !important;
+  box-shadow: var(--elevation-3);
+  transform: translateY(-2px); /* Lift effect on hover */
+}
+.focus\:ring-blue-500:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 25%, transparent) !important;
+}
+.disabled\:bg-gray-400:disabled {
+    background-color: var(--color-divider) !important;
+    color: var(--color-text-disabled) !important;
+    box-shadow: none !important;
+    cursor: not-allowed;
+    transform: translateY(0) !important;
+}
+
+/* Status Spans */
+.bg-red-200 { background-color: color-mix(in srgb, var(--color-error) 15%, transparent); }
+.text-red-600 { color: var(--color-error); }
+.bg-yellow-200 { background-color: color-mix(in srgb, var(--color-warning) 20%, transparent); }
+.text-yellow-600 { color: var(--color-warning); }
+.bg-green-200 { background-color: color-mix(in srgb, var(--color-success) 15%, transparent); }
+.text-green-600 { color: var(--color-success); }
+
+/* Table Specifics */
+.bg-gray-50 { background-color: var(--color-background); }
+.text-gray-600 { color: var(--color-text-secondary); }
+.divide-y.divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: var(--color-divider); }
+.hover\:bg-gray-50:hover {
+    background-color: color-mix(in srgb, var(--color-primary) 5%, transparent) !important;
+}
+
+/* Table Action Buttons */
+.table-action-button { 
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important; /* Slightly smaller radius for small buttons */
+    transition: all 0.2s ease-in-out;
+    box-shadow: var(--elevation-1);
+    color: var(--color-text-on-primary) !important;
+    transform: translateY(0);
+}
+.table-action-button:hover {
+    box-shadow: var(--elevation-2);
+    transform: translateY(-1px);
+}
+/* Update button */
+.bg-blue-500.table-action-button { background-color: var(--color-secondary) !important; }
+.hover\:bg-blue-600.table-action-button:hover { background-color: var(--color-secondary-dark) !important; }
+/* Delete button */
+.bg-red-500.table-action-button { background-color: var(--color-error) !important; }
+.hover\:bg-red-600.table-action-button:hover { background-color: color-mix(in srgb, var(--color-error) 85%, black) !important; }
+/* History button */
+.bg-purple-500.table-action-button { background-color: var(--color-text-secondary) !important; }
+.hover\:bg-purple-600.table-action-button:hover { background-color: var(--color-text-primary) !important; }
+
+/* App Header Specifics */
+.bg-gray-800, .bg-gray-900 {
+    background-color: var(--color-surface); 
+    box-shadow: var(--elevation-3);
+    border-bottom: 1px solid var(--color-divider);
+}
+.text-xl.font-bold.text-gray-800 { color: var(--color-text-primary); }
+.text-gray-300 { color: var(--color-text-secondary); }
+.hover\:text-blue-400:hover { color: var(--color-primary); }
+
+/* Logout & Admin Login Button in Header */
+.bg-gray-200.text-gray-700, .bg-green-500 { 
+    background-color: transparent !important;
+    color: var(--color-primary) !important;
+    box-shadow: none;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+    border-radius: var(--border-radius) !important;
+    padding: 8px 16px !important;
+}
+.hover\:bg-gray-300:hover, .hover\:bg-green-600:hover {
+    background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
+    box-shadow: none !important;
+    color: var(--color-primary-dark) !important;
+}
+
+/* Active NavLink style */
+.text-blue-600.font-semibold {
+    color: var(--color-primary);
+    position: relative;
+}
+.text-blue-600.font-semibold::after { 
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--color-primary);
+    border-radius: 2px;
+}
+
+/* Settings Layout Specifics */
+.md\:col-span-1.bg-white {
+    background-color: var(--color-surface); 
+    box-shadow: var(--elevation-1); 
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-divider);
+}
+.text-xs.font-bold.uppercase.text-blue-800.bg-blue-100 {
+    background-color: transparent; 
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    border: none;
+    border-bottom: 1px solid var(--color-divider);
+    border-radius: 0;
+    padding-bottom: 0.5rem;
+}
+.block.px-4.py-2.rounded-md.text-gray-700.hover\:bg-gray-100 {
+    color: var(--color-text-primary);
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    border-radius: 6px;
+    font-weight: 500;
+}
+.hover\:bg-gray-100:hover {
+    background-color: color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
+    color: var(--color-primary) !important;
+    transform: translateX(4px);
+}
+/* Active link in sidebar */
+.bg-blue-50, .bg-blue-100 { 
+    background-color: color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
+    color: var(--color-primary-dark) !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    border: none !important;
+    padding: 8px 16px !important;
+}
+.text-blue-700, .text-blue-800 { 
+    color: var(--color-primary-dark) !important;
+    font-weight: 600;
+}
+
+/* --- Animation for Login Page (No change needed) --- */
+@keyframes fadeInSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-slide-down {
+  animation: fadeInSlideDown 0.5s ease-out forwards;
+}
+
+/* --- สิ้นสุดโค้ดสำหรับธีม "Fresh & Friendly" --- */

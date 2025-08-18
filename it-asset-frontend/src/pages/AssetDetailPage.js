@@ -1,84 +1,136 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // เพิ่ม useCallback
 import axios from 'axios';
 import { useParams, Link } from 'react-router-dom';
+// สมมติว่าคุณได้สร้างไฟล์ BitlockerImport.js ตามคำแนะนำก่อนหน้า
+import BitlockerImport from '../components/BitlockerImport'; 
 
-const API_URL = 'http://172.18.1.61:5000/api/assets';
+const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
-function AssetDetailPage() {
-  const { assetId } = useParams(); // ดึง ID จาก URL
-  const [asset, setAsset] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchAsset = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`${API_URL}/${assetId}`);
-        setAsset(response.data);
-        setError(null);
-      } catch (err) {
-        setError('Failed to fetch asset details.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+// ... คอมโพเนนต์ย่อย StatusBadge, InfoCard, DetailItem (เหมือนเดิม) ...
+const StatusBadge = ({ status }) => {
+    const statusStyles = {
+        'Enable': 'bg-green-100 text-green-800',
+        'Disable': 'bg-red-100 text-red-800',
+        'In Stock': 'bg-blue-100 text-blue-800',
+        'In Use': 'bg-yellow-100 text-yellow-800',
     };
-    fetchAsset();
-  }, [assetId]);
-
-  if (loading) return <div className="text-center p-10">Loading...</div>;
-  if (error) return <div className="text-center p-10 text-red-600">{error}</div>;
-  if (!asset) return <div className="text-center p-10">Asset not found.</div>;
-
-  // Helper function for displaying data
-  const DetailItem = ({ label, value }) => (
-    <div className="py-3 sm:py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 border-b border-gray-200">
-      <dt className="text-sm font-medium text-gray-500">{label}</dt>
-      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{value || 'N/A'}</dd>
-    </div>
-  );
-
-  return (
+    return (
+        <span className={`px-3 py-1 text-xs font-medium rounded-full ${statusStyles[status] || 'bg-gray-100 text-gray-800'}`}>
+            {status || 'N/A'}
+        </span>
+    );
+};
+const InfoCard = ({ title, children }) => (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
-      <div className="p-4 sm:p-6 border-b border-gray-200">
-        <h2 className="text-2xl font-bold text-gray-900">Asset Details</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          รหัสอุปกรณ์: <span className="font-semibold">{asset.asset_code}</span>
-        </p>
-      </div>
-      <dl>
-        <DetailItem label="ยี่ห้ออุปกรณ์" value={asset.brand} />
-        <DetailItem label="รุ่นอุปกรณ์" value={asset.model} />
-        <DetailItem label="หมายเลขซีเรียล" value={asset.serial_number} />
-        <DetailItem label="หมวดหมู่อุปกรณ์" value={asset.category} />
-        <DetailItem label="หมวดหมู่ย่อย" value={asset.subcategory} />
-        <DetailItem label="หน่วยความจำ (แรม)" value={asset.ram} />
-        <DetailItem label="ซีพียู" value={asset.cpu} />
-        <DetailItem label="ฮาร์ดดิสก์" value={asset.storage} />
-        <DetailItem label="Device ID" value={asset.device_id} />
-        <DetailItem label="IP Address" value={asset.ip_address} />
-        <DetailItem label="Wifi Register" value={asset.wifi_registered} />
-        <DetailItem label="Mac Address - LAN" value={asset.mac_address_lan} />
-        <DetailItem label="Mac Address - WiFi" value={asset.mac_address_wifi} />
-        <DetailItem label="วันที่เริ่มใช้งาน" value={asset.start_date ? new Date(asset.start_date).toLocaleDateString('th-TH') : 'N/A'} />
-        <DetailItem label="พื้นที่ใช้งาน" value={asset.location} />
-        <DetailItem label="Ref. FIN Asset No." value={asset.fin_asset_ref} />
-        <DetailItem label="ผู้ใช้งาน (User ID)" value={asset.user_id} />
-        <DetailItem label="ผู้ใช้งาน (ชื่อ - นามสกุล)" value={asset.user_name} />
-        <DetailItem label="หน่วยงาน / แผนก" value={asset.department} />
-        <DetailItem label="สถานะ" value={asset.status} />
-      </dl>
-       <div className="p-4 sm:p-6 bg-gray-50 text-right">
-          <Link 
-            to={`/edit/${asset.id}`} 
-            className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition"
-          >
-              Edit this Asset
-          </Link>
+        <div className="p-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+        </div>
+        <div className="divide-y divide-gray-200">
+            {children}
         </div>
     </div>
-  );
+);
+const DetailItem = ({ label, value }) => (
+    <div className="px-4 py-3 grid grid-cols-3 gap-4">
+        <dt className="text-sm font-medium text-gray-500">{label}</dt>
+        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 col-span-2 break-words">{value || 'N/A'}</dd>
+    </div>
+);
+
+
+function AssetDetailPage() {
+    const { assetId } = useParams();
+    const [asset, setAsset] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // --- (แก้ไข) สร้างฟังก์ชัน fetchAsset โดยใช้ useCallback ---
+    const fetchAsset = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`${API_URL}/assets/${assetId}`);
+            setAsset(response.data);
+            setError(null);
+        } catch (err) {
+            setError('ไม่สามารถดึงรายละเอียดอุปกรณ์ได้');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    }, [assetId]);
+
+    useEffect(() => {
+        fetchAsset();
+    }, [fetchAsset]);
+
+    if (loading) return <div className="text-center p-10">กำลังโหลด...</div>;
+    if (error) return <div className="text-center p-10 text-red-600">{error}</div>;
+    if (!asset) return <div className="text-center p-10">ไม่พบข้อมูลอุปกรณ์</div>;
+
+    return (
+        <div className="p-4 md:p-6 space-y-6">
+            <div className="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                        IT ASSET : <span className="text-blue-600">{asset.asset_code}</span>
+                    </h2>
+                    <div className="mt-2 flex items-center space-x-2">
+                        <p className="text-sm text-gray-500">Status :</p>
+                        <StatusBadge status={asset.status} />
+                    </div>
+                </div>
+                <Link to={`/edit/${asset.id}`} className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition">
+                    Edit
+                </Link>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                    <InfoCard title="Hardware specifications">
+                        <DetailItem label="ยี่ห้อ / รุ่น" value={`${asset.brand || ''} ${asset.model || ''}`.trim()} />
+                        <DetailItem label="หมายเลขซีเรียล" value={asset.serial_number} />
+                        <DetailItem label="หมวดหมู่" value={`${asset.category || ''} / ${asset.subcategory || ''}`.trim()} />
+                        <DetailItem label="ซีพียู" value={asset.cpu} />
+                        <DetailItem label="หน่วยความจำ (แรม)" value={asset.ram} />
+                        <DetailItem label="ฮาร์ดดิสก์" value={asset.storage} />
+                    </InfoCard>
+
+                    <InfoCard title="Network information">
+                        <DetailItem label="Device ID" value={asset.device_id} />
+                        <DetailItem label="IP Address" value={asset.ip_address} />
+                        <DetailItem label="Mac Address - LAN" value={asset.mac_address_lan} />
+                        <DetailItem label="Mac Address - WiFi" value={asset.mac_address_wifi} />
+                        <DetailItem label="Wifi Register" value={asset.wifi_registered} />
+                    </InfoCard>
+
+                    {/* --- (เพิ่มใหม่) การ์ดสำหรับ BitLocker Keys --- */}
+                    {asset.bitlockerKeys && asset.bitlockerKeys.length > 0 && (
+                        <InfoCard title="BitLocker Recovery Keys">
+                            {asset.bitlockerKeys.map((key) => (
+                                <DetailItem key={key.id} label={`Drive ${key.drive_name}`} value={key.recovery_key} />
+                            ))}
+                        </InfoCard>
+                    )}
+                    {/* ------------------------------------------ */}
+                </div>
+
+                <div className="lg:col-span-1 space-y-6">
+                    <InfoCard title="Configuration and location">
+                        <DetailItem label="ผู้ใช้งาน" value={asset.user_name} />
+                        <DetailItem label="User ID" value={asset.user_id} />
+                        <DetailItem label="หน่วยงาน / แผนก" value={asset.department} />
+                        <DetailItem label="พื้นที่ใช้งาน" value={asset.location} />
+                    </InfoCard>
+
+                    <InfoCard title="Management details">
+                        <DetailItem label="วันที่เริ่มใช้งาน" value={asset.start_date ? new Date(asset.start_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'} />
+                        <DetailItem label="Ref. FIN Asset No." value={asset.fin_asset_ref} />
+                    </InfoCard>
+
+                </div>
+            </div>
+        </div>
+    );
 }
 
 export default AssetDetailPage;

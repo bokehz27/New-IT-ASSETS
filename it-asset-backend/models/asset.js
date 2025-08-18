@@ -2,7 +2,7 @@
 
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const SwitchPort = require("./SwitchPort");
+const BitlockerKey = require("./bitlockerKey");
 const Asset = sequelize.define(
   "Asset",
   {
@@ -27,20 +27,23 @@ const Asset = sequelize.define(
     user_name: { type: DataTypes.STRING }, // 18. ชื่อ - นามสกุล
     department: { type: DataTypes.STRING }, // 19. หน่วยงาน / แผนก
     category: { type: DataTypes.STRING }, // 20. หมวดหมู่อุปกรณ์
-
     status: { type: DataTypes.STRING, defaultValue: "Enable" }, // field เก่าที่ยังใช้อยู่
   },
   {
     tableName: "assets", // ระบุให้ตรงกับชื่อตารางของเรา
   }
 );
-Asset.hasMany(SwitchPort, {
-  foreignKey: "assetId", // คีย์นอกในตาราง switchports
-  as: "ports", // ชื่อเรียกเมื่อ include ข้อมูล
+
+Asset.hasMany(BitlockerKey, {
+  foreignKey: "assetId",
+  as: "bitlockerKeys", // This alias is important for queries
+  onDelete: "CASCADE", // If an asset is deleted, delete its keys too
 });
 
-// SwitchPort หนึ่งพอร์ต เป็นของ Asset (สวิตช์) แค่ตัวเดียว
-SwitchPort.belongsTo(Asset, {
+// A Bitlocker Key belongs to one Asset
+BitlockerKey.belongsTo(Asset, {
   foreignKey: "assetId",
+  as: "asset",
 });
+
 module.exports = Asset;

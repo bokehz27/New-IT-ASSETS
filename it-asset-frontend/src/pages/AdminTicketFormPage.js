@@ -3,145 +3,81 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 
+// --- IMPROVEMENT 4: ย้าย customSelectStyles ออกมาไว้ที่เดียว และลบส่วนที่ซ้ำซ้อนใน useEffect ---
+// สไตล์สำหรับ React-Select จะถูกใช้ร่วมกันทุก components
+const customSelectStyles = {
+  // Styles จากไฟล์ index.css ถูกนำมาใช้โดย classNamePrefix="react-select" อยู่แล้ว
+  // แต่ถ้าต้องการ override เพิ่มเติม สามารถทำที่นี่ได้
+  // ในที่นี้เราใช้จาก CSS เป็นหลัก ดังนั้น object นี้อาจไม่จำเป็นต้องมีเนื้อหาเยอะ
+  // แต่การประกาศไว้เพื่อส่ง props ทำให้โค้ดอ่านง่าย
+};
+
 function AdminTicketFormPage() {
-  const [reporterName, setReporterName] = useState("");
-  const [assetCode, setAssetCode] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [problemDescription, setProblemDescription] = useState("");
-  const [attachment, setAttachment] = useState(null); // State นี้ถูกใช้เพื่อแสดงชื่อไฟล์
-  const [handlerName, setHandlerName] = useState("");
-  const [status, setStatus] = useState("Request");
-  const [repairType, setRepairType] = useState("");
-  const [solution, setSolution] = useState("");
-  const [assetOptions, setAssetOptions] = useState([]);
-  const [admins, setAdmins] = useState([]);
-  const [repairTypesOptions, setRepairTypesOptions] = useState([]);
-  const [reporterOptions, setReporterOptions] = useState([]);
+  // --- IMPROVEMENT: จัดกลุ่ม State เพื่อให้อ่านง่ายขึ้น (ทางเลือก) ---
+  const [ticketData, setTicketData] = useState({
+    reporterName: "",
+    assetCode: "",
+    contactPhone: "",
+    problemDescription: "",
+  });
+  const [adminData, setAdminData] = useState({
+    handlerName: "",
+    status: "Wait", // กำหนดค่าเริ่มต้น
+    repairType: "",
+    solution: "",
+  });
+  
+  const [attachment, setAttachment] = useState(null);
+  const [options, setOptions] = useState({
+    assetOptions: [],
+    adminOptions: [],
+    repairTypeOptions: [],
+    reporterOptions: [],
+  });
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
-  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  // --- ส่วนของ Logic และ useEffect เหมือนเดิม ---
   useEffect(() => {
     const fetchDataForAdmin = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
           navigate("/login");
-
-          const customSelectStyles = {
-            control: (provided, state) => ({
-              ...provided,
-              backgroundColor: "var(--color-surface)",
-              borderColor: state.isFocused
-                ? "var(--color-primary)"
-                : "var(--color-divider)",
-              boxShadow: state.isFocused
-                ? "0 0 0 1px var(--color-primary)"
-                : "none",
-              minHeight: "42px",
-              borderRadius: "4px",
-              transition:
-                "border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-              "&:hover": {
-                borderColor: state.isFocused
-                  ? "var(--color-primary)"
-                  : "var(--color-divider)",
-              },
-            }),
-            valueContainer: (provided) => ({
-              ...provided,
-              padding: "2px 12px",
-            }),
-            placeholder: (provided) => ({
-              ...provided,
-              color: "var(--color-text-secondary)",
-            }),
-            singleValue: (provided) => ({
-              ...provided,
-              color: "var(--color-text-primary)",
-            }),
-            menu: (provided) => ({
-              ...provided,
-              backgroundColor: "var(--color-surface)",
-              border: "1px solid var(--color-divider)",
-              boxShadow: "var(--elevation-8)",
-              borderRadius: "4px",
-              zIndex: 20,
-            }),
-            option: (provided, state) => ({
-              ...provided,
-              color: state.isSelected
-                ? "var(--color-text-on-primary)"
-                : "var(--color-text-primary)",
-              backgroundColor: state.isSelected
-                ? "var(--color-primary)"
-                : state.isFocused
-                ? "color-mix(in srgb, var(--color-primary) 8%, transparent)"
-                : "var(--color-surface)",
-              padding: "10px 16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              cursor: "pointer",
-              fontWeight: state.isSelected ? 500 : 400,
-              "&::after": {
-                content: state.isSelected ? '"✓"' : '""',
-                fontWeight: 700,
-                marginLeft: "12px",
-              },
-            }),
-            indicatorSeparator: (provided) => ({
-              ...provided,
-              backgroundColor: "var(--color-divider)",
-            }),
-            indicator: (provided) => ({
-              ...provided,
-              color: "var(--color-text-secondary)",
-            }),
-          };
-
           return;
         }
 
-        const assetRes = await axios.get(
-          "http://172.18.1.61:5000/api/public/assets-list",
-          { headers: { "x-auth-token": token } }
-        );
-        setAssetOptions(
-          assetRes.data.map((asset) => ({
+        // Fetch data พร้อมกันเพื่อประสิทธิภาพที่ดีขึ้น
+        const [assetRes, adminRes, repairTypeRes, reporterRes] = await Promise.all([
+          axios.get("http://172.18.1.61:5000/api/public/assets-list", { headers: { "x-auth-token": token } }),
+          axios.get("http://172.18.1.61:5000/api/users", { headers: { "x-auth-token": token } }),
+          axios.get("http://172.18.1.61:5000/api/master-data/repair_type", { headers: { "x-auth-token": token } }),
+          axios.get("http://172.18.1.61:5000/api/public/asset-users", { headers: { "x-auth-token": token } })
+        ]);
+
+        setOptions({
+          assetOptions: assetRes.data.map((asset) => ({
             value: asset.asset_code,
-            label: `${asset.asset_code} ${
-              asset.model ? `- ${asset.model}` : ""
-            }`,
-          }))
-        );
-
-        const adminRes = await axios.get("http://172.18.1.61:5000/api/users", {
-          headers: { "x-auth-token": token },
+            label: `${asset.asset_code} ${asset.model ? `- ${asset.model}` : ""}`,
+          })),
+          // --- IMPROVEMENT 1: เตรียมข้อมูลสำหรับ React-Select ---
+          adminOptions: adminRes.data.map((admin) => ({
+            value: admin.username,
+            label: admin.username,
+          })),
+          repairTypeOptions: repairTypeRes.data.map((item) => ({
+            value: item.value,
+            label: item.value,
+          })),
+          reporterOptions: reporterRes.data.map((name) => ({ 
+            value: name, 
+            label: name 
+          })),
         });
-        setAdmins(adminRes.data);
 
-        const repairTypeRes = await axios.get(
-          "http://172.18.1.61:5000/api/master-data/repair_type",
-          { headers: { "x-auth-token": token } }
-        );
-        setRepairTypesOptions(repairTypeRes.data.map((item) => item.value));
-
-        const reporterRes = await axios.get(
-          "http://172.18.1.61:5000/api/public/asset-users",
-          { headers: { "x-auth-token": token } }
-        );
-        setReporterOptions(
-          reporterRes.data.map((name) => ({ value: name, label: name }))
-        );
       } catch (err) {
-        console.error(
-          "Failed to fetch admin form data:",
-          err.response ? err.response.data : err.message
-        );
+        console.error("Failed to fetch admin form data:", err.response ? err.response.data : err.message);
         setMessage("ไม่สามารถโหลดข้อมูลสำหรับฟอร์ม Admin ได้");
         setMessageType("error");
       }
@@ -149,350 +85,198 @@ function AdminTicketFormPage() {
     fetchDataForAdmin();
   }, [navigate]);
 
-  const handleAssetSelectChange = (selectedOption) =>
-    setAssetCode(selectedOption ? selectedOption.value : "");
-  const handleReporterSelectChange = (selectedOption) =>
-    setReporterName(selectedOption ? selectedOption.value : "");
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "contact_phone") setContactPhone(value);
-    if (name === "problem_description") setProblemDescription(value);
-    if (name === "solution") setSolution(value);
-  };
   const handleFileChange = (e) => setAttachment(e.target.files[0]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setMessageType("");
-    setError("");
     setSubmitting(true);
 
-    if (!reporterName || !assetCode || !problemDescription) {
-      setError(
-        "กรุณากรอกข้อมูลที่จำเป็น: ชื่อผู้แจ้ง, รหัสอุปกรณ์, และรายละเอียดปัญหา"
-      );
+    if (!ticketData.reporterName || !ticketData.assetCode || !ticketData.problemDescription) {
+      setMessage("กรุณากรอกข้อมูลที่จำเป็น: ชื่อผู้แจ้ง, รหัสอุปกรณ์, และรายละเอียดปัญหา");
+      setMessageType("error");
       setSubmitting(false);
       return;
     }
 
     const formDataToSend = new FormData();
-    formDataToSend.append("reporter_name", reporterName);
-    formDataToSend.append("asset_code", assetCode);
-    formDataToSend.append("problem_description", problemDescription);
-    formDataToSend.append("contact_phone", contactPhone);
+    formDataToSend.append("reporter_name", ticketData.reporterName);
+    formDataToSend.append("asset_code", ticketData.assetCode);
+    formDataToSend.append("problem_description", ticketData.problemDescription);
+    formDataToSend.append("contact_phone", ticketData.contactPhone);
     if (attachment) formDataToSend.append("attachment", attachment);
-    formDataToSend.append("handler_name", handlerName);
-    formDataToSend.append("status", status);
-    formDataToSend.append("repair_type", repairType);
-    formDataToSend.append("solution", solution);
+    formDataToSend.append("handler_name", adminData.handlerName);
+    formDataToSend.append("status", adminData.status);
+    formDataToSend.append("repair_type", adminData.repairType);
+    formDataToSend.append("solution", adminData.solution);
 
     try {
-      const res = await axios.post(
+      await axios.post(
         "http://172.18.1.61:5000/api/public/tickets",
         formDataToSend,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            "x-auth-token": localStorage.getItem("token"),
-          },
-        }
+        { headers: { "Content-Type": "multipart/form-data", "x-auth-token": localStorage.getItem("token") } }
       );
       setMessage("สร้างรายการแจ้งซ่อมสำเร็จ!");
       setMessageType("success");
-      setTimeout(() => navigate("/tickets"), 3000);
+      setTimeout(() => navigate("/tickets"), 2000);
     } catch (err) {
-      console.error(
-        "Failed to create ticket:",
-        err.response ? err.response.data : err.message
-      );
-      setError(
-        `แจ้งซ่อมไม่สำเร็จ: ${err.response?.data?.error || err.message}`
-      );
+      console.error("Failed to create ticket:", err.response ? err.response.data : err.message);
+      setMessage(`แจ้งซ่อมไม่สำเร็จ: ${err.response?.data?.error || err.message}`);
       setMessageType("error");
     } finally {
       setSubmitting(false);
     }
   };
-
-  const customSelectStyles = {
-    control: (provided, state) => ({
-      ...provided,
-      backgroundColor: "var(--color-surface)",
-      borderColor: state.isFocused
-        ? "var(--color-primary)"
-        : "var(--color-divider)",
-      boxShadow: state.isFocused ? "0 0 0 1px var(--color-primary)" : "none",
-      minHeight: "42px",
-      borderRadius: "4px",
-      transition: "border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-      "&:hover": {
-        borderColor: state.isFocused
-          ? "var(--color-primary)"
-          : "var(--color-divider)",
-      },
-    }),
-    valueContainer: (provided) => ({
-      ...provided,
-      padding: "2px 12px",
-    }),
-    placeholder: (provided) => ({
-      ...provided,
-      color: "var(--color-text-secondary)",
-    }),
-    singleValue: (provided) => ({
-      ...provided,
-      color: "var(--color-text-primary)",
-    }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: "var(--color-surface)",
-      border: "1px solid var(--color-divider)",
-      boxShadow: "var(--elevation-8)",
-      borderRadius: "4px",
-      zIndex: 20,
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      color: state.isSelected
-        ? "var(--color-text-on-primary)"
-        : "var(--color-text-primary)",
-      backgroundColor: state.isSelected
-        ? "var(--color-primary)"
-        : state.isFocused
-        ? "color-mix(in srgb, var(--color-primary) 8%, transparent)"
-        : "var(--color-surface)",
-      padding: "10px 16px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      cursor: "pointer",
-      fontWeight: state.isSelected ? 500 : 400,
-      "&::after": {
-        content: state.isSelected ? '"✓"' : '""',
-        fontWeight: 700,
-        marginLeft: "12px",
-      },
-    }),
-    indicatorSeparator: (provided) => ({
-      ...provided,
-      backgroundColor: "var(--color-divider)",
-    }),
-    indicator: (provided) => ({
-      ...provided,
-      color: "var(--color-text-secondary)",
-    }),
-  };
+  
+  // ตัวเลือกสำหรับ Status
+  const statusOptions = [
+    { value: "Wait", label: "Wait" },
+    { value: "In Progress", label: "In Progress" },
+    { value: "Success", label: "Success" },
+    { value: "Cancel", label: "Cancel" },
+  ];
 
   return (
-    <div className="flex justify-center items-start min-h-screen bg-gray-50 py-8">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl">
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-6">
+    <div className="flex justify-center items-start min-h-screen bg-gray-50 py-8 px-4">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-5xl">
+        <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
           สร้างรายการแจ้งซ่อม (สำหรับ Admin)
         </h2>
 
         {message && (
-          <div
-            className={`p-3 mb-4 rounded-md text-center ${
-              messageType === "success"
-                ? "bg-green-200 text-green-600"
-                : "bg-red-200 text-red-600"
-            }`}
-          >
+          <div className={`p-4 mb-6 rounded-md text-center font-semibold ${ messageType === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700" }`}>
             {message}
           </div>
         )}
-        {error && (
-          <div className="p-3 mb-4 rounded-md text-center bg-red-200 text-red-600">
-            {error}
-          </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* --- IMPROVEMENT 2: ใช้ grid และ เพิ่มเส้นแบ่งเพื่อความชัดเจน --- */}
+          <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-12">
+            
             {/* คอลัมน์ซ้าย */}
-            <div>
-              <h3 className="text-xl font-bold mb-4 text-gray-900">
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-gray-800 border-b border-gray-200 pb-2 mb-4">
                 ข้อมูลผู้แจ้งและปัญหา
               </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-600">
-                    ชื่อผู้แจ้ง:
+              <div>
+                {/* --- IMPROVEMENT 3: เพิ่ม * สำหรับฟิลด์ที่จำเป็น --- */}
+                <label className="block mb-1 text-sm font-semibold text-gray-700">ชื่อผู้แจ้ง: <span className="text-red-500">*</span></label>
+                <Select
+                  classNamePrefix="react-select"
+                  styles={customSelectStyles}
+                  options={options.reporterOptions}
+                  onChange={(option) => setTicketData({...ticketData, reporterName: option ? option.value : ""})}
+                  value={options.reporterOptions.find(opt => opt.value === ticketData.reporterName)}
+                  placeholder="-- ค้นหาหรือเลือกชื่อผู้แจ้ง --"
+                  isClearable
+                />
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-semibold text-gray-700">รหัสอุปกรณ์: <span className="text-red-500">*</span></label>
+                <Select
+                  classNamePrefix="react-select"
+                  styles={customSelectStyles}
+                  options={options.assetOptions}
+                  onChange={(option) => setTicketData({...ticketData, assetCode: option ? option.value : ""})}
+                  value={options.assetOptions.find(opt => opt.value === ticketData.assetCode)}
+                  placeholder="-- ค้นหาหรือเลือกรหัสอุปกรณ์ --"
+                  isClearable
+                />
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-semibold text-gray-700">เบอร์ติดต่อ:</label>
+                <input
+                  type="text"
+                  value={ticketData.contactPhone}
+                  onChange={(e) => setTicketData({...ticketData, contactPhone: e.target.value})}
+                  placeholder="เบอร์โทรศัพท์สำหรับติดต่อกลับ"
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-semibold text-gray-700">รายละเอียดปัญหา: <span className="text-red-500">*</span></label>
+                <textarea
+                  value={ticketData.problemDescription}
+                  onChange={(e) => setTicketData({...ticketData, problemDescription: e.target.value})}
+                  rows="5"
+                  className="w-full"
+                ></textarea>
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-semibold text-gray-700">ไฟล์แนบ:</label>
+                <div className="flex items-center gap-4">
+                  <label htmlFor="admin-attachment-input" className="file-input-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    <span>เลือกไฟล์</span>
                   </label>
-                  <Select
-                    classNamePrefix="react-select"
-                    options={reporterOptions}
-                    onChange={handleReporterSelectChange}
-                    value={reporterOptions.find(
-                      (option) => option.value === reporterName
-                    )}
-                    placeholder="-- ค้นหาหรือเลือกชื่อผู้แจ้ง --"
-                    isClearable
-                    required
-                  />
+                  <span className="text-sm text-gray-500 truncate max-w-xs">
+                    {attachment ? attachment.name : "ยังไม่ได้เลือกไฟล์"}
+                  </span>
                 </div>
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-600">
-                    รหัสอุปกรณ์:
-                  </label>
-                  <Select
-                    classNamePrefix="react-select"
-                    options={assetOptions}
-                    onChange={handleAssetSelectChange}
-                    value={assetOptions.find(
-                      (option) => option.value === assetCode
-                    )}
-                    placeholder="-- ค้นหาหรือเลือกรหัสอุปกรณ์ --"
-                    isClearable
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-600">
-                    เบอร์ติดต่อ:
-                  </label>
-                  <input
-                    type="text"
-                    name="contact_phone"
-                    value={contactPhone}
-                    onChange={handleInputChange}
-                    placeholder="เบอร์โทรศัพท์สำหรับติดต่อกลับ"
-                    className="w-full"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-600">
-                    รายละเอียดปัญหา:
-                  </label>
-                  <textarea
-                    name="problem_description"
-                    value={problemDescription}
-                    onChange={handleInputChange}
-                    rows="5"
-                    className="w-full"
-                    required
-                  ></textarea>
-                </div>
-
-                {/* --- ส่วนที่แก้ไข --- */}
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-600">
-                    ไฟล์แนบ:
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <label
-                      htmlFor="admin-attachment-input"
-                      className="file-input-label"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                        />
-                      </svg>
-                      <span>เลือกไฟล์</span>
-                    </label>
-                    <span className="text-sm text-gray-500">
-                      {attachment ? attachment.name : "ยังไม่ได้เลือกไฟล์"}
-                    </span>
-                  </div>
-                  <input
-                    id="admin-attachment-input"
-                    type="file"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                </div>
-                {/* --- สิ้นสุดส่วนที่แก้ไข --- */}
+                <input id="admin-attachment-input" type="file" onChange={handleFileChange} className="hidden" />
               </div>
             </div>
 
             {/* คอลัมน์ขวา */}
-            <div>
-              <h3 className="text-xl font-bold mb-4 text-gray-900">
+            <div className="space-y-4 mt-6 md:mt-0">
+               <h3 className="text-xl font-bold text-gray-800 border-b border-gray-200 pb-2 mb-4">
                 ข้อมูลสำหรับ Admin
               </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block mb-1 font-semibold text-gray-600">
-                    ผู้ดำเนินการ:
-                  </label>
-                  <select
-                    value={handlerName}
-                    onChange={(e) => setHandlerName(e.target.value)}
-                    className="w-full"
-                  >
-                    <option value="">-- ยังไม่ได้มอบหมาย --</option>
-                    {admins.map((admin) => (
-                      <option key={admin.username} value={admin.username}>
-                        {admin.username}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-1 font-semibold text-gray-600">
-                    สถานะ:
-                  </label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="w-full"
-                  >
-                    <option value="Wait">Wait</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Success">Success</option>
-                    <option value="Cancel">Cancel</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-1 font-semibold text-gray-600">
-                    ประเภทการซ่อม:
-                  </label>
-                  <select
-                    value={repairType}
-                    onChange={(e) => setRepairType(e.target.value)}
-                    className="w-full"
-                  >
-                    <option value="">-- เลือกประเภทการซ่อม --</option>
-                    {repairTypesOptions.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-1 text-sm font-semibold text-gray-600">
-                    สาเหตุและวิธีแก้ปัญหา:
-                  </label>
-                  <textarea
-                    name="solution"
-                    value={solution}
-                    onChange={handleInputChange}
-                    rows="5"
-                    className="w-full"
-                  ></textarea>
-                </div>
+               {/* --- IMPROVEMENT 1: เปลี่ยนมาใช้ React-Select ทั้งหมด --- */}
+              <div>
+                <label className="block mb-1 text-sm font-semibold text-gray-700">ผู้ดำเนินการ:</label>
+                <Select
+                  classNamePrefix="react-select"
+                  styles={customSelectStyles}
+                  options={options.adminOptions}
+                  onChange={(option) => setAdminData({...adminData, handlerName: option ? option.value : ""})}
+                  value={options.adminOptions.find(opt => opt.value === adminData.handlerName)}
+                  placeholder="-- ยังไม่ได้มอบหมาย --"
+                  isClearable
+                />
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-semibold text-gray-700">สถานะ:</label>
+                <Select
+                  classNamePrefix="react-select"
+                  styles={customSelectStyles}
+                  options={statusOptions}
+                  onChange={(option) => setAdminData({...adminData, status: option ? option.value : "Wait"})}
+                  value={statusOptions.find(opt => opt.value === adminData.status)}
+                />
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-semibold text-gray-700">ประเภทการซ่อม:</label>
+                <Select
+                  classNamePrefix="react-select"
+                  styles={customSelectStyles}
+                  options={options.repairTypeOptions}
+                  onChange={(option) => setAdminData({...adminData, repairType: option ? option.value : ""})}
+                  value={options.repairTypeOptions.find(opt => opt.value === adminData.repairType)}
+                  placeholder="-- เลือกประเภทการซ่อม --"
+                  isClearable
+                />
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-semibold text-gray-700">สาเหตุและวิธีแก้ปัญหา:</label>
+                <textarea
+                  value={adminData.solution}
+                  onChange={(e) => setAdminData({...adminData, solution: e.target.value})}
+                  rows="5"
+                  className="w-full"
+                ></textarea>
               </div>
             </div>
           </div>
 
-          <div className="pt-6">
+          <div className="pt-6 border-t border-gray-200">
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 disabled:bg-gray-400"
+              className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200"
             >
               {submitting ? "กำลังสร้าง..." : "สร้างรายการแจ้งซ่อม"}
             </button>
