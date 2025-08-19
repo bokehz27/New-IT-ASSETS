@@ -64,7 +64,8 @@ function ImportAssetsPage() {
     }
   };
   
-  const csvTemplateHeaders = "asset_code,serial_number,brand,model,subcategory,ram,cpu,storage,device_id,ip_address,wifi_registered,mac_address_lan,mac_address_wifi,start_date,location,fin_asset_ref,user_id,user_name,department,category,status";
+  // --- (แก้ไข) เพิ่มคอลัมน์ใหม่ใน Template ---
+  const csvTemplateHeaders = "asset_code,serial_number,brand,model,subcategory,ram,cpu,storage,device_id,ip_address,wifi_registered,mac_address_lan,mac_address_wifi,start_date,location,fin_asset_ref,user_id,user_name,department,category,status,windows_version,windows_key,office_version,office_key,antivirus";
 
   const handleDownloadTemplate = () => {
     const blob = new Blob([csvTemplateHeaders], { type: 'text/csv;charset=utf-8;' });

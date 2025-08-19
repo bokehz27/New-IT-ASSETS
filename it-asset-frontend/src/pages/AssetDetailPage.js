@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react'; // เพิ่ม useCallback
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, Link } from 'react-router-dom';
-// สมมติว่าคุณได้สร้างไฟล์ BitlockerImport.js ตามคำแนะนำก่อนหน้า
 import BitlockerImport from '../components/BitlockerImport'; 
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
-// ... คอมโพเนนต์ย่อย StatusBadge, InfoCard, DetailItem (เหมือนเดิม) ...
+// --- (แก้ไข) ย้ายคอมโพเนนต์ย่อยมาไว้ข้างบน และใส่โค้ดให้สมบูรณ์ ---
 const StatusBadge = ({ status }) => {
     const statusStyles = {
         'Enable': 'bg-green-100 text-green-800',
@@ -20,6 +19,7 @@ const StatusBadge = ({ status }) => {
         </span>
     );
 };
+
 const InfoCard = ({ title, children }) => (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <div className="p-4 border-b border-gray-200">
@@ -30,12 +30,14 @@ const InfoCard = ({ title, children }) => (
         </div>
     </div>
 );
+
 const DetailItem = ({ label, value }) => (
     <div className="px-4 py-3 grid grid-cols-3 gap-4">
         <dt className="text-sm font-medium text-gray-500">{label}</dt>
         <dd className="mt-1 text-sm text-gray-900 sm:mt-0 col-span-2 break-words">{value || 'N/A'}</dd>
     </div>
 );
+// --- สิ้นสุดการแก้ไข ---
 
 
 function AssetDetailPage() {
@@ -44,11 +46,13 @@ function AssetDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // --- (แก้ไข) สร้างฟังก์ชัน fetchAsset โดยใช้ useCallback ---
     const fetchAsset = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_URL}/assets/${assetId}`);
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${API_URL}/assets/${assetId}`, {
+                headers: { 'x-auth-token': token }
+            });
             setAsset(response.data);
             setError(null);
         } catch (err) {
@@ -103,15 +107,44 @@ function AssetDetailPage() {
                         <DetailItem label="Wifi Register" value={asset.wifi_registered} />
                     </InfoCard>
 
-                    {/* --- (เพิ่มใหม่) การ์ดสำหรับ BitLocker Keys --- */}
-                    {asset.bitlockerKeys && asset.bitlockerKeys.length > 0 && (
-                        <InfoCard title="BitLocker Recovery Keys">
-                            {asset.bitlockerKeys.map((key) => (
+                    <InfoCard title="Software Information">
+                        <DetailItem label="Windows" value={asset.windows_version} />
+                        <DetailItem label="Windows Product Key" value={asset.windows_key} />
+                        <DetailItem label="Microsoft Office" value={asset.office_version} />
+                        <DetailItem label="Office Product Key" value={asset.office_key} />
+                        <DetailItem label="Antivirus" value={asset.antivirus} />
+                        <div className="px-4 py-3 grid grid-cols-3 gap-4">
+                            <dt className="text-sm font-medium text-gray-500">Special Programs</dt>
+                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 col-span-2">
+                                {asset.specialPrograms && asset.specialPrograms.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2">
+                                        {asset.specialPrograms.map((prog) => (
+                                            <span 
+                                                key={prog.id} 
+                                                className="px-3 py-1 bg-gray-100 text-gray-800 text-sm font-medium rounded-full"
+                                            >
+                                                {prog.program_name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    'N/A'
+                                )}
+                            </dd>
+                        </div>
+                    </InfoCard>
+
+                    <InfoCard title="BitLocker Recovery Keys">
+                         {asset.bitlockerKeys && asset.bitlockerKeys.length > 0 ? (
+                            asset.bitlockerKeys.map((key) => (
                                 <DetailItem key={key.id} label={`Drive ${key.drive_name}`} value={key.recovery_key} />
-                            ))}
-                        </InfoCard>
-                    )}
-                    {/* ------------------------------------------ */}
+                            ))
+                        ) : (
+                            <div className="px-4 py-3 text-sm text-gray-500">
+                                No BitLocker keys found for this asset.
+                            </div>
+                        )}
+                    </InfoCard>
                 </div>
 
                 <div className="lg:col-span-1 space-y-6">
@@ -126,7 +159,6 @@ function AssetDetailPage() {
                         <DetailItem label="วันที่เริ่มใช้งาน" value={asset.start_date ? new Date(asset.start_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'} />
                         <DetailItem label="Ref. FIN Asset No." value={asset.fin_asset_ref} />
                     </InfoCard>
-
                 </div>
             </div>
         </div>

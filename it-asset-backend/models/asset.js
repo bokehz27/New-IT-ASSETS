@@ -3,45 +3,63 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 const BitlockerKey = require("./bitlockerKey");
+const AssetSpecialProgram = require("./assetSpecialProgram"); // --- (เพิ่ม) เพิ่มบรรทัดนี้เข้ามา ---
+
 const Asset = sequelize.define(
   "Asset",
   {
-    // ไม่ต้องกำหนด id, createdAt, updatedAt เพราะ Sequelize จัดการให้
-    asset_code: { type: DataTypes.STRING }, // 1. รหัสอุปกรณ์
-    serial_number: { type: DataTypes.STRING }, // 2. หมายเลขซีเรียล
-    brand: { type: DataTypes.STRING }, // 3. ยี่ห้ออุปกรณ์
-    model: { type: DataTypes.STRING }, // 4. รุ่นอุปกรณ์
-    subcategory: { type: DataTypes.STRING }, // 5. หมวดหมู่ย่อย
-    ram: { type: DataTypes.STRING }, // 6. หน่วยความจำ (แรม)
-    cpu: { type: DataTypes.STRING }, // 7. ซีพียู
-    storage: { type: DataTypes.STRING }, // 8. ฮาร์ดดิสก์
-    device_id: { type: DataTypes.STRING }, // 9. Device ID
-    ip_address: { type: DataTypes.STRING }, // 10. IP Address
-    wifi_registered: { type: DataTypes.STRING }, // 11. Wifi Register
-    mac_address_lan: { type: DataTypes.STRING }, // 12. Mac Address - LAN
-    mac_address_wifi: { type: DataTypes.STRING }, // 13. Mac Address - WiFi
-    start_date: { type: DataTypes.DATEONLY }, // 14. วันที่เริ่มใช้งาน
-    location: { type: DataTypes.STRING }, // 15. พื้นที่ใช้งาน
-    fin_asset_ref: { type: DataTypes.STRING }, // 16. Ref. FIN Asset No.
-    user_id: { type: DataTypes.STRING }, // 17. User ID
-    user_name: { type: DataTypes.STRING }, // 18. ชื่อ - นามสกุล
-    department: { type: DataTypes.STRING }, // 19. หน่วยงาน / แผนก
-    category: { type: DataTypes.STRING }, // 20. หมวดหมู่อุปกรณ์
-    status: { type: DataTypes.STRING, defaultValue: "Enable" }, // field เก่าที่ยังใช้อยู่
+    asset_code: { type: DataTypes.STRING },
+    serial_number: { type: DataTypes.STRING },
+    brand: { type: DataTypes.STRING },
+    model: { type: DataTypes.STRING },
+    subcategory: { type: DataTypes.STRING },
+    ram: { type: DataTypes.STRING },
+    cpu: { type: DataTypes.STRING },
+    storage: { type: DataTypes.STRING },
+    device_id: { type: DataTypes.STRING },
+    ip_address: { type: DataTypes.STRING },
+    wifi_registered: { type: DataTypes.STRING },
+    mac_address_lan: { type: DataTypes.STRING },
+    mac_address_wifi: { type: DataTypes.STRING },
+    start_date: { type: DataTypes.DATEONLY },
+    location: { type: DataTypes.STRING },
+    fin_asset_ref: { type: DataTypes.STRING },
+    user_id: { type: DataTypes.STRING },
+    user_name: { type: DataTypes.STRING },
+    department: { type: DataTypes.STRING },
+    category: { type: DataTypes.STRING },
+    status: { type: DataTypes.STRING, defaultValue: "Enable" },
+    windows_version: { type: DataTypes.STRING },
+    windows_key: { type: DataTypes.STRING },
+
+    office_version: { type: DataTypes.STRING },
+    office_key: { type: DataTypes.STRING },
+    antivirus: { type: DataTypes.STRING },
+    // special_programs ถูกลบออกไปแล้ว ถูกต้องครับ
   },
   {
-    tableName: "assets", // ระบุให้ตรงกับชื่อตารางของเรา
+    tableName: "assets",
   }
 );
 
+// ความสัมพันธ์เดิมของ Bitlocker
 Asset.hasMany(BitlockerKey, {
   foreignKey: "assetId",
-  as: "bitlockerKeys", // This alias is important for queries
-  onDelete: "CASCADE", // If an asset is deleted, delete its keys too
+  as: "bitlockerKeys",
+  onDelete: "CASCADE",
+});
+BitlockerKey.belongsTo(Asset, {
+  foreignKey: "assetId",
+  as: "asset",
 });
 
-// A Bitlocker Key belongs to one Asset
-BitlockerKey.belongsTo(Asset, {
+// ความสัมพันธ์สำหรับ Special Programs
+Asset.hasMany(AssetSpecialProgram, {
+  foreignKey: "assetId",
+  as: "specialPrograms",
+  onDelete: "CASCADE",
+});
+AssetSpecialProgram.belongsTo(Asset, {
   foreignKey: "assetId",
   as: "asset",
 });

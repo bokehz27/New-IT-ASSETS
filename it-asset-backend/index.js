@@ -18,6 +18,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const portRoutes = require('./routes/portRoutes');
 const switchRoutes = require('./routes/switchRoutes');
 const rackRoutes = require('./routes/rackRoutes');
+const AssetSpecialProgram = require('./models/assetSpecialProgram');
 // Import middleware
 const authMiddleware = require('./middleware/authMiddleware');
 
@@ -48,7 +49,7 @@ app.use(cors({
 app.use(express.json());
 
 // Sync Database
-sequelize.sync().then(() => {
+sequelize.sync({ alter: true }).then(() => {
   console.log('Database & tables synced.');
 }).catch(err => {
   console.error('Unable to connect to the database:', err);

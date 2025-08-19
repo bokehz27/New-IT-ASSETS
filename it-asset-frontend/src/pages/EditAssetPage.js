@@ -1,3 +1,5 @@
+// src/pages/EditAssetPage.js
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -18,10 +20,19 @@ function EditAssetPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const masterDataTypes = ['category', 'subcategory', 'brand', 'ram', 'storage', 'department', 'location', 'status'];
-        const masterDataRequests = masterDataTypes.map(type => axios.get(`${API_URL}/master-data/${type}`));
-        const assetRequest = axios.get(`${API_URL}/assets/${assetId}`);
-        const employeesRequest = axios.get(`${API_URL}/employees`);
+        const token = localStorage.getItem('token');
+        const headers = { 'x-auth-token': token };
+
+        const masterDataTypes = [
+            'category', 'subcategory', 'brand', 'ram', 'storage', 
+            'department', 'location', 'status',
+            'windows', 'office', 'antivirus',
+            'special_program' // --- (เพิ่ม) dataType ใหม่ ---
+        ];
+
+        const masterDataRequests = masterDataTypes.map(type => axios.get(`${API_URL}/master-data/${type}`, { headers }));
+        const assetRequest = axios.get(`${API_URL}/assets/${assetId}`, { headers });
+        const employeesRequest = axios.get(`${API_URL}/employees`, { headers });
         
         const [assetResponse, employeesResponse, ...masterDataResponses] = await Promise.all([assetRequest, employeesRequest, ...masterDataRequests]);
 
@@ -34,14 +45,15 @@ function EditAssetPage() {
         setMasterData(fetchedMasterData);
 
         const asset = assetResponse.data;
-
-        // --- (แก้ไข) ทำให้แน่ใจว่า bitlockerKeys เป็น array เสมอ ---
+        
+        // --- (แก้ไข) จัดรูปแบบข้อมูล specialPrograms และ bitlockerKeys ---
         setFormData({
           ...asset,
           start_date: asset.start_date ? new Date(asset.start_date).toISOString().split('T')[0] : '',
-          bitlockerKeys: asset.bitlockerKeys || [] // <-- เพิ่มการตรวจสอบตรงนี้
+          bitlockerKeys: asset.bitlockerKeys || [],
+          specialPrograms: asset.specialPrograms || [] // <-- เพิ่มบรรทัดนี้
         });
-        // ---------------------------------------------------------
+        // -----------------------------------------------------------
         setError(null);
       } catch (err) {
         console.error("Error fetching data for edit page:", err);
@@ -57,7 +69,10 @@ function EditAssetPage() {
     e.preventDefault();
     if (!formData) return;
     try {
-      await axios.put(`${API_URL}/assets/${assetId}`, formData);
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/assets/${assetId}`, formData, {
+        headers: { 'x-auth-token': token }
+      });
       alert("อัปเดตข้อมูลสำเร็จ!");
       navigate(`/asset/${assetId}`); 
     } catch (error) {

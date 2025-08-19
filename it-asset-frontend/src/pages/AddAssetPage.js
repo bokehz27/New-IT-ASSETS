@@ -1,3 +1,5 @@
+// src/pages/AddAssetPage.js
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -10,25 +12,36 @@ function AddAssetPage() {
   const [masterData, setMasterData] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // --- (แก้ไข) เพิ่ม bitlockerKeys เข้าไปใน state เริ่มต้น ---
   const [formData, setFormData] = useState({
     asset_code: '', serial_number: '', brand: '', model: '', subcategory: '',
     ram: '', cpu: '', storage: '', device_id: '', ip_address: '',
     wifi_registered: 'Wifi not register', mac_address_lan: '', mac_address_wifi: '',
     start_date: '', location: '', fin_asset_ref: '', user_id: '', user_name: '',
     department: '', category: '', status: 'Available',
-    bitlockerKeys: [] // <-- เพิ่มบรรทัดนี้
+    bitlockerKeys: [],
+    windows_version: '',
+    windows_key: '',
+    office_version: '',
+    office_key: '',
+    antivirus: '',
+    specialPrograms: [] // --- (แก้ไข) เปลี่ยนจาก '' เป็น [] ---
   });
-  // --------------------------------------------------------
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         setLoading(true);
-        const masterDataTypes = ['category', 'subcategory', 'brand', 'ram', 'storage', 'department', 'location', 'status'];
-        const masterDataRequests = masterDataTypes.map(type => axios.get(`${API_URL}/master-data/${type}`));
+        const masterDataTypes = [
+            'category', 'subcategory', 'brand', 'ram', 'storage', 
+            'department', 'location', 'status', 
+            'windows', 'office', 'antivirus',
+            'special_program' // --- (เพิ่ม) dataType ใหม่ ---
+        ];
+        const token = localStorage.getItem('token');
+        const headers = { 'x-auth-token': token };
 
-        const employeesRequest = axios.get(`${API_URL}/employees`);
+        const masterDataRequests = masterDataTypes.map(type => axios.get(`${API_URL}/master-data/${type}`, { headers }));
+        const employeesRequest = axios.get(`${API_URL}/employees`, { headers });
         
         const [employeesResponse, ...masterDataResponses] = await Promise.all([employeesRequest, ...masterDataRequests]);
 
@@ -38,7 +51,6 @@ function AddAssetPage() {
         }, {});
 
         fetchedMasterData.user_name = employeesResponse.data.map(emp => emp.fullName);
-        
         setMasterData(fetchedMasterData);
 
       } catch (error) {
@@ -54,8 +66,10 @@ function AddAssetPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // ส่ง formData ทั้งหมด (รวม bitlockerKeys) ไปยัง backend
-      await axios.post(`${API_URL}/assets`, formData);
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/assets`, formData, {
+        headers: { 'x-auth-token': token }
+      });
       alert("เพิ่มอุปกรณ์ใหม่สำเร็จ!");
       navigate('/'); 
     } catch (error) {

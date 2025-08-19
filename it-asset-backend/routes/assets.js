@@ -5,6 +5,7 @@ const Papa = require('papaparse');
 const Asset = require('../models/asset');
 const BitlockerKey = require('../models/bitlockerKey');
 const sequelize = require('../config/database');
+const AssetSpecialProgram = require('../models/assetSpecialProgram'); // --- (เพิ่ม) Import Model ใหม่ ---
 
 const router = express.Router();
 
@@ -43,59 +44,36 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     }
 });
 
-// --- (แก้ไขล่าสุด) Route สำหรับ Import BitLocker Key จากไฟล์ .txt ---
+// Route สำหรับ Import BitLocker Key จากไฟล์ .txt (ไม่มีการเปลี่ยนแปลง)
 router.post('/:assetId/upload-bitlocker', upload.single('file'), async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded.' });
-    }
-
+    // ... โค้ดส่วนนี้เหมือนเดิม ...
+    if (!req.file) { return res.status(400).json({ error: 'No file uploaded.' }); }
     const assetId = req.params.assetId;
     const fileContent = req.file.buffer.toString('utf8');
     const originalFilename = req.file.originalname;
-
     try {
         const asset = await Asset.findByPk(assetId);
-        if (!asset) {
-            return res.status(404).json({ error: 'Asset not found.' });
-        }
-
+        if (!asset) { return res.status(404).json({ error: 'Asset not found.' }); }
         const keysToCreate = [];
-
-        // 1. ดึงชื่อ Drive จากชื่อไฟล์ (เช่น "C_" จาก "C_Bitlocker....txt")
         const filenameRegex = /^([A-Z])_/i;
         const filenameMatch = originalFilename.match(filenameRegex);
         const driveLetter = filenameMatch ? `${filenameMatch[1].toUpperCase()}:` : null;
-
-        // 2. (ปรับปรุง Regex) ดึง Recovery Key จากเนื้อหาในไฟล์ โดยไม่สนใจ 
         const keyRegex = /(?:\\s*)?Recovery Key:\s*([\d-]+)/i;
         const keyMatch = fileContent.match(keyRegex);
         const recoveryKey = keyMatch ? keyMatch[1].replace(/\s/g, '') : null;
-
         if (driveLetter && recoveryKey) {
-            keysToCreate.push({
-                assetId: assetId,
-                drive_name: driveLetter,
-                recovery_key: recoveryKey,
-            });
+            keysToCreate.push({ assetId: assetId, drive_name: driveLetter, recovery_key: recoveryKey, });
         }
-
-        if (keysToCreate.length === 0) {
-            return res.status(400).json({ error: 'Cannot find key. Ensure filename starts with drive letter (e.g., "C_") and content includes "Recovery Key:".' });
-        }
-
+        if (keysToCreate.length === 0) { return res.status(400).json({ error: 'Cannot find key. Ensure filename starts with drive letter (e.g., "C_") and content includes "Recovery Key:".' }); }
         const transaction = await sequelize.transaction();
         try {
-            await BitlockerKey.bulkCreate(keysToCreate, {
-                transaction,
-                updateOnDuplicate: ["recovery_key"]
-            });
+            await BitlockerKey.bulkCreate(keysToCreate, { transaction, updateOnDuplicate: ["recovery_key"] });
             await transaction.commit();
             res.status(201).json({ message: `${keysToCreate.length} BitLocker key(s) imported for asset ${asset.asset_code}.` });
         } catch (dbError) {
             await transaction.rollback();
             throw dbError;
         }
-
     } catch (error) {
         console.error("Bitlocker import error:", error);
         res.status(500).json({ error: 'Failed to import BitLocker keys.', details: error.message });
@@ -103,8 +81,9 @@ router.post('/:assetId/upload-bitlocker', upload.single('file'), async (req, res
 });
 
 
-// [R]ead: ดึงข้อมูลทั้งหมด
+// [R]ead: ดึงข้อมูลทั้งหมด (ไม่มีการเปลี่ยนแปลง)
 router.get('/', async (req, res) => {
+    // ... โค้ดส่วนนี้เหมือนเดิม ...
     try {
         const { search, page = 1, limit = 20, filter = '' } = req.query;
         const offset = (page - 1) * limit;
@@ -142,10 +121,15 @@ router.get('/', async (req, res) => {
     }
 });
 
-// [R]ead: ดึงข้อมูลตาม ID
+// --- (แก้ไข) [R]ead: ดึงข้อมูลตาม ID เพิ่ม specialPrograms ---
 router.get('/:id', async (req, res) => {
     try {
-        const asset = await Asset.findByPk(req.params.id, { include: [{ model: BitlockerKey, as: 'bitlockerKeys' }] });
+        const asset = await Asset.findByPk(req.params.id, { 
+            include: [
+                { model: BitlockerKey, as: 'bitlockerKeys' },
+                { model: AssetSpecialProgram, as: 'specialPrograms' } // <-- เพิ่มบรรทัดนี้
+            ] 
+        });
         if (asset) { res.json(asset); } else { res.status(404).json({ error: 'Asset not found' }); }
     } catch (error) {
         console.error(`Error fetching asset with id ${req.params.id}:`, error);
@@ -153,16 +137,26 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// [C]reate: สร้าง Asset ใหม่
+// --- (แก้ไข) [C]reate: สร้าง Asset ใหม่ เพิ่มการจัดการ specialPrograms ---
 router.post('/', async (req, res) => {
-    const { bitlockerKeys, ...assetData } = req.body;
+    const { bitlockerKeys, specialPrograms, ...assetData } = req.body;
     const transaction = await sequelize.transaction();
     try {
         const newAsset = await Asset.create(assetData, { transaction });
+
         if (bitlockerKeys && bitlockerKeys.length > 0) {
             const keysToCreate = bitlockerKeys.map(key => ({ ...key, assetId: newAsset.id }));
             await BitlockerKey.bulkCreate(keysToCreate, { transaction });
         }
+
+        if (specialPrograms && specialPrograms.length > 0) {
+            const programsToCreate = specialPrograms.map(prog => ({
+                program_name: prog.program_name,
+                assetId: newAsset.id
+            }));
+            await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
+        }
+
         await transaction.commit();
         res.status(201).json(newAsset);
     } catch (error) {
@@ -172,19 +166,30 @@ router.post('/', async (req, res) => {
     }
 });
 
-// [U]pdate: อัปเดตข้อมูล Asset
+// --- (แก้ไข) [U]pdate: อัปเดตข้อมูล Asset เพิ่มการจัดการ specialPrograms ---
 router.put('/:id', async (req, res) => {
-    const { bitlockerKeys, ...assetData } = req.body;
+    const { bitlockerKeys, specialPrograms, ...assetData } = req.body;
     const transaction = await sequelize.transaction();
     try {
         const asset = await Asset.findByPk(req.params.id);
         if (asset) {
             await asset.update(assetData, { transaction });
+
             await BitlockerKey.destroy({ where: { assetId: req.params.id }, transaction });
             if (bitlockerKeys && bitlockerKeys.length > 0) {
                 const keysToCreate = bitlockerKeys.map(key => ({ ...key, assetId: asset.id }));
                 await BitlockerKey.bulkCreate(keysToCreate, { transaction });
             }
+
+            await AssetSpecialProgram.destroy({ where: { assetId: req.params.id }, transaction });
+            if (specialPrograms && specialPrograms.length > 0) {
+                const programsToCreate = specialPrograms.map(prog => ({
+                    program_name: prog.program_name,
+                    assetId: asset.id
+                }));
+                await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
+            }
+            
             await transaction.commit();
             res.json(asset);
         } else {
@@ -198,7 +203,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// [D]elete: ลบ Asset
+// [D]elete: ลบ Asset (ไม่มีการเปลี่ยนแปลง)
 router.delete('/:id', async (req, res) => {
     try {
         const asset = await Asset.findByPk(req.params.id);

@@ -950,3 +950,197 @@ input::placeholder, textarea::placeholder {
   color: var(--color-text-secondary);
   text-align: center;
 }
+
+/* src/index.css */
+
+/* ... (โค้ดเดิมของคุณ) ... */
+
+/* --- (เพิ่มใหม่) Styles สำหรับ Settings Page โดยเฉพาะ --- */
+
+.settings-sidebar-group-title {
+  padding: 8px 12px;
+  font-size: 0.75rem; /* 12px */
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.settings-sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  margin: 0 8px; /* เพิ่ม margin ด้านข้าง */
+  border-radius: 6px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.settings-sidebar-link:hover {
+  background-color: rgba(0, 0, 0, 0.04); /* Material hover effect */
+}
+
+.settings-sidebar-link.active {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  box-shadow: var(--elevation-2);
+}
+
+.settings-sidebar-link svg {
+  margin-right: 16px;
+  width: 20px;
+  height: 20px;
+  opacity: 0.7;
+}
+
+.settings-sidebar-link.active svg {
+  opacity: 1;
+}
+
+.settings-content-card {
+  background-color: var(--color-surface);
+  border-radius: 8px; /* มุมโค้งมนขึ้นเล็กน้อย */
+  box-shadow: var(--elevation-2);
+  padding: 24px;
+}
+
+/* --- (เพิ่มใหม่) Styles สำหรับ Settings Page (Card Design) --- */
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem; /* 24px */
+}
+
+.settings-card {
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  box-shadow: var(--elevation-2);
+  transition: all 0.2s ease-in-out;
+  overflow: hidden; /* ป้องกันเงาเลอะออกมา */
+}
+
+.settings-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--elevation-6);
+}
+
+.settings-card-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-divider);
+  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.settings-card-title {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 500;
+  color: var(--color-primary-dark);
+}
+
+.settings-card-body {
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-card-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem; /* 12px 16px */
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+}
+
+.settings-card-link:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.settings-card-link.active {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.settings-card-link svg {
+  margin-right: 12px;
+  width: 20px;
+  height: 20px;
+  opacity: 0.7;
+}
+
+.settings-card-link.active svg {
+  opacity: 1;
+}
+
+/* --- (เพิ่มใหม่) Styles สำหรับ Settings Page (Accordion Design) --- */
+
+.settings-accordion-group {
+  border-bottom: 1px solid var(--color-divider);
+}
+.settings-accordion-group:last-child {
+  border-bottom: none;
+}
+
+.accordion-trigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 16px 8px;
+  font-size: 1rem; /* 16px */
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.accordion-trigger:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.accordion-icon {
+  transition: transform 0.3s ease;
+}
+.accordion-icon.open {
+  transform: rotate(90deg);
+}
+
+.accordion-content {
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+  /* max-height จะถูกควบคุมโดย inline style */
+}
+
+/* ใช้ CSS เดิมสำหรับ Link แต่ปรับ Margin เล็กน้อย */
+.settings-sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  margin: 0 8px 4px 8px; /* เพิ่ม margin ด้านล่าง */
+  border-radius: 6px;
+  font-weight: 500;
+  color: var(--color-text-secondary); /* สีเริ่มต้นเป็นสีรอง */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.settings-sidebar-link:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--color-text-primary);
+}
+.settings-sidebar-link.active {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  box-shadow: var(--elevation-2);
+}
+.settings-sidebar-link.active svg {
+  color: var(--color-text-on-primary);
+}
+.settings-sidebar-link svg {
+  margin-right: 16px;
+  width: 20px;
+  height: 20px;
+}
