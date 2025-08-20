@@ -1144,3 +1144,56 @@ input::placeholder, textarea::placeholder {
   width: 20px;
   height: 20px;
 }
+
+/* === (เพิ่มใหม่) Navigation Dropdown (Desktop) === */
+.nav-dropdown-vibrant {
+  background-color: #2d3748; /* gray-800 */
+  color: #f7fafc; /* gray-100 */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--elevation-8);
+  z-index: 60; /* ทำให้แสดงอยู่ชั้นบนสุด */
+}
+.nav-dropdown-vibrant a {
+  color: #f7fafc;
+  transition: background-color 0.2s ease-in-out;
+}
+.nav-dropdown-vibrant a:hover {
+  background-color: #4a5568; /* gray-700 */
+}
+.nav-dropdown-vibrant a.active {
+  background-color: #6366f1; /* สีสำหรับไฮไลท์ */
+  font-weight: bold;
+}
+
+
+/* === (อัปเดต) Mobile Menu Overlay === */
+.mobile-menu-overlay-vibrant {
+  /* ... คงสไตล์เดิมไว้ ... */
+  padding-top: 4rem; /* เพิ่ม padding ด้านบนเพื่อไม่ให้ทับกับปุ่มปิด */
+  padding-bottom: 2rem;
+  overflow-y: auto; /* ทำให้เลื่อนได้ถ้าเนื้อหายาวเกิน */
+}
+.mobile-menu-overlay-vibrant .mobile-nav-link {
+  font-size: 1.5rem; /* ลดขนาดเล็กน้อยเพื่อให้พอดี */
+  font-weight: 500;
+  /* ... คงสไตล์อื่นๆ ไว้ ... */
+}
+/* (เพิ่มใหม่) สไตล์สำหรับกลุ่มเมนูย่อยในมือถือ */
+.mobile-nav-group-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.mobile-nav-link-sub {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0.5rem 1rem;
+  transition: color 0.2s ease;
+}
+.mobile-nav-link-sub.active {
+  color: white;
+  font-weight: 600;
+}

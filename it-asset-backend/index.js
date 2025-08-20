@@ -19,6 +19,7 @@ const portRoutes = require('./routes/portRoutes');
 const switchRoutes = require('./routes/switchRoutes');
 const rackRoutes = require('./routes/rackRoutes');
 const AssetSpecialProgram = require('./models/assetSpecialProgram');
+const reportRoutes = require('./routes/reports');
 // Import middleware
 const authMiddleware = require('./middleware/authMiddleware');
 
@@ -66,6 +67,7 @@ app.use('/api/assets', authMiddleware, assetRoutes);
 app.use('/api/tickets', authMiddleware, ticketRoutes);
 app.use('/api/master-data', authMiddleware, masterDataRoutes);
 app.use('/api/users', authMiddleware, userRoutes);
+app.use('/api/reports', authMiddleware, reportRoutes);
 app.use('/api/employees', authMiddleware, employeeRoutes);
 app.use('/api/dashboard', authMiddleware, dashboardRoutes);
 app.use('/api/ports', authMiddleware, portRoutes);

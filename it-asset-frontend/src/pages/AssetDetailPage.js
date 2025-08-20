@@ -137,7 +137,7 @@ function AssetDetailPage() {
                     <InfoCard title="BitLocker Recovery Keys">
                          {asset.bitlockerKeys && asset.bitlockerKeys.length > 0 ? (
                             asset.bitlockerKeys.map((key) => (
-                                <DetailItem key={key.id} label={`Drive ${key.drive_name}`} value={key.recovery_key} />
+                                <DetailItem key={key.id} label={`Identifier : ${key.drive_name}`} value={key.recovery_key} />
                             ))
                         ) : (
                             <div className="px-4 py-3 text-sm text-gray-500">

@@ -62,6 +62,7 @@ const AppHeader = () => {
     { to: "/tickets", text: "Manage Tickets" },
     { to: "/switches", text: "Manage Switch" },
     { to: "/add-data", text: "Manage Data" },
+    { to: "/report", text: "Report" }, // เพิ่ม Link ไปยังหน้า Report ตรงนี้
   ];
 
   return (
