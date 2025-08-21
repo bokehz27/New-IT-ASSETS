@@ -77,7 +77,7 @@ function App() {
                 path="/switches/:switchId"
                 element={<SwitchDetailPage />}
               />
-              {/* --- ส่วนที่แก้ไข: เพิ่ม Route ลูกสำหรับ Settings --- */}
+              {/* --- ส่วนของ Settings --- */}
               <Route path="/settings" element={<SettingsLayout />}>
                 <Route
                   path="category"
@@ -131,7 +131,7 @@ function App() {
                     />
                   }
                 />
-                <Route path="user_name" element={<UserManagementPage />} />
+                <Route path="users" element={<UserManagementPage />} />
                 <Route
                   path="repair-type"
                   element={
@@ -141,8 +141,13 @@ function App() {
                     />
                   }
                 />
+                {/* --- (เพิ่มใหม่) Route สำหรับจัดการข้อมูล Software --- */}
+                <Route path="windows" element={<ManagementPage title="จัดการรุ่น Windows" dataType="windows" />} />
+                <Route path="office" element={<ManagementPage title="จัดการรุ่น Office" dataType="office" />} />
+                <Route path="antivirus" element={<ManagementPage title="จัดการโปรแกรม Antivirus" dataType="antivirus" />} />
+                <Route path="special_program" element={<ManagementPage title="จัดการโปรแกรมพิเศษ" dataType="special_program" />} />
+                {/* ---------------------------------------------- */}
               </Route>
-              {/* --- สิ้นสุดส่วนที่แก้ไข --- */}
             </Route>
           </Routes>
         </main>

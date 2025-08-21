@@ -19,25 +19,38 @@ const CloseIcon = () => (
     </svg>
 );
 
+// --- (เพิ่มใหม่) ไอคอนลูกศรสำหรับ Dropdown ---
+const ChevronDownIcon = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+);
+// ---------------------------------------------
+
 
 const AppHeader = () => {
   const { token, logout } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isMiniProgramOpen, setIsMiniProgramOpen] = useState(false);
+  
+  const miniProgramMenuRef = useRef(null);
   const profileMenuRef = useRef(null);
 
   const handleLogout = () => {
     logout();
-    setIsProfileMenuOpen(false); // ปิดเมนูหลัง logout
+    setIsProfileMenuOpen(false);
     navigate("/login");
   };
 
-  // --- จัดการการคลิกนอกเมนูโปรไฟล์ ---
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
         setIsProfileMenuOpen(false);
+      }
+      if (miniProgramMenuRef.current && !miniProgramMenuRef.current.contains(event.target)) {
+        setIsMiniProgramOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -46,7 +59,6 @@ const AppHeader = () => {
     };
   }, []);
   
-  // --- ป้องกันการเลื่อนหน้าจอเมื่อ Mobile Menu เปิด ---
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -55,14 +67,12 @@ const AppHeader = () => {
     }
   }, [isMobileMenuOpen]);
 
-
   const navLinks = [
     { to: "/", text: "Dashboard" },
     { to: "/assets", text: "Asset List" },
     { to: "/tickets", text: "Manage Tickets" },
-    { to: "/switches", text: "Manage Switch" },
     { to: "/add-data", text: "Manage Data" },
-    { to: "/report", text: "Report" }, // เพิ่ม Link ไปยังหน้า Report ตรงนี้
+    { to: "/report", text: "Report" },
   ];
 
   return (
@@ -87,6 +97,29 @@ const AppHeader = () => {
                     {link.text}
                   </NavLink>
                 ))}
+                
+                <div className="relative" ref={miniProgramMenuRef}>
+                    {/* --- (แก้ไข) เพิ่มไอคอนและ animation --- */}
+                    <button
+                      onClick={() => setIsMiniProgramOpen(!isMiniProgramOpen)}
+                      className="nav-link-vibrant flex items-center gap-1"
+                    >
+                      <span>Mini Program</span>
+                      <ChevronDownIcon className={`transition-transform duration-200 ${isMiniProgramOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {/* -------------------------------------- */}
+                    {isMiniProgramOpen && (
+                        <div className="nav-dropdown-vibrant absolute top-full left-0 mt-2 w-48 rounded-md shadow-lg py-1">
+                            <NavLink
+                                to="/switches"
+                                onClick={() => setIsMiniProgramOpen(false)}
+                                className={({isActive}) => `block w-full text-left px-4 py-2 text-sm ${isActive ? 'active' : ''}`}
+                            >
+                                Manage Switch
+                            </NavLink>
+                        </div>
+                    )}
+                </div>
               </div>
             )}
           </div>
@@ -94,7 +127,6 @@ const AppHeader = () => {
           {/* --- Right side actions --- */}
           <div className="flex items-center">
             {token ? (
-              // --- เมนูโปรไฟล์เมื่อ Login แล้ว (Desktop) ---
               <div className="hidden md:flex items-center relative" ref={profileMenuRef}>
                  <button 
                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} 
@@ -114,7 +146,6 @@ const AppHeader = () => {
                  )}
               </div>
             ) : (
-              // --- ปุ่มสำหรับ Guest (Desktop) ---
               <div className="hidden md:flex items-center space-x-2">
                 <Link to="/report-issue" className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold">
                   แจ้งปัญหา
@@ -125,7 +156,6 @@ const AppHeader = () => {
               </div>
             )}
             
-            {/* --- Mobile Menu Button --- */}
             <div className="md:hidden">
               <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white p-2">
                 {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
@@ -158,6 +188,17 @@ const AppHeader = () => {
                     {link.text}
                   </NavLink>
                 ))}
+                
+                <div className="text-center">
+                  <div className="mobile-nav-group-title">Mini Program</div>
+                  <NavLink
+                    to="/switches"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={({isActive}) => `mobile-nav-link-sub ${isActive ? 'active' : ''}`}
+                  >
+                    Manage Switch
+                  </NavLink>
+                </div>
               </nav>
               <button onClick={handleLogout} className="mobile-logout-button">
                 Logout

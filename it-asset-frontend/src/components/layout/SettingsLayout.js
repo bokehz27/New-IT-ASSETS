@@ -45,7 +45,7 @@ const settingsMenu = [
   { 
     title: 'Users', 
     items: [
-      { name: 'รายชื่อผู้ใช้', path: '/settings/user_name', icon: <Users size={18} /> },
+      { name: 'รายชื่อผู้ใช้', path: '/settings/users', icon: <Users size={18} /> },
     ]
   },
 ];

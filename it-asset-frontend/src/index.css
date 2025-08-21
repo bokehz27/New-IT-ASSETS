@@ -1197,3 +1197,60 @@ input::placeholder, textarea::placeholder {
   color: white;
   font-weight: 600;
 }
+
+/* --- (แนะนำ) Navbar Design: Material Theme Primary Color --- */
+
+/* === Header หลัก: เปลี่ยนพื้นหลังเป็นสี Primary === */
+.header-vibrant {
+  background: var(--color-primary); /* เปลี่ยนจากสีเทาเข้มเป็นสีน้ำเงิน Indigo */
+  color: var(--color-text-on-primary); /* ใช้สีตัวอักษรสำหรับพื้นหลังสี Primary */
+}
+
+/* === ลิงก์นำทางบน Desktop: ปรับสี Hover และ Active ให้เข้ากัน === */
+.nav-link-vibrant {
+  color: var(--color-text-on-primary);
+}
+
+.nav-link-vibrant:hover {
+  background-color: rgba(255, 255, 255, 0.15); /* ทำให้สว่างขึ้นเล็กน้อยเมื่อชี้ */
+}
+
+.nav-link-vibrant.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  font-weight: 700;
+}
+
+/* === เมนู Dropdown ต่างๆ (Profile & Mini Program) === */
+.profile-dropdown-vibrant,
+.nav-dropdown-vibrant {
+  background-color: var(--color-primary-dark); /* ใช้สีน้ำเงินที่เข้มขึ้นเล็กน้อยเพื่อแยกชั้น */
+  color: var(--color-text-on-primary);
+  border-color: rgba(255, 255, 255, 0.2); /* เส้นขอบที่สว่างขึ้น */
+}
+.profile-dropdown-vibrant button,
+.nav-dropdown-vibrant a {
+  color: var(--color-text-on-primary);
+}
+.profile-dropdown-vibrant button:hover,
+.nav-dropdown-vibrant a:hover {
+  background-color: var(--color-primary-light); /* ใช้สีน้ำเงินที่สว่างขึ้นเมื่อชี้ */
+}
+.nav-dropdown-vibrant a.active {
+  background-color: var(--color-primary-light);
+  font-weight: bold;
+}
+
+/* === ปุ่มสำหรับผู้ที่ยังไม่ได้ Login: ปรับให้เข้ากับพื้นหลังใหม่ === */
+.cta-button-vibrant {
+  border-color: white;
+  color: white;
+}
+.cta-button-vibrant:hover {
+  background-color: white;
+  color: var(--color-primary); /* เมื่อชี้ ให้ตัวอักษรเป็นสี Primary */
+}
+
+/* === Mobile Menu Overlay: เปลี่ยนพื้นหลังให้เหมือนกัน === */
+.mobile-menu-overlay-vibrant {
+  background: var(--color-primary);
+}
