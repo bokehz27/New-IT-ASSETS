@@ -1,19 +1,16 @@
+// src/pages/AdminTicketFormPage.js (ตัวอย่าง Path)
+
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+// --- CHANGE 1: นำเข้า api instance แทน axios โดยตรง ---
+import api from "../api"; // <-- ปรับ path ตามโครงสร้างโปรเจกต์
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 
-// --- IMPROVEMENT 4: ย้าย customSelectStyles ออกมาไว้ที่เดียว และลบส่วนที่ซ้ำซ้อนใน useEffect ---
-// สไตล์สำหรับ React-Select จะถูกใช้ร่วมกันทุก components
 const customSelectStyles = {
-  // Styles จากไฟล์ index.css ถูกนำมาใช้โดย classNamePrefix="react-select" อยู่แล้ว
-  // แต่ถ้าต้องการ override เพิ่มเติม สามารถทำที่นี่ได้
-  // ในที่นี้เราใช้จาก CSS เป็นหลัก ดังนั้น object นี้อาจไม่จำเป็นต้องมีเนื้อหาเยอะ
-  // แต่การประกาศไว้เพื่อส่ง props ทำให้โค้ดอ่านง่าย
+  // สามารถ override style เพิ่มเติมได้ที่นี่
 };
 
 function AdminTicketFormPage() {
-  // --- IMPROVEMENT: จัดกลุ่ม State เพื่อให้อ่านง่ายขึ้น (ทางเลือก) ---
   const [ticketData, setTicketData] = useState({
     reporterName: "",
     assetCode: "",
@@ -22,7 +19,7 @@ function AdminTicketFormPage() {
   });
   const [adminData, setAdminData] = useState({
     handlerName: "",
-    status: "Wait", // กำหนดค่าเริ่มต้น
+    status: "Wait",
     repairType: "",
     solution: "",
   });
@@ -48,12 +45,13 @@ function AdminTicketFormPage() {
           return;
         }
 
-        // Fetch data พร้อมกันเพื่อประสิทธิภาพที่ดีขึ้น
+        // --- CHANGE 2: ใช้ api instance ที่จัดการ baseURL และ token อัตโนมัติ ---
+        // ทำให้โค้ดสะอาดขึ้น ไม่ต้องระบุ URL เต็มและ header ทุกครั้ง
         const [assetRes, adminRes, repairTypeRes, reporterRes] = await Promise.all([
-          axios.get("http://172.18.1.61:5000/api/public/assets-list", { headers: { "x-auth-token": token } }),
-          axios.get("http://172.18.1.61:5000/api/users", { headers: { "x-auth-token": token } }),
-          axios.get("http://172.18.1.61:5000/api/master-data/repair_type", { headers: { "x-auth-token": token } }),
-          axios.get("http://172.18.1.61:5000/api/public/asset-users", { headers: { "x-auth-token": token } })
+          api.get("/public/assets-list"),
+          api.get("/users"),
+          api.get("/master-data/repair_type"),
+          api.get("/public/asset-users"),
         ]);
 
         setOptions({
@@ -61,7 +59,6 @@ function AdminTicketFormPage() {
             value: asset.asset_code,
             label: `${asset.asset_code} ${asset.model ? `- ${asset.model}` : ""}`,
           })),
-          // --- IMPROVEMENT 1: เตรียมข้อมูลสำหรับ React-Select ---
           adminOptions: adminRes.data.map((admin) => ({
             value: admin.username,
             label: admin.username,
@@ -112,11 +109,11 @@ function AdminTicketFormPage() {
     formDataToSend.append("solution", adminData.solution);
 
     try {
-      await axios.post(
-        "http://172.18.1.61:5000/api/public/tickets",
-        formDataToSend,
-        { headers: { "Content-Type": "multipart/form-data", "x-auth-token": localStorage.getItem("token") } }
-      );
+      // --- CHANGE 3: ใช้ api instance สำหรับการ POST เช่นกัน ---
+      // ไม่ต้องกำหนด Content-Type สำหรับ FormData, axios จะจัดการให้
+      // และ interceptor จะใส่ token ให้โดยอัตโนมัติ
+      await api.post("/public/tickets", formDataToSend);
+
       setMessage("สร้างรายการแจ้งซ่อมสำเร็จ!");
       setMessageType("success");
       setTimeout(() => navigate("/tickets"), 2000);
@@ -129,7 +126,6 @@ function AdminTicketFormPage() {
     }
   };
   
-  // ตัวเลือกสำหรับ Status
   const statusOptions = [
     { value: "Wait", label: "Wait" },
     { value: "In Progress", label: "In Progress" },
@@ -137,6 +133,7 @@ function AdminTicketFormPage() {
     { value: "Cancel", label: "Cancel" },
   ];
 
+  // --- ส่วน JSX ไม่มีการเปลี่ยนแปลง ---
   return (
     <div className="flex justify-center items-start min-h-screen bg-gray-50 py-8 px-4">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-5xl">
@@ -151,16 +148,13 @@ function AdminTicketFormPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* --- IMPROVEMENT 2: ใช้ grid และ เพิ่มเส้นแบ่งเพื่อความชัดเจน --- */}
           <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-12">
-            
             {/* คอลัมน์ซ้าย */}
             <div className="space-y-4">
               <h3 className="text-xl font-bold text-gray-800 border-b border-gray-200 pb-2 mb-4">
                 ข้อมูลผู้แจ้งและปัญหา
               </h3>
               <div>
-                {/* --- IMPROVEMENT 3: เพิ่ม * สำหรับฟิลด์ที่จำเป็น --- */}
                 <label className="block mb-1 text-sm font-semibold text-gray-700">ชื่อผู้แจ้ง: <span className="text-red-500">*</span></label>
                 <Select
                   classNamePrefix="react-select"
@@ -225,7 +219,6 @@ function AdminTicketFormPage() {
                <h3 className="text-xl font-bold text-gray-800 border-b border-gray-200 pb-2 mb-4">
                 ข้อมูลสำหรับ Admin
               </h3>
-               {/* --- IMPROVEMENT 1: เปลี่ยนมาใช้ React-Select ทั้งหมด --- */}
               <div>
                 <label className="block mb-1 text-sm font-semibold text-gray-700">ผู้ดำเนินการ:</label>
                 <Select

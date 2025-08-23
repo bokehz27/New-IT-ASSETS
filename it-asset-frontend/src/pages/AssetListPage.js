@@ -1,9 +1,13 @@
+// src/pages/AssetListPage.js (ตัวอย่าง Path)
+
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+// --- CHANGE 1: นำเข้า api instance แทน axios โดยตรง ---
+import api from "../api"; // <-- ปรับ path ตามโครงสร้างโปรเจกต์
 import AssetList from "../components/AssetList";
 import { useSearchParams } from "react-router-dom";
 
-const API_URL = "http://172.18.1.61:5000/api/assets";
+// --- CHANGE 2: ลบตัวแปร API_URL ที่ไม่จำเป็นออกไป ---
+// const API_URL = "http://172.18.1.61:5000/api/assets";
 
 function AssetListPage() {
   const [assets, setAssets] = useState([]);
@@ -26,7 +30,8 @@ function AssetListPage() {
   ) => {
     try {
       setLoading(true);
-      const response = await axios.get(API_URL, {
+      // --- CHANGE 3: ใช้ api instance ซึ่งจะแนบ token ไปกับ request โดยอัตโนมัติ ---
+      const response = await api.get("/assets", {
         params: {
           search: searchQuery,
           page: page,
@@ -47,7 +52,6 @@ function AssetListPage() {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      // เมื่อมีการค้นหา ให้กลับไปหน้า 1 เสมอ
       const pageToFetch = searchTerm ? 1 : currentPage;
       fetchAssets(pageToFetch, limit, searchTerm, filter);
     }, 300);
@@ -58,7 +62,8 @@ function AssetListPage() {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this asset?")) {
       try {
-        await axios.delete(`${API_URL}/${id}`);
+        // --- CHANGE 4: ใช้ api instance สำหรับการลบข้อมูลเช่นกัน ---
+        await api.delete(`/assets/${id}`);
         fetchAssets(currentPage, limit, searchTerm, filter);
       } catch (error) {
         console.error("Error deleting asset:", error);
@@ -69,13 +74,13 @@ function AssetListPage() {
 
   const handleLimitChange = (e) => {
     setLimit(Number(e.target.value));
-    setCurrentPage(1); // กลับไปหน้า 1 เมื่อเปลี่ยน limit
+    setCurrentPage(1);
   };
 
+  // --- ส่วน JSX ไม่มีการเปลี่ยนแปลง ---
   return (
     <div>
       <div>
-        {/* --- วางโค้ดที่ถามมาตรงนี้ --- */}
         {filter === "incomplete" && (
           <div
             className="p-4 mb-4 text-orange-800 bg-orange-100 border-l-4 border-orange-500 rounded"
@@ -87,9 +92,7 @@ function AssetListPage() {
         )}
       </div>
 
-      {/* --- ส่วนที่แก้ไข --- */}
       <div className="flex justify-between items-center mb-4 gap-4">
-        {/* Search Input */}
         <div className="relative flex-grow">
           <input
             type="text"
@@ -122,19 +125,11 @@ function AssetListPage() {
           )}
         </div>
 
-        {/* Filter Buttons */}
         <div className="flex gap-2">
-          {/*<button
-            onClick={() => setSearchParams({ filter: "incomplete" })}
-            className="bg-purple-500 table-action-button whitespace-nowrap" // <-- แก้ไขเป็นคลาสนี้
-            disabled={filter === "incomplete"}
-          >
-            ข้อมูลไม่ครบ
-          </button>*/}
           {filter && (
             <button
               onClick={() => setSearchParams({})}
-              className="bg-gray-200 text-gray-700 whitespace-nowrap" // <-- คลาสนี้ถูกต้องตามธีมแล้ว
+              className="bg-gray-200 text-gray-700 whitespace-nowrap"
             >
               ล้างการกรอง
             </button>
@@ -147,16 +142,9 @@ function AssetListPage() {
       ) : (
         <>
           <AssetList assets={assets} onDelete={handleDelete} />
-          {/* Pagination Controls */}
           <div className="flex items-center justify-between mt-4">
             <div className="flex items-center gap-2">
-              {/* ข้อความ: ใช้ text-gray-700 ที่ถูก map เป็น --color-text-secondary */}
               <span className="text-sm text-gray-700">Rows per page:</span>
-              {/*
-                Select Dropdown:
-                - ลบคลาส p-1, border, border-gray-300, rounded-md
-                - สไตล์จะถูกนำไปใช้จาก Global Style ของ select ใน index.css
-              */}
               <select value={limit} onChange={handleLimitChange}>
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -169,11 +157,6 @@ function AssetListPage() {
                 Page {currentPage} of {totalPages} ({totalItems} items)
               </span>
               <div className="flex gap-2">
-                {/*
-                  ปุ่ม Previous/Next:
-                  - เปลี่ยนไปใช้สไตล์ของปุ่มรอง (เหมือนปุ่ม Logout) คือ bg-gray-200 text-gray-700
-                  - เปลี่ยน disabled:opacity-50 เป็น disabled:bg-gray-400 เพื่อใช้สไตล์ disabled ของ Material
-                */}
                 <button
                   onClick={() =>
                     setCurrentPage((prev) => Math.max(prev - 1, 1))

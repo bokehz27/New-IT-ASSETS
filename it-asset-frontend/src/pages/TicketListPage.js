@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import Modal from 'react-modal'; // 1. Import Modal
+// src/pages/TicketListPage.js
 
-// 2. Import ฟอร์มที่เราจะสร้างใหม่ (ตรวจสอบ Path ให้ถูกต้อง)
+import React, { useState, useEffect, useCallback } from 'react';
+// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
+import api from '../api'; // Adjust path as needed
+import { useNavigate } from 'react-router-dom';
+import Modal from 'react-modal'; 
+
 import TicketFormModal from '../components/TicketFormModal'; 
 
 import {
@@ -11,9 +13,9 @@ import {
     FaClock, FaSpinner, FaCheckCircle, FaTimesCircle, FaExclamationTriangle
 } from 'react-icons/fa';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
+// --- CHANGE 2: Remove the unnecessary API_URL constant ---
+// const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
-// 3. ตั้งค่า Modal Root Element (สำคัญมาก)
 Modal.setAppElement('#root');
 
 const StatusIcon = ({ status }) => {
@@ -48,22 +50,20 @@ function TicketListPage() {
   const [limit, setLimit] = useState(10);
 
   const [filters, setFilters] = useState({
-  status: '',
-  startDate: '',
-  endDate: ''
-});
+    status: '',
+    startDate: '',
+    endDate: ''
+  });
 
-  // --- 4. เพิ่ม State สำหรับ Modal ---
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedTicketId, setSelectedTicketId] = useState(null); // สำหรับเก็บ ID ที่จะแก้ไข
-  const [modalMode, setModalMode] = useState('create'); // 'create' หรือ 'update'
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const [modalMode, setModalMode] = useState('create');
 
   const fetchTickets = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/tickets`, {
-        headers: { 'x-auth-token': token || '' },
+      // --- CHANGE 3: Use the 'api' instance, which handles headers automatically ---
+      const res = await api.get('/tickets', {
         params: {
           ...filters,
           page: currentPage,
@@ -109,7 +109,6 @@ function TicketListPage() {
     setCurrentPage(1);
   };
   
-  // --- 5. สร้างฟังก์ชันสำหรับเปิด-ปิด Modal ---
   const openModal = (mode, ticketId = null) => {
     setModalMode(mode);
     setSelectedTicketId(ticketId);
@@ -121,20 +120,16 @@ function TicketListPage() {
     setSelectedTicketId(null);
   };
   
-  // --- 6. ฟังก์ชัน Callback เมื่อฟอร์มใน Modal ทำงานสำเร็จ ---
   const handleFormSuccess = () => {
     closeModal();
-    fetchTickets(); // โหลดข้อมูลใหม่หลังจากสร้าง/แก้ไขสำเร็จ
+    fetchTickets();
   };
-
 
   const handleDeleteClick = async (ticketId) => {
     if (window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการแจ้งซ่อมนี้?')) {
       try {
-        const token = localStorage.getItem('token');
-        await axios.delete(`${API_URL}/tickets/${ticketId}`, {
-          headers: { 'x-auth-token': token }
-        });
+        // --- CHANGE 4: Use the 'api' instance for the delete request ---
+        await api.delete(`/tickets/${ticketId}`);
         
         fetchTickets();
         alert('ลบรายการแจ้งซ่อมสำเร็จ!');
@@ -145,11 +140,11 @@ function TicketListPage() {
     }
   };
 
+  // --- No changes to JSX below ---
   return (
     <div className="my-8 px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold text-gray-900">รายการแจ้งซ่อม</h2>
-        {/* --- 7. แก้ไขปุ่มให้เรียกฟังก์ชันเปิด Modal --- */}
         <button
           onClick={() => openModal('create')}
           className="bg-blue-600 text-white font-bold py-2 px-6 rounded-md hover:bg-blue-700 flex items-center gap-2"
@@ -239,7 +234,6 @@ function TicketListPage() {
                     </td>
                     <td className="p-3 align-middle whitespace-nowrap">
                       <div className="flex justify-center items-center gap-2">
-                        {/* --- 8. แก้ไขปุ่มให้เรียกฟังก์ชันเปิด Modal --- */}
                         <button 
                             onClick={() => openModal('update', ticket.id)} 
                             className="bg-blue-500 hover:bg-blue-600 table-action-button"
@@ -297,7 +291,6 @@ function TicketListPage() {
         </>
       )}
       
-      {/* --- 9. เพิ่ม Component Modal เข้ามาในหน้า --- */}
       <Modal
         isOpen={isModalOpen}
         onRequestClose={closeModal}

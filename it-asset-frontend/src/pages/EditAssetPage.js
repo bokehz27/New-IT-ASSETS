@@ -1,11 +1,13 @@
 // src/pages/EditAssetPage.js
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
+import api from '../api'; // Adjust path as needed
 import { useNavigate, useParams } from 'react-router-dom';
 import AssetForm from '../components/AssetForm';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
+// --- CHANGE 2: Remove the unnecessary API_URL constant ---
+// const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
 function EditAssetPage() {
   const navigate = useNavigate();
@@ -20,21 +22,25 @@ function EditAssetPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
-        const headers = { 'x-auth-token': token };
-
+        
+        // --- CHANGE 3: Switched all axios calls to the 'api' instance. ---
+        // Headers are now handled automatically by the interceptor.
         const masterDataTypes = [
             'category', 'subcategory', 'brand', 'ram', 'storage', 
             'department', 'location', 'status',
             'windows', 'office', 'antivirus',
-            'special_program' // --- (เพิ่ม) dataType ใหม่ ---
+            'special_program'
         ];
 
-        const masterDataRequests = masterDataTypes.map(type => axios.get(`${API_URL}/master-data/${type}`, { headers }));
-        const assetRequest = axios.get(`${API_URL}/assets/${assetId}`, { headers });
-        const employeesRequest = axios.get(`${API_URL}/employees`, { headers });
+        const masterDataRequests = masterDataTypes.map(type => api.get(`/master-data/${type}`));
+        const assetRequest = api.get(`/assets/${assetId}`);
+        const employeesRequest = api.get(`/employees`);
         
-        const [assetResponse, employeesResponse, ...masterDataResponses] = await Promise.all([assetRequest, employeesRequest, ...masterDataRequests]);
+        const [assetResponse, employeesResponse, ...masterDataResponses] = await Promise.all([
+            assetRequest, 
+            employeesRequest, 
+            ...masterDataRequests
+        ]);
 
         const fetchedMasterData = masterDataTypes.reduce((acc, type, index) => {
           acc[type] = masterDataResponses[index].data.map(item => item.value);
@@ -46,14 +52,13 @@ function EditAssetPage() {
 
         const asset = assetResponse.data;
         
-        // --- (แก้ไข) จัดรูปแบบข้อมูล specialPrograms และ bitlockerKeys ---
         setFormData({
           ...asset,
           start_date: asset.start_date ? new Date(asset.start_date).toISOString().split('T')[0] : '',
           bitlockerKeys: asset.bitlockerKeys || [],
-          specialPrograms: asset.specialPrograms || [] // <-- เพิ่มบรรทัดนี้
+          specialPrograms: asset.specialPrograms || []
         });
-        // -----------------------------------------------------------
+
         setError(null);
       } catch (err) {
         console.error("Error fetching data for edit page:", err);
@@ -69,10 +74,8 @@ function EditAssetPage() {
     e.preventDefault();
     if (!formData) return;
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API_URL}/assets/${assetId}`, formData, {
-        headers: { 'x-auth-token': token }
-      });
+      // --- CHANGE 4: Use the 'api' instance for the PUT request. ---
+      await api.put(`/assets/${assetId}`, formData);
       alert("อัปเดตข้อมูลสำเร็จ!");
       navigate(`/asset/${assetId}`); 
     } catch (error) {

@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// src/pages/ReportPage.js
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
+import React, { useState, useEffect } from 'react';
+// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
+import api from '../api'; // Adjust path as needed
+
+// --- CHANGE 2: Remove the unnecessary API_URL constant ---
+// const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
 const ReportPage = () => {
     const availableFields = [
-        // ... รายการฟิลด์ทั้งหมดของคุณเหมือนเดิม ...
         { key: 'asset_code', label: 'IT Asset' }, { key: 'model', label: 'Model' },
         { key: 'category', label: 'Category' }, { key: 'subcategory', label: 'Subcategory' },
         { key: 'ram', label: 'RAM' }, { key: 'cpu', label: 'CPU' },
@@ -21,11 +24,10 @@ const ReportPage = () => {
         { key: 'office_key', label: 'Office Key' }, { key: 'antivirus', label: 'Antivirus' },
     ];
 
-    // --- State Management ---
     const [selectedFields, setSelectedFields] = useState({});
     const [presets, setPresets] = useState([]);
     const [newPresetName, setNewPresetName] = useState('');
-    const [selectedPresetName, setSelectedPresetName] = useState(''); // <-- เพิ่ม State นี้
+    const [selectedPresetName, setSelectedPresetName] = useState('');
 
     useEffect(() => {
         try {
@@ -76,7 +78,6 @@ const ReportPage = () => {
     
     const handleDeletePreset = (presetNameToDelete) => {
         if (window.confirm(`Are you sure you want to delete the preset "${presetNameToDelete}"?`)) {
-            // หาก preset ที่ลบคืออันที่กำลังเลือกอยู่ ให้รีเซ็ต dropdown
             if (presetNameToDelete === selectedPresetName) {
                 setSelectedPresetName('');
             }
@@ -88,7 +89,7 @@ const ReportPage = () => {
     
     const handlePresetChange = (event) => {
         const presetName = event.target.value;
-        setSelectedPresetName(presetName); // <-- แก้ไข: อัปเดต State ที่ควบคุม Dropdown
+        setSelectedPresetName(presetName);
 
         const selectedPreset = presets.find(p => p.name === presetName);
 
@@ -113,10 +114,10 @@ const ReportPage = () => {
             return;
         }
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get(`${API_URL}/reports/assets/export-simple`, {
+            // --- CHANGE 3: Use the 'api' instance for the export request ---
+            // Headers are now handled automatically.
+            const response = await api.get('/reports/assets/export-simple', {
                 params: { fields: fieldsToExport.join(',') },
-                headers: { 'x-auth-token': token },
                 responseType: 'blob',
             });
             const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -131,7 +132,8 @@ const ReportPage = () => {
             alert('Failed to export data.');
         }
     };
-
+    
+    // --- No changes to JSX below ---
     return (
         <div className="container mx-auto p-4 space-y-6">
             <h1 className="text-3xl font-bold">Asset Report Generator</h1>
@@ -142,7 +144,6 @@ const ReportPage = () => {
                     <label htmlFor="preset-select" className="block text-sm font-medium text-gray-700 mb-2">
                         Load a Saved Preset:
                     </label>
-                    {/* แก้ไข: เปลี่ยน value ของ select เป็น state */}
                     <select 
                         id="preset-select" 
                         onChange={handlePresetChange} 

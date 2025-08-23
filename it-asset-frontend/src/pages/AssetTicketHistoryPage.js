@@ -1,11 +1,15 @@
+// src/pages/AssetTicketHistoryPage.js (Example Path)
+
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
+import api from '../api'; // Adjust the path based on your project structure
 import { useParams } from 'react-router-dom';
 import Modal from 'react-modal';
 import TicketFormModal from '../components/TicketFormModal';
 import { FaEdit } from 'react-icons/fa';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
+// --- CHANGE 2: Remove the unnecessary API_URL constant ---
+// const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
 Modal.setAppElement('#root');
 
@@ -19,7 +23,9 @@ function AssetTicketHistoryPage() {
   const fetchHistory = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_URL}/tickets/asset/${assetCode}`);
+      // --- CHANGE 3: Use the 'api' instance for the GET request ---
+      // This is cleaner and automatically includes the auth token.
+      const res = await api.get(`/tickets/asset/${assetCode}`);
       setTickets(res.data);
     } catch (error) {
       console.error("Failed to fetch ticket history", error);
@@ -49,6 +55,7 @@ function AssetTicketHistoryPage() {
 
   if (loading) return <div className="text-center p-10">Loading history...</div>;
 
+  // --- No changes to JSX ---
   return (
     <div className="my-8 px-4 sm:px-6 lg:px-8">
       <div className="bg-white p-6 md:p-8 rounded-lg shadow-md">
@@ -59,7 +66,6 @@ function AssetTicketHistoryPage() {
         
         {tickets.length > 0 ? (
           <div className="overflow-x-auto">
-            {/* --- 1. ปรับใช้ table-fixed และกำหนดความกว้างคอลัมน์ให้เหมือน AssetList --- */}
             <table className="w-full text-left text-sm table-fixed">
               <thead className="bg-blue-600">
                 <tr>

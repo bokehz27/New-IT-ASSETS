@@ -1,9 +1,13 @@
+// src/pages/ImportAssetsPage.js
+
 import React, { useState } from 'react';
-import axios from 'axios';
+// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
+import api from '../api'; // Adjust path as needed
 import { useNavigate } from 'react-router-dom';
 import Papa from 'papaparse';
 
-const API_URL = 'http://172.18.1.61:5000/api/assets/upload';
+// --- CHANGE 2: Remove the unnecessary API_URL constant ---
+// const API_URL = 'http://172.18.1.61:5000/api/assets/upload';
 
 function ImportAssetsPage() {
   const [file, setFile] = useState(null);
@@ -46,12 +50,10 @@ function ImportAssetsPage() {
     formData.append('file', file);
 
     try {
-      const res = await axios.post(API_URL, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'x-auth-token': localStorage.getItem('token') || '',
-        },
-      });
+      // --- CHANGE 3: Use the 'api' instance for the POST request ---
+      // Headers are now handled automatically.
+      const res = await api.post('/assets/upload', formData);
+      
       setMessage(res.data.message);
       setPreviewData([]);
       setFile(null);
@@ -64,7 +66,6 @@ function ImportAssetsPage() {
     }
   };
   
-  // --- (แก้ไข) เพิ่มคอลัมน์ใหม่ใน Template ---
   const csvTemplateHeaders = "asset_code,serial_number,brand,model,subcategory,ram,cpu,storage,device_id,ip_address,wifi_registered,mac_address_lan,mac_address_wifi,start_date,location,fin_asset_ref,user_id,user_name,department,category,status,windows_version,windows_key,office_version,office_key,antivirus";
 
   const handleDownloadTemplate = () => {
@@ -79,12 +80,11 @@ function ImportAssetsPage() {
     document.body.removeChild(link);
   };
 
+  // --- No changes to JSX below ---
   return (
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-md">
-      {/* Title: ปรับสีข้อความ */}
       <h2 className="text-2xl font-bold mb-4 text-gray-900">Import Assets from CSV</h2>
       
-      {/* Instruction Box: ปรับสีเส้นขอบให้เข้ากับธีม */}
       <div className="bg-blue-50 border border-gray-200 text-blue-800 p-4 rounded-md mb-6 text-sm">
         <p className="font-semibold">คำแนะนำ:</p>
         <ul className="list-disc list-inside mt-2 space-y-1">
@@ -99,12 +99,11 @@ function ImportAssetsPage() {
         </ul>
       </div>
 
-      {/* --- ส่วนที่แก้ไข: เปลี่ยนเป็น File Input แบบใหม่ --- */}
       <div className="mb-6">
         <label className="block mb-2 text-sm font-semibold text-gray-600">เลือกไฟล์ CSV</label>
         <div className="flex items-center gap-4">
           <label htmlFor="csv-upload" className="file-input-label">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
             <span>เลือกไฟล์</span>
@@ -121,12 +120,10 @@ function ImportAssetsPage() {
           className="hidden"
         />
       </div>
-      {/* --- สิ้นสุดส่วนที่แก้ไข --- */}
 
       {previewData.length > 0 && (
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2 text-gray-800">ตัวอย่างข้อมูล (5 แถวแรก)</h3>
-          {/* Preview Table: ปรับสไตล์ a aเล็กน้อยให้สอดคล้องกัน */}
           <div className="overflow-x-auto border border-gray-200 rounded-lg">
             <table className="w-full text-xs text-left text-gray-500">
               <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b-2 border-gray-200">
@@ -147,7 +144,6 @@ function ImportAssetsPage() {
       )}
 
       <div className="flex items-center gap-4">
-        {/* Upload Button: สไตล์ถูกต้องแล้ว (Primary Button) */}
         <button 
           onClick={handleUpload} 
           disabled={!file || uploading}
@@ -155,7 +151,6 @@ function ImportAssetsPage() {
         >
           {uploading ? 'กำลังนำเข้า...' : 'ยืนยันและนำเข้าข้อมูล'}
         </button>
-        {/* Cancel Button: ปรับเป็น Secondary Button */}
         <button 
           onClick={() => navigate('/')}
           className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-md hover:bg-gray-300 transition"

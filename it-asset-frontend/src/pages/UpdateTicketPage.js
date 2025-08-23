@@ -1,5 +1,8 @@
+// src/pages/UpdateTicketPage.js
+
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
+import api from '../api'; // Adjust path as needed
 import { useParams, useNavigate } from 'react-router-dom';
 
 function UpdateTicketPage() {
@@ -24,16 +27,22 @@ function UpdateTicketPage() {
           return;
         }
 
-        const ticketRes = await axios.get(`http://172.18.1.61:5000/api/tickets/${ticketId}`, { headers: { 'x-auth-token': token } });
-        const adminsRes = await axios.get(`http://172.18.1.61:5000/api/users`, { headers: { 'x-auth-token': token } });
-        const repairTypesRes = await axios.get(`http://172.18.1.61:5000/api/master-data/repair_type`, { headers: { 'x-auth-token': token } });
+        // --- CHANGE 2: Fetch data in parallel for better performance ---
+        // The 'api' instance handles headers automatically.
+        const [ticketRes, adminsRes, repairTypesRes] = await Promise.all([
+          api.get(`/tickets/${ticketId}`),
+          api.get(`/users`),
+          api.get(`/master-data/repair_type`)
+        ]);
         
-        setTicket(ticketRes.data);
-        setSolution(ticketRes.data.solution || '');
-        setStatus(ticketRes.data.status || 'Open');
-        setHandlerName(ticketRes.data.handler_name || '');
-        setProblemDescription(ticketRes.data.problem_description || ''); 
-        setRepairType(ticketRes.data.repair_type || '');
+        const ticketData = ticketRes.data;
+        setTicket(ticketData);
+        setSolution(ticketData.solution || '');
+        setStatus(ticketData.status || 'Open');
+        setHandlerName(ticketData.handler_name || '');
+        setProblemDescription(ticketData.problem_description || ''); 
+        setRepairType(ticketData.repair_type || '');
+        
         setAdmins(adminsRes.data);
         setRepairTypesOptions(repairTypesRes.data.map(item => item.value));
 
@@ -50,19 +59,16 @@ function UpdateTicketPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('คุณไม่ได้เข้าสู่ระบบ');
-      navigate('/login');
-      return;
-    }
-
     try {
-      await axios.put(`http://172.18.1.61:5000/api/tickets/${ticketId}`, { 
-        solution, status, handler_name: handlerName,
+      // --- CHANGE 3: Use the 'api' instance for the update request ---
+      // Manual token checking and headers are no longer needed.
+      await api.put(`/tickets/${ticketId}`, { 
+        solution, 
+        status, 
+        handler_name: handlerName,
         problem_description: problemDescription,
         repair_type: repairType
-      }, { headers: { 'x-auth-token': token } });
+      });
       alert('อัปเดตสำเร็จ!');
       navigate('/tickets');
     } catch (error) {
@@ -74,6 +80,7 @@ function UpdateTicketPage() {
   if (loading) return <div className="text-center p-4">กำลังโหลด...</div>;
   if (!ticket) return <div className="text-center p-4 text-red-600">ไม่พบ Ticket นี้</div>;
 
+  // --- No changes to JSX below ---
   return (
     <div className="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto my-8">
       <h2 className="text-2xl font-bold mb-6 text-gray-900">Update Ticket #{ticket.id}</h2>

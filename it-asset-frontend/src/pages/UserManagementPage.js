@@ -1,30 +1,31 @@
+// src/pages/UserManagementPage.js
+
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
+import api from '../api'; // Adjust path as needed
 import EditUserModal from './EditUserModal';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
+// --- CHANGE 2: Remove the unnecessary API_URL constant ---
+// const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
 function UserManagementPage() {
   const [employees, setEmployees] = useState([]);
   const [departmentOptions, setDepartmentOptions] = useState([]);
-  // เราไม่ต้องการ formData state ในหน้านี้อีกต่อไป เพราะจะจัดการใน Modal
-  // const [formData, setFormData] = useState(...); <-- ลบส่วนนี้
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      // --- CHANGE 3: Use the 'api' instance for fetching data ---
+      // This ensures requests are authenticated.
       const [employeesRes, departmentsRes] = await Promise.all([
-        axios.get(`${API_URL}/employees`),
-        axios.get(`${API_URL}/master-data/department`)
+        api.get('/employees'),
+        api.get('/master-data/department')
       ]);
       
       setEmployees(employeesRes.data);
@@ -53,7 +54,6 @@ function UserManagementPage() {
     setEditingEmployee(null);
   };
 
-  // --- ฟังก์ชันใหม่สำหรับจัดการการ "เพิ่ม" และ "แก้ไข" ในที่เดียว ---
   const handleSave = async (dataFromModal) => {
     if (!dataFromModal.fullName.trim()) {
       alert('กรุณากรอกชื่อ-สกุล');
@@ -61,27 +61,26 @@ function UserManagementPage() {
     }
 
     try {
+      // --- CHANGE 4: Use the 'api' instance for saving data ---
       if (editingEmployee) {
-        // --- โหมดแก้ไข (Edit Mode) ---
-        await axios.put(`${API_URL}/employees/${editingEmployee.id}`, dataFromModal);
+        // Edit Mode
+        await api.put(`/employees/${editingEmployee.id}`, dataFromModal);
       } else {
-        // --- โหมดเพิ่ม (Add Mode) ---
-        await axios.post(`${API_URL}/employees`, dataFromModal);
+        // Add Mode
+        await api.post('/employees', dataFromModal);
       }
       handleCloseModal();
-      fetchData(); // โหลดข้อมูลใหม่
+      fetchData();
     } catch (err) {
       setError(editingEmployee ? 'Failed to update employee.' : 'Failed to add employee.');
     }
   };
   
-  // --- ฟังก์ชันสำหรับเปิด Modal ในโหมด "เพิ่ม" ---
   const handleAddClick = () => {
-    setEditingEmployee(null); // ตั้งค่าเป็น null เพื่อให้ Modal รู้ว่าเป็นโหมด "เพิ่ม"
+    setEditingEmployee(null);
     setIsEditModalOpen(true);
   };
   
-  // --- ฟังก์ชันสำหรับเปิด Modal ในโหมด "แก้ไข" ---
   const handleEditClick = (employee) => {
     setEditingEmployee(employee);
     setIsEditModalOpen(true);
@@ -90,7 +89,8 @@ function UserManagementPage() {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        await axios.delete(`${API_URL}/employees/${id}`);
+        // --- CHANGE 5: Use the 'api' instance for deleting data ---
+        await api.delete(`/employees/${id}`);
         fetchData();
       } catch (err) {
         setError('Failed to delete employee.');
@@ -98,11 +98,11 @@ function UserManagementPage() {
     }
   };
 
+  // --- No changes to JSX below ---
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">จัดการข้อมูลผู้ใช้</h2>
-        {/* **เพิ่มปุ่มสำหรับเปิด Modal การเพิ่มข้อมูล** */}
         <button
           onClick={handleAddClick}
           className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700"
@@ -111,11 +111,8 @@ function UserManagementPage() {
         </button>
       </div>
 
-      {/* --- ส่วนฟอร์มเดิมถูกลบออกไปทั้งหมด --- */}
-
       {error && <p className="text-red-600 mb-4">{error}</p>}
       
-      {/* --- ส่วนตารางและ Pagination ยังคงเหมือนเดิม --- */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 border-b-2 border-gray-200">
@@ -181,7 +178,6 @@ function UserManagementPage() {
         </div>
       )}
 
-      {/* **เปลี่ยน onSave ให้เรียกใช้ handleSave** */}
       <EditUserModal
         isOpen={isEditModalOpen}
         onClose={handleCloseModal}

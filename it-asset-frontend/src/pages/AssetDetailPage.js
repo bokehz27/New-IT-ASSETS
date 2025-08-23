@@ -1,11 +1,14 @@
+// src/pages/AssetDetailPage.js (ตัวอย่าง Path)
+
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+// --- CHANGE 1: นำเข้า api instance แทน axios โดยตรง ---
+import api from '../api'; // <-- ปรับ path ตามโครงสร้างโปรเจกต์
 import { useParams, Link } from 'react-router-dom';
 import BitlockerImport from '../components/BitlockerImport'; 
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
+// --- CHANGE 2: ลบตัวแปร API_URL ที่ไม่จำเป็นออกไป ---
+// const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
-// --- (แก้ไข) ย้ายคอมโพเนนต์ย่อยมาไว้ข้างบน และใส่โค้ดให้สมบูรณ์ ---
 const StatusBadge = ({ status }) => {
     const statusStyles = {
         'Enable': 'bg-green-100 text-green-800',
@@ -37,8 +40,6 @@ const DetailItem = ({ label, value }) => (
         <dd className="mt-1 text-sm text-gray-900 sm:mt-0 col-span-2 break-words">{value || 'N/A'}</dd>
     </div>
 );
-// --- สิ้นสุดการแก้ไข ---
-
 
 function AssetDetailPage() {
     const { assetId } = useParams();
@@ -49,10 +50,9 @@ function AssetDetailPage() {
     const fetchAsset = useCallback(async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            const response = await axios.get(`${API_URL}/assets/${assetId}`, {
-                headers: { 'x-auth-token': token }
-            });
+            // --- CHANGE 3: เรียก API ผ่าน instance ที่สร้างไว้ ---
+            // โค้ดสั้นลงมาก ไม่ต้องจัดการ token หรือ URL เต็มเอง
+            const response = await api.get(`/assets/${assetId}`);
             setAsset(response.data);
             setError(null);
         } catch (err) {
@@ -71,6 +71,7 @@ function AssetDetailPage() {
     if (error) return <div className="text-center p-10 text-red-600">{error}</div>;
     if (!asset) return <div className="text-center p-10">ไม่พบข้อมูลอุปกรณ์</div>;
 
+    // --- ส่วน JSX ไม่มีการเปลี่ยนแปลง ---
     return (
         <div className="p-4 md:p-6 space-y-6">
             <div className="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">

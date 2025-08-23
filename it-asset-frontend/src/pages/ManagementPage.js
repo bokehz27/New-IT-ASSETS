@@ -1,20 +1,23 @@
+// src/pages/ManagementPage.js
+
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
+import api from '../api'; // Adjust path as needed
 
 function ManagementPage({ title, dataType }) {
   const [items, setItems] = useState([]);
   const [newValue, setNewValue] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  // --- ส่วนที่เพิ่มเข้ามาสำหรับ Pagination ---
+  
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20); // กำหนดให้แสดงผล 20 รายการต่อหน้า
+  const [itemsPerPage] = useState(20);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`http://172.18.1.61:5000/api/master-data/${dataType}`);
+      // --- CHANGE 2: Use the 'api' instance for fetching data ---
+      const res = await api.get(`/master-data/${dataType}`);
       setItems(res.data);
       setError('');
     } catch (err) {
@@ -29,20 +32,19 @@ function ManagementPage({ title, dataType }) {
     fetchData();
   }, [dataType]);
 
-  // --- ลอจิกการคำนวณเพื่อแบ่งหน้า ---
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = items.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(items.length / itemsPerPage);
 
-  // ฟังก์ชันสำหรับเปลี่ยนหน้า
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newValue.trim()) return;
     try {
-      await axios.post('http://172.18.1.61:5000/api/master-data', {
+      // --- CHANGE 3: Use the 'api' instance for adding new data ---
+      await api.post('/master-data', {
         type: dataType,
         value: newValue,
       });
@@ -57,7 +59,8 @@ function ManagementPage({ title, dataType }) {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
       try {
-        await axios.delete(`http://172.18.1.61:5000/api/master-data/${id}`);
+        // --- CHANGE 4: Use the 'api' instance for deleting data ---
+        await api.delete(`/master-data/${id}`);
         fetchData();
       } catch (err) {
         console.error('Failed to delete item', err);
@@ -66,11 +69,11 @@ function ManagementPage({ title, dataType }) {
     }
   };
 
+  // --- No changes to JSX below ---
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4 text-gray-900">{title}</h2>
       
-      {/* --- ส่วนฟอร์มยังคงเหมือนเดิม --- */}
       <form onSubmit={handleSubmit} className="flex gap-2 mb-6">
         <input
           type="text"
@@ -91,7 +94,6 @@ function ManagementPage({ title, dataType }) {
       ) : (
         <>
           <ul className="divide-y divide-gray-200">
-            {/* --- เปลี่ยน items.map เป็น currentItems.map --- */}
             {currentItems.map(item => (
               <li key={item.id} className="py-3 flex justify-between items-center">
                 <span className="text-gray-800">{item.value}</span>
@@ -102,7 +104,6 @@ function ManagementPage({ title, dataType }) {
             ))}
           </ul>
 
-          {/* --- ส่วน Component ของปุ่ม Pagination ที่เพิ่มเข้ามา --- */}
           {totalPages > 1 && (
             <div className="flex justify-between items-center mt-4">
                 <span className="text-sm text-gray-700">
