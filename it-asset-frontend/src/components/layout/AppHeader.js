@@ -81,7 +81,7 @@ const AppHeader = () => {
         <nav className="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
           {/* --- Brand & Desktop Nav --- */}
           <div className="flex items-center space-x-6">
-            <Link to={token ? "/" : "/report-issue"} className="text-2xl font-bold text-white">
+            <Link to={token ? "/" : "/report-issue"} className="text-2xl font-bold text-Black">
               IT COMMAND
             </Link>
             {token && (

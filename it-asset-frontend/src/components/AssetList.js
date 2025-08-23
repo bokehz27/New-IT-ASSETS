@@ -7,16 +7,16 @@ function AssetList({ assets, onDelete }) {
     <div className="bg-white rounded-lg shadow-md overflow-x-auto">
       <table className="w-full text-left text-sm">
         {/* หัวตาราง: ใช้ bg-gray-50 และ border-gray-200 ที่ถูก override แล้ว */}
-        <thead className="bg-gray-50 border-b-2 border-gray-200">
+        <thead className="bg-blue-600">
           <tr>
-            <th className="p-3 font-semibold text-gray-600">Picture</th>
-            <th className="p-3 font-semibold text-gray-600">Categories</th>
-            <th className="p-3 font-semibold text-gray-600">IT Asset</th>
-            <th className="p-3 font-semibold text-gray-600">Subcategories</th>
-            <th className="p-3 font-semibold text-gray-600">Department/Unit</th>
-            <th className="p-3 font-semibold text-gray-600">Device Users</th>
-            <th className="p-3 font-semibold text-gray-600">User ID</th>
-            <th className="p-3 font-semibold text-gray-600 text-center">
+            <th className="p-3 font-semibold text-white">Picture</th>
+            <th className="p-3 font-semibold text-white">Categories</th>
+            <th className="p-3 font-semibold text-white">IT Asset</th>
+            <th className="p-3 font-semibold text-white">Subcategories</th>
+            <th className="p-3 font-semibold text-white">Department/Unit</th>
+            <th className="p-3 font-semibold text-white">Device Users</th>
+            <th className="p-3 font-semibold text-white">User ID</th>
+            <th className="p-3 font-semibold text-white text-center">
               Actions
             </th>
           </tr>

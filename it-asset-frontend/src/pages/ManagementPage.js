@@ -7,6 +7,10 @@ function ManagementPage({ title, dataType }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // --- ส่วนที่เพิ่มเข้ามาสำหรับ Pagination ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20); // กำหนดให้แสดงผล 20 รายการต่อหน้า
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -24,6 +28,15 @@ function ManagementPage({ title, dataType }) {
   useEffect(() => {
     fetchData();
   }, [dataType]);
+
+  // --- ลอจิกการคำนวณเพื่อแบ่งหน้า ---
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = items.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(items.length / itemsPerPage);
+
+  // ฟังก์ชันสำหรับเปลี่ยนหน้า
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,8 +70,8 @@ function ManagementPage({ title, dataType }) {
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4 text-gray-900">{title}</h2>
       
+      {/* --- ส่วนฟอร์มยังคงเหมือนเดิม --- */}
       <form onSubmit={handleSubmit} className="flex gap-2 mb-6">
-        {/* Input: ใช้ Global Style */}
         <input
           type="text"
           value={newValue}
@@ -66,9 +79,8 @@ function ManagementPage({ title, dataType }) {
           placeholder={`Add new ${dataType}...`}
           className="flex-grow"
         />
-        {/* Button: ใช้ Primary Button Style */}
         <button type="submit" className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600">
-          Add
+          + Add
         </button>
       </form>
 
@@ -77,17 +89,44 @@ function ManagementPage({ title, dataType }) {
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <ul className="divide-y divide-gray-200">
-          {items.map(item => (
-            <li key={item.id} className="py-3 flex justify-between items-center">
-              <span className="text-gray-800">{item.value}</span>
-              {/* Delete Button: ใช้สี Error และปรับปรุงสไตล์ */}
-              <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:bg-red-200/50 text-sm font-semibold px-2 py-1 rounded-md transition-colors">
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="divide-y divide-gray-200">
+            {/* --- เปลี่ยน items.map เป็น currentItems.map --- */}
+            {currentItems.map(item => (
+              <li key={item.id} className="py-3 flex justify-between items-center">
+                <span className="text-gray-800">{item.value}</span>
+                <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:bg-red-200/50 text-sm font-semibold px-2 py-1 rounded-md transition-colors">
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {/* --- ส่วน Component ของปุ่ม Pagination ที่เพิ่มเข้ามา --- */}
+          {totalPages > 1 && (
+            <div className="flex justify-between items-center mt-4">
+                <span className="text-sm text-gray-700">
+                    Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, items.length)} of {items.length} entries
+                </span>
+                <div className="flex">
+                    <button
+                        onClick={() => paginate(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-l-md hover:bg-gray-100 disabled:opacity-50"
+                    >
+                        Previous
+                    </button>
+                    <button
+                        onClick={() => paginate(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-r-md hover:bg-gray-100 disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -37,4 +37,20 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// --- PUT /api/employees/:id - อัปเดตข้อมูลพนักงาน (ส่วนที่เพิ่มเข้ามาใหม่) ---
+router.put('/:id', async (req, res) => {
+  try {
+    const employee = await Employee.findByPk(req.params.id);
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+    // ทำการอัปเดตข้อมูลจาก req.body
+    await employee.update(req.body);
+    res.json(employee); // ส่งข้อมูลที่อัปเดตแล้วกลับไป
+  } catch (error) {
+    console.error('Failed to update employee:', error);
+    res.status(500).json({ error: 'Failed to update employee' });
+  }
+});
+
 module.exports = router;

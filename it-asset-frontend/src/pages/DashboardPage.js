@@ -105,7 +105,7 @@ function DashboardPage() {
           subtitle="เพิ่มสินทรัพย์หลายชิ้นจากไฟล์" 
         />
         <ActionButton 
-          to="/settings/user_name" 
+          to="/settings/users" 
           icon={<FiUserPlus className="w-6 h-6 text-yellow-500" />} 
           title="เพิ่มผู้ใช้" 
           subtitle="จัดการข้อมูลผู้ใช้งาน" 
@@ -117,15 +117,23 @@ function DashboardPage() {
         {/* คอลัมน์ซ้าย: Stat Cards & Recent Tickets */}
         <div className="lg:col-span-2 space-y-8">
           {/* Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <StatCard title="สินทรัพย์ทั้งหมด" value={summary.assetCount} color="bg-blue-500 text-white" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> 
+            <Link to="/assets" className="group">
+              <div className="transition-transform duration-300 group-hover:scale-105 h-full">
+                <StatCard title="สินทรัพย์ทั้งหมด" value={summary.assetCount} color="bg-blue-500 text-white" />
+              </div>
+            </Link>
             <Link to="/assets?filter=incomplete" className="group">
               <div className="transition-transform duration-300 group-hover:scale-105 h-full">
-                <StatCard title="สินทรัพย์ที่ข้อมูลไม่ครบ" value={summary.incompleteAssetCount} color="bg-orange-500 text-white" />
+                <StatCard title="สินทรัพย์ที่ข้อมูลไม่ครบ" value={summary.incompleteAssetCount} color="bg-red-500 text-white" />
               </div>
             </Link>
             <StatCard title="งานที่กำลังดำเนินการ" value={summary.inProgressCount} color="bg-yellow-500 text-white" />
-            <StatCard title="Ticket ทั้งหมด" value={summary.ticketCount} color="bg-gray-700 text-white" />
+            <Link to="/tickets" className="group">
+              <div className="transition-transform duration-300 group-hover:scale-105 h-full">
+                <StatCard title="Ticket ทั้งหมด" value={summary.ticketCount} color="bg-gray-700 text-white" />
+              </div>
+            </Link>
           </div>
 
           {/* Recent Tickets */}

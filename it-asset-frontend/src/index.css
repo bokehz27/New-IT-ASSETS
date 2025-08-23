@@ -13,10 +13,10 @@ html {
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
 :root {
-  /* Material Design Color Palette - ตัวอย่างสีสดใส */
-  --color-primary: #3f51b5; /* Indigo */
-  --color-primary-light: #757de8;
-  --color-primary-dark: #002984;
+  /* Material Design Color Palette - เปลี่ยนเป็นโทนสีน้ำเงินเข้ม (Dark Blue) */
+  --color-primary: #1976D2; /* Dark Blue */
+  --color-primary-light: #64b5f6;
+  --color-primary-dark: #0D47A1;
 
   --color-secondary: #00bcd4; /* Cyan */
   --color-secondary-light: #62efff;
@@ -88,9 +88,9 @@ body {
 }
 
 /* Form Controls (Inputs, Textareas, Selects) */
-input[type="text"], 
-input[type="password"], 
-textarea, 
+input[type="text"],
+input[type="password"],
+textarea,
 select {
   background-color: var(--color-surface) !important;
   border: 1px solid var(--color-divider) !important;
@@ -99,9 +99,9 @@ select {
   padding: 10px 12px !important; /* ปรับ padding ให้มาตรฐาน */
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-input[type="text"]:focus, 
-input[type="password"]:focus, 
-textarea:focus, 
+input[type="text"]:focus,
+input[type="password"]:focus,
+textarea:focus,
 select:focus {
   border-color: var(--color-primary) !important; /* สีขอบเมื่อ focus เป็น Primary */
   box-shadow: 0 0 0 1px var(--color-primary) !important; /* Material focus ring */
@@ -278,7 +278,7 @@ input::placeholder, textarea::placeholder {
     background-color: rgba(0, 0, 0, 0.04) !important; /* Material hover effect */
 }
 /* สไตล์สำหรับปุ่ม Action ในตาราง (Update/Delete/ประวัติ) */
-.table-action-button { 
+.table-action-button {
     padding: 0.5rem 0.75rem !important;
     font-size: 0.75rem !important;
     font-weight: 500 !important; /* Material default font-weight */
@@ -304,20 +304,20 @@ input::placeholder, textarea::placeholder {
 
 /* App Header Specifics */
 .bg-gray-800, .bg-gray-900 { /* Header background (จะถูกเปลี่ยนเป็น bg-surface) */
-    background-color: var(--color-surface); 
+    background-color: var(--color-surface);
     box-shadow: var(--elevation-4); /* Header มี elevation สูงกว่า */
 }
-.text-xl.font-bold.text-gray-800 { 
+.text-xl.font-bold.text-gray-800 {
   color: var(--color-text-primary);
 }
-.text-gray-300 { 
+.text-gray-300 {
   color: var(--color-text-secondary);
 }
-.hover\:text-blue-400:hover { 
+.hover\:text-blue-400:hover {
   color: var(--color-primary); /* ใช้สี Primary */
 }
 /* Logout Button */
-.bg-gray-200.text-gray-700 { 
+.bg-gray-200.text-gray-700 {
     background-color: var(--color-surface) !important; /* พื้นหลังเหมือน Card */
     color: var(--color-text-primary) !important;
     box-shadow: var(--elevation-1);
@@ -347,7 +347,7 @@ input::placeholder, textarea::placeholder {
     color: var(--color-primary);
     position: relative;
 }
-.text-blue-600.font-semibold::after { 
+.text-blue-600.font-semibold::after {
     content: '';
     position: absolute;
     bottom: -2px;
@@ -361,13 +361,13 @@ input::placeholder, textarea::placeholder {
 
 /* Settings Layout Specifics */
 .md\:col-span-1.bg-white { /* Sidebar */
-    background-color: var(--color-surface); 
-    box-shadow: var(--elevation-2); 
+    background-color: var(--color-surface);
+    box-shadow: var(--elevation-2);
     border-radius: 4px;
     border: 1px solid var(--color-divider);
 }
 .text-xs.font-bold.uppercase.text-blue-800.bg-blue-100 { /* Group title in sidebar */
-    background-color: var(--color-background); 
+    background-color: var(--color-background);
     color: var(--color-text-secondary);
     border-radius: 4px;
     border: 1px solid var(--color-divider);
@@ -380,7 +380,7 @@ input::placeholder, textarea::placeholder {
     background-color: rgba(0, 0, 0, 0.04) !important;
 }
 /* Active link in sidebar */
-.bg-blue-50, .bg-blue-100 { 
+.bg-blue-50, .bg-blue-100 {
     background-color: rgba(var(--color-primary) 0.08) !important; /* Material ripple effect suggestion */
     color: var(--color-primary) !important;
     font-weight: 500 !important;
@@ -388,7 +388,7 @@ input::placeholder, textarea::placeholder {
     border: none !important; /* ไม่มีขอบ */
     padding: 8px 16px !important;
 }
-.text-blue-700, .text-blue-800 { 
+.text-blue-700, .text-blue-800 {
     color: var(--color-primary) !important;
     font-weight: 500;
 }
@@ -651,7 +651,7 @@ input::placeholder, textarea::placeholder {
 
 /* --- Switch List Page Redesign --- */
 
-/* ใช้ Tailwind's 'group' utility เพื่อสร้าง hover effect 
+/* ใช้ Tailwind's 'group' utility เพื่อสร้าง hover effect
   เมื่อนำเมาส์ไปชี้ที่ parent (.group) แล้วให้ child (.group-hover\:opacity-100) แสดงผล
 */
 .switch-item .actions {
@@ -1253,4 +1253,70 @@ input::placeholder, textarea::placeholder {
 /* === Mobile Menu Overlay: เปลี่ยนพื้นหลังให้เหมือนกัน === */
 .mobile-menu-overlay-vibrant {
   background: var(--color-primary);
+}
+
+
+
+/* --- Styles for React Modal --- */
+.ReactModal__Overlay {
+  opacity: 0;
+  transition: opacity 200ms ease-in-out;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ReactModal__Overlay--after-open {
+  opacity: 1;
+}
+
+.ReactModal__Overlay--before-close {
+  opacity: 0;
+}
+
+.ReactModal__Content {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  border-radius: 8px !important;
+  padding: 2rem !important;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #f5f5f5; /* Light Gray Background */
+  box-shadow: var(--elevation-16);
+  transform: scale(0.9);
+  transition: transform 300ms ease-in-out;
+}
+
+.ReactModal__Content--after-open {
+  transform: scale(1);
+}
+
+.ReactModal__Content--before-close {
+  transform: scale(0.9);
+}
+
+.modal-close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: #9e9e9e;
+}
+.modal-close-button:hover {
+    color: #212121;
 }

@@ -1,138 +1,121 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import EditUserModal from './EditUserModal';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
 function UserManagementPage() {
   const [employees, setEmployees] = useState([]);
-  const [departmentOptions, setDepartmentOptions] = useState([]); // State สำหรับเก็บรายชื่อแผนก
-  const [formData, setFormData] = useState({
-    fullName: '', position: '', email: '', contactNumber: '', department: ''
-  });
+  const [departmentOptions, setDepartmentOptions] = useState([]);
+  // เราไม่ต้องการ formData state ในหน้านี้อีกต่อไป เพราะจะจัดการใน Modal
+  // const [formData, setFormData] = useState(...); <-- ลบส่วนนี้
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        setLoading(true);
-        // ดึงข้อมูลพนักงานและแผนกพร้อมกัน
-        const [employeesRes, departmentsRes] = await Promise.all([
-          axios.get(`${API_URL}/employees`),
-          axios.get(`${API_URL}/master-data/department`)
-        ]);
-        
-        setEmployees(employeesRes.data);
-        // นำเฉพาะค่า value มาเก็บใน state
-        setDepartmentOptions(departmentsRes.data.map(item => item.value));
-        setError('');
-      } catch (err) {
-        setError('Failed to load initial page data.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchInitialData();
-  }, []);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState(null);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [employeesRes, departmentsRes] = await Promise.all([
+        axios.get(`${API_URL}/employees`),
+        axios.get(`${API_URL}/master-data/department`)
+      ]);
+      
+      setEmployees(employeesRes.data);
+      setDepartmentOptions(departmentsRes.data.map(item => item.value));
+      setError('');
+    } catch (err) {
+      setError('Failed to load initial page data.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.fullName.trim()) {
-      setError('Full name is required.');
+  useEffect(() => {
+    fetchData();
+  }, []);
+  
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = employees.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(employees.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const handleCloseModal = () => {
+    setIsEditModalOpen(false);
+    setEditingEmployee(null);
+  };
+
+  // --- ฟังก์ชันใหม่สำหรับจัดการการ "เพิ่ม" และ "แก้ไข" ในที่เดียว ---
+  const handleSave = async (dataFromModal) => {
+    if (!dataFromModal.fullName.trim()) {
+      alert('กรุณากรอกชื่อ-สกุล');
       return;
     }
+
     try {
-      await axios.post(`${API_URL}/employees`, formData);
-      setFormData({ fullName: '', position: '', email: '', contactNumber: '', department: '' });
-      fetchData(); // ใช้ fetchData ที่เรามีอยู่แล้วเพื่อความง่าย
+      if (editingEmployee) {
+        // --- โหมดแก้ไข (Edit Mode) ---
+        await axios.put(`${API_URL}/employees/${editingEmployee.id}`, dataFromModal);
+      } else {
+        // --- โหมดเพิ่ม (Add Mode) ---
+        await axios.post(`${API_URL}/employees`, dataFromModal);
+      }
+      handleCloseModal();
+      fetchData(); // โหลดข้อมูลใหม่
     } catch (err) {
-      setError('Failed to add employee.');
+      setError(editingEmployee ? 'Failed to update employee.' : 'Failed to add employee.');
     }
+  };
+  
+  // --- ฟังก์ชันสำหรับเปิด Modal ในโหมด "เพิ่ม" ---
+  const handleAddClick = () => {
+    setEditingEmployee(null); // ตั้งค่าเป็น null เพื่อให้ Modal รู้ว่าเป็นโหมด "เพิ่ม"
+    setIsEditModalOpen(true);
+  };
+  
+  // --- ฟังก์ชันสำหรับเปิด Modal ในโหมด "แก้ไข" ---
+  const handleEditClick = (employee) => {
+    setEditingEmployee(employee);
+    setIsEditModalOpen(true);
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         await axios.delete(`${API_URL}/employees/${id}`);
-        fetchData(); // ใช้ fetchData ที่เรามีอยู่แล้วเพื่อความง่าย
+        fetchData();
       } catch (err) {
         setError('Failed to delete employee.');
       }
     }
   };
 
-  // สร้างฟังก์ชัน fetchData แยกเพื่อให้เรียกใช้ซ้ำได้
-  const fetchData = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/employees`);
-      setEmployees(res.data);
-    } catch (err) {
-      setError('Failed to refresh employee data.');
-    }
-  };
-
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-gray-900">จัดการข้อมูลผู้ใช้</h2>
-      
-      <form onSubmit={handleSubmit} className="border-b border-gray-200 pb-6 mb-6">
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-    
-    {/* --- แถวที่ 1 --- */}
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อ-สกุล*</label>
-      <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} className="w-full" placeholder="Full Name" required />
-    </div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">จัดการข้อมูลผู้ใช้</h2>
+        {/* **เพิ่มปุ่มสำหรับเปิด Modal การเพิ่มข้อมูล** */}
+        <button
+          onClick={handleAddClick}
+          className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700"
+        >
+          + Add User
+        </button>
+      </div>
 
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">ตำแหน่ง</label>
-      <input type="text" name="position" value={formData.position} onChange={handleInputChange} className="w-full" placeholder="Position" />
-    </div>
-    
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">หน่วยงาน/แผนก</label>
-      <select
-        name="department"
-        value={formData.department}
-        onChange={handleInputChange}
-        className="w-full"
-      >
-        <option value="">-- เลือกแผนก --</option>
-        {departmentOptions.map(dept => (
-          <option key={dept} value={dept}>{dept}</option>
-        ))}
-      </select>
-    </div>
-
-    {/* --- แถวที่ 2 --- */}
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">E-Mail</label>
-      <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full" placeholder="Email" />
-    </div>
-
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">เบอร์ติดต่อ</label>
-      <input type="text" name="contactNumber" value={formData.contactNumber} onChange={handleInputChange} className="w-full" placeholder="Contact No." />
-    </div>
-    
-    {/* --- ปุ่ม Submit --- */}
-    <div className="flex items-end">
-      <button type="submit" className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 w-full">
-        Add User
-      </button>
-    </div>
-
-  </div>
-</form>
+      {/* --- ส่วนฟอร์มเดิมถูกลบออกไปทั้งหมด --- */}
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
       
+      {/* --- ส่วนตารางและ Pagination ยังคงเหมือนเดิม --- */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 border-b-2 border-gray-200">
@@ -149,7 +132,7 @@ function UserManagementPage() {
                 {loading ? (
                     <tr><td colSpan="6" className="p-4 text-center text-gray-500">Loading...</td></tr>
                 ) : (
-                    employees.map(emp => (
+                    currentItems.map(emp => (
                         <tr key={emp.id} className="hover:bg-gray-50">
                             <td className="p-3 font-medium text-gray-800">{emp.fullName}</td>
                             <td className="p-3 text-gray-700">{emp.position}</td>
@@ -157,6 +140,12 @@ function UserManagementPage() {
                             <td className="p-3 text-gray-700">{emp.contactNumber}</td>
                             <td className="p-3 text-gray-700">{emp.department}</td>
                             <td className="p-3 text-center">
+                                <button
+                                  onClick={() => handleEditClick(emp)}
+                                  className="text-blue-600 hover:bg-blue-200/50 text-sm font-semibold px-2 py-1 rounded-md transition-colors mr-2"
+                                >
+                                  Edit
+                                </button>
                                 <button onClick={() => handleDelete(emp.id)} className="text-red-600 hover:bg-red-200/50 text-sm font-semibold px-2 py-1 rounded-md transition-colors">
                                     Delete
                                 </button>
@@ -167,6 +156,39 @@ function UserManagementPage() {
             </tbody>
         </table>
        </div>
+
+       {totalPages > 1 && (
+        <div className="flex justify-between items-center mt-4">
+            <span className="text-sm text-gray-700">
+                Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, employees.length)} of {employees.length} entries
+            </span>
+            <div className="flex">
+                <button
+                    onClick={() => paginate(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-l-md hover:bg-gray-100 disabled:opacity-50"
+                >
+                    Previous
+                </button>
+                <button
+                    onClick={() => paginate(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-r-md hover:bg-gray-100 disabled:opacity-50"
+                >
+                    Next
+                </button>
+            </div>
+        </div>
+      )}
+
+      {/* **เปลี่ยน onSave ให้เรียกใช้ handleSave** */}
+      <EditUserModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseModal}
+        employee={editingEmployee}
+        onSave={handleSave}
+        departmentOptions={departmentOptions}
+      />
     </div>
   );
 }

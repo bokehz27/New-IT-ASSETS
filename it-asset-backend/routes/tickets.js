@@ -1,33 +1,45 @@
 const express = require('express');
-const { Op } = require('sequelize'); // <-- 1. Import Op เข้ามา
+const { Op } = require('sequelize');
 const Ticket = require('../models/ticket');
 const router = express.Router();
 
-// GET /api/tickets - ดึงรายการแจ้งซ่อมทั้งหมด (พร้อม Filter)
+// GET /api/tickets - (แก้ไข) เพิ่มระบบ Pagination
 router.get('/', async (req, res) => {
   try {
+    // 1. รับค่า page และ limit จาก query string
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const offset = (page - 1) * limit;
+
     const { status, startDate, endDate } = req.query;
     const whereClause = {};
 
-    // สร้างเงื่อนไขสำหรับ filter status
     if (status) {
       whereClause.status = status;
     }
 
-    // สร้างเงื่อนไขสำหรับ filter วันที่
     if (startDate && endDate) {
-      // เพิ่ม T23:59:59 เพื่อให้รวมข้อมูลของวันสุดท้ายทั้งวัน
       whereClause.report_date = {
         [Op.between]: [new Date(startDate), new Date(endDate + 'T23:59:59')]
       };
     }
 
-    const tickets = await Ticket.findAll({ 
-      where: whereClause, // นำเงื่อนไขมาใช้ใน query
-      order: [['report_date', 'DESC']] 
+    // 2. เปลี่ยนมาใช้ findAndCountAll เพื่อนับจำนวนทั้งหมดสำหรับ Pagination
+    const { count, rows } = await Ticket.findAndCountAll({
+      where: whereClause,
+      order: [['report_date', 'DESC']],
+      limit: limit,
+      offset: offset
     });
-    
-    res.json(tickets);
+
+    // 3. จัดรูปแบบข้อมูลที่ส่งกลับให้ Frontend
+    res.json({
+      tickets: rows,
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page
+    });
+
   } catch (error) {
     console.error("Failed to fetch tickets:", error);
     res.status(500).json({ error: 'Failed to fetch tickets' });
@@ -35,7 +47,7 @@ router.get('/', async (req, res) => {
 });
 
 
-// GET /api/tickets/:id - ดึงข้อมูลใบแจ้งซ่อมใบเดียวตาม ID
+// GET /api/tickets/:id - (คงเดิม)
 router.get('/:id', async (req, res) => {
   try {
     const ticket = await Ticket.findByPk(req.params.id);
@@ -49,7 +61,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// GET /api/tickets/asset/:asset_code - ดึงประวัติการแจ้งซ่อมของ asset ชิ้นเดียว
+// GET /api/tickets/asset/:asset_code - (คงเดิม)
 router.get('/asset/:asset_code', async (req, res) => {
   try {
     const tickets = await Ticket.findAll({
@@ -62,7 +74,7 @@ router.get('/asset/:asset_code', async (req, res) => {
   }
 });
 
-// PUT /api/tickets/:id - อัปเดตสถานะ/วิธีแก้/ผู้ดำเนินการ/ปัญหา/ประเภทการซ่อม
+// PUT /api/tickets/:id - (คงเดิม)
 router.put('/:id', async (req, res) => {
   try {
     const { solution, status, handler_name, problem_description, repair_type } = req.body;
@@ -75,7 +87,7 @@ router.put('/:id', async (req, res) => {
 
     ticket.solution = solution;
     ticket.status = status;
-    ticket.handler_name = handler_name || req.user.username; 
+    ticket.handler_name = handler_name;
     ticket.problem_description = problem_description;
     ticket.repair_type = repair_type;
 
@@ -87,7 +99,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/tickets/:id - ลบรายการแจ้งซ่อม
+// DELETE /api/tickets/:id - (คงเดิม)
 router.delete('/:id', async (req, res) => {
   try {
     const ticketId = req.params.id;
@@ -99,12 +111,11 @@ router.delete('/:id', async (req, res) => {
     } else {
       res.status(404).json({ error: 'Ticket not found' });
     }
-  } catch (error) {
+  } catch (error)
+ {
     console.error("Failed to delete ticket:", error);
     res.status(500).json({ error: 'Failed to delete ticket', details: error.message });
   }
 });
-
-
 
 module.exports = router;

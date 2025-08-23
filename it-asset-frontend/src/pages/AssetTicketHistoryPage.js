@@ -1,71 +1,120 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import Modal from 'react-modal';
+import TicketFormModal from '../components/TicketFormModal';
+import { FaEdit } from 'react-icons/fa';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
+
+Modal.setAppElement('#root');
 
 function AssetTicketHistoryPage() {
-  const { assetCode } = useParams(); // ดึงรหัสอุปกรณ์จาก URL
+  const { assetCode } = useParams();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
+
+  const fetchHistory = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API_URL}/tickets/asset/${assetCode}`);
+      setTickets(res.data);
+    } catch (error) {
+      console.error("Failed to fetch ticket history", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [assetCode]);
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        setLoading(true);
-        // เรียก API ใหม่ที่เราสร้างขึ้น
-        const res = await axios.get(`http://172.18.1.61:5000/api/tickets/asset/${assetCode}`);
-        setTickets(res.data);
-      } catch (error) {
-        console.error("Failed to fetch ticket history", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchHistory();
-  }, [assetCode]);
+  }, [fetchHistory]);
+
+  const openModal = (ticketId) => {
+    setSelectedTicketId(ticketId);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedTicketId(null);
+  };
+
+  const handleFormSuccess = () => {
+    closeModal();
+    fetchHistory();
+  };
 
   if (loading) return <div className="text-center p-10">Loading history...</div>;
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-2 text-gray-700">ประวัติการแจ้งซ่อม</h2>
-      <p className="mb-6 text-gray-500">
-        สำหรับรหัสอุปกรณ์: <span className="font-semibold text-gray-800">{assetCode}</span>
-      </p>
-      
-      {tickets.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="p-3">วันที่แจ้ง</th>
-                <th className="p-3">ผู้แจ้ง</th>
-                <th className="p-3">ปัญหา</th>
-                <th className="p-3">สถานะ</th>
-                <th className="p-3">ผู้ดำเนินการ</th>
-                <th className="p-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {tickets.map(ticket => (
-                <tr key={ticket.id}>
-                  <td className="p-3">{new Date(ticket.report_date).toLocaleString('th-TH')}</td>
-                  <td className="p-3">{ticket.reporter_name}</td>
-                  <td className="p-3 truncate max-w-xs">{ticket.problem_description}</td>
-                  <td className="p-3">{ticket.status}</td>
-                  <td className="p-3">{ticket.handler_name || 'N/A'}</td>
-                  <td className="p-3">
-                    <Link to={`/update-ticket/${ticket.id}`} className="text-blue-600 hover:underline">
-                      View
-                    </Link>
-                  </td>
+    <div className="my-8 px-4 sm:px-6 lg:px-8">
+      <div className="bg-white p-6 md:p-8 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold mb-2 text-gray-700">ประวัติการแจ้งซ่อม</h2>
+        <p className="mb-6 text-gray-500">
+          สำหรับรหัสอุปกรณ์: <span className="font-semibold text-gray-800">{assetCode}</span>
+        </p>
+        
+        {tickets.length > 0 ? (
+          <div className="overflow-x-auto">
+            {/* --- 1. ปรับใช้ table-fixed และกำหนดความกว้างคอลัมน์ให้เหมือน AssetList --- */}
+            <table className="w-full text-left text-sm table-fixed">
+              <thead className="bg-blue-600">
+                <tr>
+                  <th className="p-3 font-semibold text-white w-48">วันที่แจ้ง</th>
+                  <th className="p-3 font-semibold text-white w-40">ผู้แจ้ง</th>
+                  <th className="p-3 font-semibold text-white">ปัญหา</th>
+                  <th className="p-3 font-semibold text-white">วิธีแก้ปัญหา</th>
+                  <th className="p-3 font-semibold text-white w-32">สถานะ</th>
+                  <th className="p-3 font-semibold text-white w-40">ผู้ดำเนินการ</th>
+                  <th className="p-3 font-semibold text-white text-center w-24">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="text-center text-gray-500 py-10">ไม่พบประวัติการแจ้งซ่อมสำหรับอุปกรณ์นี้</p>
-      )}
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {tickets.map(ticket => (
+                  <tr key={ticket.id} className="hover:bg-gray-50">
+                    <td className="p-3 align-middle whitespace-nowrap">{new Date(ticket.report_date).toLocaleString('th-TH')}</td>
+                    <td className="p-3 align-middle">{ticket.reporter_name}</td>
+                    <td className="p-3 align-middle break-words">{ticket.problem_description}</td>
+                    <td className="p-3 align-middle break-words">{ticket.solution || 'N/A'}</td>
+                    <td className="p-3 align-middle">{ticket.status}</td>
+                    <td className="p-3 align-middle">{ticket.handler_name || 'N/A'}</td>
+                    <td className="p-3 align-middle text-center">
+                      <button 
+                        onClick={() => openModal(ticket.id)} 
+                        className="bg-blue-500 hover:bg-blue-600 table-action-button"
+                        title="View/Update"
+                      >
+                        <FaEdit />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 py-10">ไม่พบประวัติการแจ้งซ่อมสำหรับอุปกรณ์นี้</p>
+        )}
+      </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        contentLabel="Update Ticket Modal"
+        className="ReactModal__Content"
+        overlayClassName="ReactModal__Overlay"
+      >
+        <button onClick={closeModal} className="modal-close-button">&times;</button>
+        <TicketFormModal 
+          mode="update" 
+          ticketId={selectedTicketId} 
+          onSuccess={handleFormSuccess} 
+          onCancel={closeModal}
+        />
+      </Modal>
     </div>
   );
 }
