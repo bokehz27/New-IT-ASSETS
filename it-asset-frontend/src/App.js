@@ -18,7 +18,7 @@ import AddAssetPage from "./pages/AddAssetPage";
 import EditAssetPage from "./pages/EditAssetPage";
 import AssetDetailPage from "./pages/AssetDetailPage";
 import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
+import CreateUserPage from "./pages/CreateUserPage";
 import TicketFormPage from "./pages/TicketFormPage";
 import TicketListPage from "./pages/TicketListPage";
 import UpdateTicketPage from "./pages/UpdateTicketPage";
@@ -46,7 +46,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/register" element={<CreateUserPage />} />
             <Route path="/report-issue" element={<TicketFormPage />} />
 
             {/* Protected Routes */}

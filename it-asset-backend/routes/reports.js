@@ -3,13 +3,19 @@ const router = express.Router();
 const ExcelJS = require('exceljs');
 const Asset = require('../models/asset');
 
+// กำหนดลำดับคอลัมน์ตาม asset_template.csv (รวมฟิลด์ใหม่แล้ว)
+const templateFields = [
+    'asset_code', 'serial_number', 'brand', 'model', 'subcategory', 'ram', 'cpu',
+    'storage', 'device_id', 'ip_address', 'wifi_registered', 'mac_address_lan',
+    'mac_address_wifi', 'start_date', 'location', 'fin_asset_ref', 'user_id',
+    'user_name', 'department', 'category', 'status', 'windows_version',
+    'windows_key', 'office_version', 'office_key', 'antivirus'
+];
+
 router.get('/assets/export-simple', async (req, res) => {
     try {
-        const { fields } = req.query;
-        if (!fields) {
-            return res.status(400).send('Please select fields to export.');
-        }
-        const selectedFields = fields.split(',');
+        // ใช้ templateFields ที่กำหนดไว้เสมอ
+        const selectedFields = templateFields;
 
         const assets = await Asset.findAll({ raw: true });
 
@@ -20,6 +26,7 @@ router.get('/assets/export-simple', async (req, res) => {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Simple Assets Report');
 
+        // สร้างคอลัมน์ตามลำดับของ templateFields
         worksheet.columns = selectedFields.map(field => ({
             header: field,
             key: field,
@@ -41,8 +48,6 @@ router.get('/assets/export-simple', async (req, res) => {
         const headerRow = worksheet.getRow(1);
         headerRow.height = 20;
 
-        // ใช้วิธีวนลูปตามจำนวนคอลัมน์ที่แน่นอน เพื่อเจาะจงใส่สไตล์ทีละเซลล์
-        // This is a more robust method to prevent style "spilling"
         for (let i = 1; i <= selectedFields.length; i++) {
             const cell = headerRow.getCell(i);
             cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -60,10 +65,8 @@ router.get('/assets/export-simple', async (req, res) => {
             };
         }
 
-        // ตีเส้นตารางสำหรับข้อมูล (ส่วนนี้ทำงานถูกต้องแล้ว)
         worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
             if (rowNumber > 1) {
-                // วนลูปตามจำนวนคอลัมน์ที่มีอยู่จริง เพื่อความแม่นยำ
                  for (let i = 1; i <= selectedFields.length; i++) {
                      const cell = row.getCell(i);
                      cell.border = {

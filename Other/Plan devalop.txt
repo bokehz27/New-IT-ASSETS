@@ -1,0 +1,11 @@
+- การปรับหน้า Add Asset ให้เป็น "ฟอร์มแบบไดนามิก
+
+- การจัดการ License Software
+
+- การกำหนดสิทธิ์การเข้าถึงตามบทบาท
+
+- ระบบแจ้งเตือน (Notification System)
+
+- การทำ Audit Trail
+
+- Log remark ของ port lan

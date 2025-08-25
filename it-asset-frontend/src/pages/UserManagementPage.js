@@ -1,12 +1,8 @@
 // src/pages/UserManagementPage.js
 
 import React, { useState, useEffect } from 'react';
-// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
 import api from '../api'; // Adjust path as needed
 import EditUserModal from './EditUserModal';
-
-// --- CHANGE 2: Remove the unnecessary API_URL constant ---
-// const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
 function UserManagementPage() {
   const [employees, setEmployees] = useState([]);
@@ -21,8 +17,6 @@ function UserManagementPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // --- CHANGE 3: Use the 'api' instance for fetching data ---
-      // This ensures requests are authenticated.
       const [employeesRes, departmentsRes] = await Promise.all([
         api.get('/employees'),
         api.get('/master-data/department')
@@ -61,12 +55,9 @@ function UserManagementPage() {
     }
 
     try {
-      // --- CHANGE 4: Use the 'api' instance for saving data ---
       if (editingEmployee) {
-        // Edit Mode
         await api.put(`/employees/${editingEmployee.id}`, dataFromModal);
       } else {
-        // Add Mode
         await api.post('/employees', dataFromModal);
       }
       handleCloseModal();
@@ -89,7 +80,6 @@ function UserManagementPage() {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        // --- CHANGE 5: Use the 'api' instance for deleting data ---
         await api.delete(`/employees/${id}`);
         fetchData();
       } catch (err) {
@@ -98,7 +88,6 @@ function UserManagementPage() {
     }
   };
 
-  // --- No changes to JSX below ---
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <div className="flex justify-between items-center mb-6">
@@ -136,16 +125,27 @@ function UserManagementPage() {
                             <td className="p-3 text-gray-700">{emp.email}</td>
                             <td className="p-3 text-gray-700">{emp.contactNumber}</td>
                             <td className="p-3 text-gray-700">{emp.department}</td>
-                            <td className="p-3 text-center">
-                                <button
-                                  onClick={() => handleEditClick(emp)}
-                                  className="text-blue-600 hover:bg-blue-200/50 text-sm font-semibold px-2 py-1 rounded-md transition-colors mr-2"
-                                >
-                                  Edit
-                                </button>
-                                <button onClick={() => handleDelete(emp.id)} className="text-red-600 hover:bg-red-200/50 text-sm font-semibold px-2 py-1 rounded-md transition-colors">
-                                    Delete
-                                </button>
+                            <td className="p-3">
+                                <div className="flex justify-center items-center gap-2">
+                                    <button
+                                        onClick={() => handleEditClick(emp)}
+                                        className="p-1.5 text-gray-500 hover:text-yellow-600 hover:bg-yellow-100 rounded-full transition-colors"
+                                        title="Edit User"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.586a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(emp.id)}
+                                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-100 rounded-full transition-colors"
+                                        title="Delete User"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     ))
