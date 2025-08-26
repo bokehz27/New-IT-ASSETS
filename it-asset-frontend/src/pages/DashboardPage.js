@@ -155,27 +155,27 @@ function DashboardPage() {
         <ActionButton
           to="/add"
           icon={<FiPlusCircle className="w-6 h-6 text-blue-500" />}
-          title="เพิ่มสินทรัพย์ใหม่"
-          subtitle="เพิ่มอุปกรณ์ IT ชิ้นเดียว"
+          title="Add New Asset"
+          subtitle="Add a single IT device"
         />
         {/* --- 3. เปลี่ยน ActionButton ให้ใช้ onClick เพื่อเปิด Modal --- */}
         <ActionButton
           onClick={() => openModal('create')}
           icon={<FiEdit className="w-6 h-6 text-green-500" />}
-          title="สร้าง Ticket"
-          subtitle="เปิดใบแจ้งซ่อมสำหรับแอดมิน"
+          title="Create Ticket"
+          subtitle="Open a repair request for admin"
         />
         <ActionButton
           to="/import"
           icon={<FiUpload className="w-6 h-6 text-purple-500" />}
-          title="นำเข้าข้อมูล"
-          subtitle="เพิ่มสินทรัพย์หลายชิ้นจากไฟล์"
+          title="Import Data"
+          subtitle="Add multiple assets from a file"
         />
         <ActionButton
           to="/settings/users"
           icon={<FiUserPlus className="w-6 h-6 text-yellow-500" />}
-          title="เพิ่มผู้ใช้"
-          subtitle="จัดการข้อมูลผู้ใช้งาน"
+          title="Add User"
+          subtitle="Manage user information"
         />
       </div>
 
@@ -188,7 +188,7 @@ function DashboardPage() {
             <Link to="/assets" className="group">
               <div className="transition-transform duration-300 group-hover:scale-105 h-full">
                 <StatCard
-                  title="สินทรัพย์ทั้งหมด"
+                  title="Total Assets"
                   value={summary.assetCount}
                   color="bg-blue-500 text-white"
                 />
@@ -197,21 +197,21 @@ function DashboardPage() {
             <Link to="/assets?filter=incomplete" className="group">
               <div className="transition-transform duration-300 group-hover:scale-105 h-full">
                 <StatCard
-                  title="สินทรัพย์ที่ข้อมูลไม่ครบ"
+                  title="Assets with Incomplete Data"
                   value={summary.incompleteAssetCount}
                   color="bg-red-500 text-white"
                 />
               </div>
             </Link>
             <StatCard
-              title="งานที่กำลังดำเนินการ"
+              title="Ongoing Tasks"
               value={summary.inProgressCount}
               color="bg-yellow-500 text-white"
             />
             <Link to="/tickets" className="group">
               <div className="transition-transform duration-300 group-hover:scale-105 h-full">
                 <StatCard
-                  title="Ticket ทั้งหมด"
+                  title="Total Tickets"
                   value={summary.ticketCount}
                   color="bg-gray-700 text-white"
                 />
@@ -221,7 +221,7 @@ function DashboardPage() {
 
           {/* Recent Tickets */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="font-bold text-lg mb-4">รายการแจ้งซ่อมล่าสุด</h3>
+            <h3 className="font-bold text-lg mb-4">Latest Repair Requests</h3>
             <ul className="divide-y divide-gray-100">
               {summary.recentTickets.map((ticket) => (
                 <li
@@ -244,7 +244,7 @@ function DashboardPage() {
 
         {/* คอลัมน์ขวา: กราฟสรุปสถานะ */}
         <div className="bg-white p-6 rounded-lg shadow-md flex flex-col">
-          <h3 className="font-bold text-lg mb-4">สรุปสถานะรายการแจ้งซ่อม</h3>
+          <h3 className="font-bold text-lg mb-4">Repair Request Status Summary</h3>
           <div className="flex-grow flex items-center justify-center">
             <Doughnut data={ticketsByStatusData} options={doughnutOptions} />
           </div>

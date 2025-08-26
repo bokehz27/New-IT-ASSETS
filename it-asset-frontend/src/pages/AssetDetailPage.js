@@ -92,12 +92,12 @@ function AssetDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <InfoCard title="Hardware specifications">
-                        <DetailItem label="ยี่ห้อ / รุ่น" value={`${asset.brand || ''} ${asset.model || ''}`.trim()} />
-                        <DetailItem label="หมายเลขซีเรียล" value={asset.serial_number} />
-                        <DetailItem label="หมวดหมู่" value={`${asset.category || ''} / ${asset.subcategory || ''}`.trim()} />
-                        <DetailItem label="ซีพียู" value={asset.cpu} />
-                        <DetailItem label="หน่วยความจำ (แรม)" value={asset.ram} />
-                        <DetailItem label="ฮาร์ดดิสก์" value={asset.storage} />
+                        <DetailItem label="Brand / Model" value={`${asset.brand || ''} ${asset.model || ''}`.trim()} />
+                        <DetailItem label="Serial Number" value={asset.serial_number} />
+                        <DetailItem label="Category" value={`${asset.category || ''} / ${asset.subcategory || ''}`.trim()} />
+                        <DetailItem label="CPU" value={asset.cpu} />
+                        <DetailItem label="Memory (RAM)" value={asset.ram} />
+                        <DetailItem label="Hard Disk" value={asset.storage} />
                     </InfoCard>
 
                     <InfoCard title="Network information">
@@ -150,14 +150,14 @@ function AssetDetailPage() {
 
                 <div className="lg:col-span-1 space-y-6">
                     <InfoCard title="Configuration and location">
-                        <DetailItem label="ผู้ใช้งาน" value={asset.user_name} />
+                        <DetailItem label="User" value={asset.user_name} />
                         <DetailItem label="User ID" value={asset.user_id} />
-                        <DetailItem label="หน่วยงาน / แผนก" value={asset.department} />
-                        <DetailItem label="พื้นที่ใช้งาน" value={asset.location} />
+                        <DetailItem label="Department / Division" value={asset.department} />
+                        <DetailItem label="Location" value={asset.location} />
                     </InfoCard>
 
                     <InfoCard title="Management details">
-                        <DetailItem label="วันที่เริ่มใช้งาน" value={asset.start_date ? new Date(asset.start_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'} />
+                        <DetailItem label="Start Date" value={asset.start_date ? new Date(asset.start_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'} />
                         <DetailItem label="Ref. FIN Asset No." value={asset.fin_asset_ref} />
                     </InfoCard>
                 </div>

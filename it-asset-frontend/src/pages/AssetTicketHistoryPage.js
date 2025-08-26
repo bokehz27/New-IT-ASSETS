@@ -1,17 +1,17 @@
 // src/pages/AssetTicketHistoryPage.js (Example Path)
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 // --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
-import api from '../api'; // Adjust the path based on your project structure
-import { useParams } from 'react-router-dom';
-import Modal from 'react-modal';
-import TicketFormModal from '../components/TicketFormModal';
-import { FaEdit } from 'react-icons/fa';
+import api from "../api"; // Adjust the path based on your project structure
+import { useParams } from "react-router-dom";
+import Modal from "react-modal";
+import TicketFormModal from "../components/TicketFormModal";
+import { FaEdit } from "react-icons/fa";
 
 // --- CHANGE 2: Remove the unnecessary API_URL constant ---
 // const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
-Modal.setAppElement('#root');
+Modal.setAppElement("#root");
 
 function AssetTicketHistoryPage() {
   const { assetCode } = useParams();
@@ -53,54 +53,74 @@ function AssetTicketHistoryPage() {
     fetchHistory();
   };
 
-  if (loading) return <div className="text-center p-10">Loading history...</div>;
+  if (loading)
+    return <div className="text-center p-10">Loading history...</div>;
 
   // --- No changes to JSX ---
   return (
     <div className="my-8 px-4 sm:px-6 lg:px-8">
       <div className="bg-white p-6 md:p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-2 text-gray-700">ประวัติการแจ้งซ่อม</h2>
+        <h2 className="text-2xl font-bold mb-2 text-gray-700">
+          Repair History
+        </h2>
         <p className="mb-6 text-gray-500">
-          สำหรับรหัสอุปกรณ์ : <span className="font-semibold text-gray-800">{assetCode}</span>
+          For IT Asset :{" "}
+          <span className="font-semibold text-gray-800">{assetCode}</span>
         </p>
-        
+
         {tickets.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm table-fixed">
               <thead className="bg-blue-600">
                 <tr>
-                  <th className="p-3 font-semibold text-white w-48">วันที่แจ้ง</th>
-                  <th className="p-3 font-semibold text-white w-40">ผู้แจ้ง</th>
-                  <th className="p-3 font-semibold text-white">ปัญหา</th>
-                  <th className="p-3 font-semibold text-white">วิธีแก้ปัญหา</th>
-                  <th className="p-3 font-semibold text-white w-32">สถานะ</th>
-                  <th className="p-3 font-semibold text-white w-40">ผู้ดำเนินการ</th>
+                  <th className="p-3 font-semibold text-white w-48">
+                    Reported Date
+                  </th>
+                  <th className="p-3 font-semibold text-white w-40">
+                    Reporter
+                  </th>
+                  <th className="p-3 font-semibold text-white">Issue</th>
+                  <th className="p-3 font-semibold text-white">Solution</th>
+                  <th className="p-3 font-semibold text-white w-32">Status</th>
+                  <th className="p-3 font-semibold text-white w-40">Handler</th>
                   <th className="p-3 font-semibold text-white text-center w-24">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {tickets.map(ticket => (
+                {tickets.map((ticket) => (
                   <tr key={ticket.id} className="hover:bg-gray-50">
                     <td className="p-3 align-middle whitespace-nowrap">
-  {new Date(ticket.report_date).toLocaleDateString('th-TH', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })}
-  <br />
-  {new Date(ticket.report_date).toLocaleTimeString('th-TH', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })}
-</td>
+                      {new Date(ticket.report_date).toLocaleDateString(
+                        "th-TH",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        }
+                      )}
+                      <br />
+                      {new Date(ticket.report_date).toLocaleTimeString(
+                        "th-TH",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
+                    </td>
                     <td className="p-3 align-middle">{ticket.reporter_name}</td>
-                    <td className="p-3 align-middle break-words">{ticket.problem_description}</td>
-                    <td className="p-3 align-middle break-words">{ticket.solution || 'N/A'}</td>
+                    <td className="p-3 align-middle break-words">
+                      {ticket.problem_description}
+                    </td>
+                    <td className="p-3 align-middle break-words">
+                      {ticket.solution || "N/A"}
+                    </td>
                     <td className="p-3 align-middle">{ticket.status}</td>
-                    <td className="p-3 align-middle">{ticket.handler_name || 'N/A'}</td>
+                    <td className="p-3 align-middle">
+                      {ticket.handler_name || "N/A"}
+                    </td>
                     <td className="p-3 align-middle text-center">
-                      <button 
-                        onClick={() => openModal(ticket.id)} 
+                      <button
+                        onClick={() => openModal(ticket.id)}
                         className="bg-blue-500 hover:bg-blue-600 table-action-button"
                         title="View/Update"
                       >
@@ -113,7 +133,9 @@ function AssetTicketHistoryPage() {
             </table>
           </div>
         ) : (
-          <p className="text-center text-gray-500 py-10">ไม่พบประวัติการแจ้งซ่อมสำหรับอุปกรณ์นี้</p>
+          <p className="text-center text-gray-500 py-10">
+            No repair history found for this device.
+          </p>
         )}
       </div>
 
@@ -124,11 +146,13 @@ function AssetTicketHistoryPage() {
         className="ReactModal__Content"
         overlayClassName="ReactModal__Overlay"
       >
-        <button onClick={closeModal} className="modal-close-button">&times;</button>
-        <TicketFormModal 
-          mode="update" 
-          ticketId={selectedTicketId} 
-          onSuccess={handleFormSuccess} 
+        <button onClick={closeModal} className="modal-close-button">
+          &times;
+        </button>
+        <TicketFormModal
+          mode="update"
+          ticketId={selectedTicketId}
+          onSuccess={handleFormSuccess}
           onCancel={closeModal}
         />
       </Modal>

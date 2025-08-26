@@ -1,10 +1,6 @@
-// src/pages/TicketListPage.js
-
 import React, { useState, useEffect, useCallback } from "react";
-// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
-import api from "../api"; // Adjust path as needed
+import api from "../api";
 import Modal from "react-modal";
-
 import TicketFormModal from "../components/TicketFormModal";
 
 import {
@@ -19,9 +15,6 @@ import {
   FaTimesCircle,
   FaExclamationTriangle,
 } from "react-icons/fa";
-
-// --- CHANGE 2: Remove the unnecessary API_URL constant ---
-// const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
 Modal.setAppElement("#root");
 
@@ -78,7 +71,6 @@ function TicketListPage() {
   const fetchTickets = useCallback(async () => {
     try {
       setLoading(true);
-      // --- CHANGE 3: Use the 'api' instance, which handles headers automatically ---
       const res = await api.get("/tickets", {
         params: {
           ...filters,
@@ -92,11 +84,8 @@ function TicketListPage() {
       setCurrentPage(res.data.currentPage || 1);
       setTotalItems(res.data.totalItems || 0);
     } catch (err) {
-      console.error(
-        "Failed to fetch tickets",
-        err.response ? err.response.data : err.message
-      );
-      setError("ไม่สามารถโหลดรายการแจ้งซ่อมได้");
+      console.error("Failed to fetch tickets", err.response ? err.response.data : err.message);
+      setError("Unable to load repair tickets.");
       setTickets([]);
     } finally {
       setLoading(false);
@@ -143,37 +132,28 @@ function TicketListPage() {
   };
 
   const handleDeleteClick = async (ticketId) => {
-    if (window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการแจ้งซ่อมนี้?")) {
+    if (window.confirm("Are you sure you want to delete this repair ticket?")) {
       try {
-        // --- CHANGE 4: Use the 'api' instance for the delete request ---
         await api.delete(`/tickets/${ticketId}`);
-
         fetchTickets();
-        alert("ลบรายการแจ้งซ่อมสำเร็จ!");
+        alert("Repair ticket deleted successfully!");
       } catch (err) {
-        console.error(
-          "Failed to delete ticket:",
-          err.response ? err.response.data : err.message
-        );
-        alert(
-          "เกิดข้อผิดพลาดในการลบรายการแจ้งซ่อม: " +
-            (err.response?.data?.msg || err.message)
-        );
+        console.error("Failed to delete ticket:", err.response ? err.response.data : err.message);
+        alert("Error deleting repair ticket: " + (err.response?.data?.msg || err.message));
       }
     }
   };
 
-  // --- No changes to JSX below ---
   return (
     <div className="my-8 px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-gray-900">รายการแจ้งซ่อม</h2>
+        <h2 className="text-3xl font-bold text-gray-900">Repair Tickets</h2>
         <button
           onClick={() => openModal("create")}
           className="bg-blue-600 text-white font-bold py-2 px-6 rounded-md hover:bg-blue-700 flex items-center gap-2"
         >
           <FaPlus />
-          <span>สร้างใบแจ้งซ่อม</span>
+          <span>Create Repair Ticket</span>
         </button>
       </div>
 
@@ -182,15 +162,11 @@ function TicketListPage() {
           <div className="flex-grow" style={{ minWidth: "180px" }}>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               <FaFilter className="inline-block mr-2" />
-              สถานะ
+              Status
             </label>
-            <select
-              name="status"
-              value={filters.status}
-              onChange={handleFilterChange}
-              className="w-full"
-            >
-              <option value="">ทั้งหมด</option>
+            <select name="status" value={filters.status} onChange={handleFilterChange} className="w-full">
+              <option value="">All</option>
+              <option value="Request">Request</option>
               <option value="Wait">Wait</option>
               <option value="In Progress">In Progress</option>
               <option value="Success">Success</option>
@@ -198,28 +174,12 @@ function TicketListPage() {
             </select>
           </div>
           <div className="flex-grow" style={{ minWidth: "150px" }}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              วันที่เริ่มต้น
-            </label>
-            <input
-              type="date"
-              name="startDate"
-              value={filters.startDate}
-              onChange={handleFilterChange}
-              className="w-full"
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+            <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="w-full" />
           </div>
           <div className="flex-grow" style={{ minWidth: "150px" }}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              วันที่สิ้นสุด
-            </label>
-            <input
-              type="date"
-              name="endDate"
-              value={filters.endDate}
-              onChange={handleFilterChange}
-              className="w-full"
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+            <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="w-full" />
           </div>
           <div>
             <button
@@ -227,24 +187,20 @@ function TicketListPage() {
               className="w-full bg-white text-gray-700 font-semibold py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-100 flex items-center justify-center gap-2"
             >
               <FaBroom />
-              <span>ล้างค่า</span>
+              <span>Clear Filters</span>
             </button>
           </div>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center p-16 text-gray-500 text-xl">
-          กำลังโหลดข้อมูล...
-        </div>
+        <div className="text-center p-16 text-gray-500 text-xl">Loading data...</div>
       ) : error ? (
         <div className="text-center p-16 text-red-600">{error}</div>
       ) : tickets.length === 0 ? (
         <div className="text-center py-16 text-gray-500 bg-white rounded-lg shadow-md">
-          <h3 className="text-2xl font-semibold">ไม่พบรายการแจ้งซ่อม</h3>
-          <p className="mt-2">
-            ลองเปลี่ยนเงื่อนไขการกรอง หรืออาจยังไม่มีข้อมูลในระบบ
-          </p>
+          <h3 className="text-2xl font-semibold">No Repair Tickets Found</h3>
+          <p className="mt-2">Try adjusting the filters or there may be no data in the system.</p>
         </div>
       ) : (
         <>
@@ -252,61 +208,39 @@ function TicketListPage() {
             <table className="w-full text-sm text-left table-fixed">
               <thead className="bg-blue-600">
                 <tr>
-                  <th className="p-3 font-semibold text-white">วันที่แจ้ง</th>
-                  <th className="p-3 font-semibold text-white">รหัสอุปกรณ์</th>
-                  <th className="p-3 font-semibold text-white">ชื่อผู้แจ้ง</th>
-                  <th className="p-3 font-semibold text-white w-1/4">ปัญหา</th>
-                  <th className="p-3 font-semibold text-white w-1/4">
-                    สาเหตุและวิธีแก้ปัญหา
-                  </th>
-                  <th className="p-3 font-semibold text-white">ผู้ดำเนินการ</th>
-                  <th className="p-3 font-semibold text-white">สถานะ</th>
-                  <th className="p-3 font-semibold text-white text-center">
-                    Actions
-                  </th>
+                  <th className="p-3 font-semibold text-white">Reported Date</th>
+                  <th className="p-3 font-semibold text-white">IT Asset</th>
+                  <th className="p-3 font-semibold text-white">Reporter</th>
+                  <th className="p-3 font-semibold text-white w-1/4">Issue</th>
+                  <th className="p-3 font-semibold text-white w-1/4">Solution</th>
+                  <th className="p-3 font-semibold text-white">Handler</th>
+                  <th className="p-3 font-semibold text-white">Status</th>
+                  <th className="p-3 font-semibold text-white text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {tickets.map((ticket) => (
                   <tr key={ticket.id} className="hover:bg-gray-50">
                     <td className="p-3 align-middle text-gray-800">
-  {new Date(ticket.report_date).toLocaleDateString(
-    "th-TH",
-    {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    }
-  )}
-  <br />
-  {new Date(ticket.report_date).toLocaleTimeString(
-    "th-TH",
-    {
-      hour: "2-digit",
-      minute: "2-digit",
-    }
-  )}
-</td>
-                    <td className="p-3 align-middle text-gray-800">
-                      {ticket.asset_code}
+                      {new Date(ticket.report_date).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
+                      <br />
+                      {new Date(ticket.report_date).toLocaleTimeString("en-GB", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </td>
-                    <td className="p-3 align-middle text-gray-800">
-                      {ticket.reporter_name}
-                    </td>
-                    <td className="p-3 align-middle font-medium text-gray-900 break-words">
-                      {ticket.problem_description}
-                    </td>
-                    <td className="p-3 align-middle text-gray-800 break-words">
-                      {ticket.solution || "ยังไม่มี"}
-                    </td>
-                    <td className="p-3 align-middle text-gray-800">
-                      {ticket.handler_name || "ยังไม่มี"}
-                    </td>
+                    <td className="p-3 align-middle text-gray-800">{ticket.asset_code}</td>
+                    <td className="p-3 align-middle text-gray-800">{ticket.reporter_name}</td>
+                    <td className="p-3 align-middle font-medium text-gray-900 break-words">{ticket.problem_description}</td>
+                    <td className="p-3 align-middle text-gray-800 break-words">{ticket.solution || "No solution yet"}</td>
+                    <td className="p-3 align-middle text-gray-800">{ticket.handler_name || "Not assigned"}</td>
                     <td className="p-3 align-middle">
                       <span
-                        className={`inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                          ticket.status
-                        )}`}
+                        className={`inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}
                       >
                         <StatusIcon status={ticket.status} />
                         {ticket.status}
@@ -352,18 +286,14 @@ function TicketListPage() {
               </span>
               <div className="flex gap-2">
                 <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                   className="bg-gray-200 text-gray-700 disabled:opacity-50"
                 >
                   Previous
                 </button>
                 <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
                   className="bg-gray-200 text-gray-700 disabled:opacity-50"
                 >
@@ -385,12 +315,7 @@ function TicketListPage() {
         <button onClick={closeModal} className="modal-close-button">
           &times;
         </button>
-        <TicketFormModal
-          mode={modalMode}
-          ticketId={selectedTicketId}
-          onSuccess={handleFormSuccess}
-          onCancel={closeModal}
-        />
+        <TicketFormModal mode={modalMode} ticketId={selectedTicketId} onSuccess={handleFormSuccess} onCancel={closeModal} />
       </Modal>
     </div>
   );

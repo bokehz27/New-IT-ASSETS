@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 html {
-  font-size: 80%; /* คงขนาด Font เดิมไว้ */
+  font-size: 75%; /* คงขนาด Font เดิมไว้ */
 }
 
 /* --- เริ่มต้นโค้ดสำหรับธีม Material Design --- */

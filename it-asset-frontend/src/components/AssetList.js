@@ -13,7 +13,7 @@ function AssetList({ assets, onDelete }) {
             <th className="p-3 font-semibold text-white">Categories</th>
             <th className="p-3 font-semibold text-white">IT Asset</th>
             <th className="p-3 font-semibold text-white">Subcategories</th>
-            <th className="p-3 font-semibold text-white">Department/Unit</th>
+            <th className="p-3 font-semibold text-white">Department</th>
             <th className="p-3 font-semibold text-white">Device Users</th>
             <th className="p-3 font-semibold text-white">User ID</th>
             <th className="p-3 font-semibold text-white text-center">

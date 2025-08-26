@@ -1,8 +1,5 @@
-// src/pages/TicketFormPage.js
-
 import React, { useState, useEffect } from "react";
-// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
-import api from '../api'; // Adjust path as needed
+import api from '../api';
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 
@@ -22,7 +19,6 @@ function TicketFormPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        // --- CHANGE 2: Use the 'api' instance for fetching data ---
         const res = await api.get("/public/asset-users");
         setUsers(res.data);
       } catch (error) {
@@ -32,7 +28,6 @@ function TicketFormPage() {
 
     const fetchAssets = async () => {
       try {
-        // --- CHANGE 3: Use the 'api' instance here as well ---
         const res = await api.get("/public/assets-list");
         const options = res.data.map((asset) => ({
           value: asset.asset_code,
@@ -76,38 +71,35 @@ function TicketFormPage() {
     }
 
     try {
-      // --- CHANGE 4: Use the 'api' instance for submitting the form ---
-      // The headers are now handled automatically.
       await api.post("/public/tickets", submissionData);
-      alert("แจ้งปัญหาสำเร็จ!");
+      alert("Issue reported successfully!");
       navigate("/");
     } catch (error) {
       console.error("Failed to submit ticket", error);
-      alert("เกิดข้อผิดพลาดในการแจ้งปัญหา");
+      alert("An error occurred while reporting the issue.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // --- No changes to JSX below ---
   return (
     <div className="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto">
       <h2 className="text-3xl font-bold mb-2 text-gray-900">
-        แจ้งปัญหาการใช้งาน
+        Report an Issue
       </h2>
       <p className="text-gray-500 mb-8">
-        กรุณากรอกข้อมูลด้านล่างให้ครบถ้วนเพื่อส่งเรื่องให้เจ้าหน้าที่ตรวจสอบ
+        Please fill in the information below to submit the issue for review.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="border-b border-gray-200 pb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            ข้อมูลผู้แจ้งและอุปกรณ์
+            Reporter & Device Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block mb-1 text-sm font-semibold text-gray-600">
-                ชื่อผู้แจ้ง
+                Reporter Name
               </label>
               <Select
                 classNamePrefix="react-select"
@@ -128,7 +120,7 @@ function TicketFormPage() {
                       }
                     : null
                 }
-                placeholder="-- ค้นหาหรือเลือกชื่อของคุณ --"
+                placeholder="-- Search or select your name --"
                 isClearable
                 required
               />
@@ -136,7 +128,7 @@ function TicketFormPage() {
 
             <div>
               <label className="block mb-1 text-sm font-semibold text-gray-600">
-                รหัสอุปกรณ์
+                Asset Code
               </label>
               <Select
                 classNamePrefix="react-select"
@@ -145,7 +137,7 @@ function TicketFormPage() {
                 value={assetOptions.find(
                   (option) => option.value === formData.asset_code
                 )}
-                placeholder="-- ค้นหาหรือเลือกรหัสอุปกรณ์ --"
+                placeholder="-- Search or select asset code --"
                 isClearable
                 required
               />
@@ -155,36 +147,47 @@ function TicketFormPage() {
 
         <div className="border-b border-gray-200 pb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            รายละเอียดปัญหา
+            Issue Details
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block mb-1 text-sm font-semibold text-gray-600">
-                เบอร์ติดต่อกลับ
+                Contact Phone
               </label>
               <input
                 type="text"
                 name="contact_phone"
                 value={formData.contact_phone}
                 onChange={handleInputChange}
-                placeholder="เบอร์ภายใน 4 หลัก"
+                placeholder="Internal extension (4 digits)"
                 className="w-full"
                 required
               />
             </div>
             <div>
               <label className="block mb-1 text-sm font-semibold text-gray-600">
-                แนบไฟล์ (ถ้ามี)
+                Attach File (if any)
               </label>
               <div className="flex items-center gap-4">
                 <label htmlFor="attachment-input" className="file-input-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                    />
                   </svg>
-                  <span>เลือกไฟล์</span>
+                  <span>Select File</span>
                 </label>
                 <span className="text-sm text-gray-500">
-                  {attachment ? attachment.name : "ยังไม่ได้เลือกไฟล์"}
+                  {attachment ? attachment.name : "No file selected"}
                 </span>
               </div>
               <input
@@ -197,7 +200,7 @@ function TicketFormPage() {
 
             <div className="md:col-span-2">
               <label className="block mb-1 text-sm font-semibold text-gray-600">
-                อธิบายปัญหาที่พบ
+                Describe the Issue
               </label>
               <textarea
                 name="problem_description"
@@ -205,7 +208,7 @@ function TicketFormPage() {
                 onChange={handleInputChange}
                 rows="5"
                 className="w-full"
-                placeholder="โปรดอธิบายปัญหาที่พบเจอโดยละเอียด..."
+                placeholder="Please describe the issue in detail..."
                 required
               ></textarea>
             </div>
@@ -218,7 +221,7 @@ function TicketFormPage() {
             disabled={submitting}
             className="w-full md:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-md hover:bg-indigo-700 transition disabled:bg-gray-400 shadow-md hover:shadow-lg"
           >
-            {submitting ? "กำลังส่ง..." : "ส่งเรื่องแจ้งซ่อม"}
+            {submitting ? "Submitting..." : "Submit Repair Request"}
           </button>
         </div>
       </form>

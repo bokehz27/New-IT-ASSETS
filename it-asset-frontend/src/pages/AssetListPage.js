@@ -87,7 +87,7 @@ function AssetListPage() {
             role="alert"
           >
             <h2 className="font-bold">Filtered View</h2>
-            <p>แสดงเฉพาะรายการสินทรัพย์ที่ข้อมูลไม่สมบูรณ์</p>
+            <p>Show only assets with incomplete data.</p>
           </div>
         )}
       </div>
@@ -131,7 +131,7 @@ function AssetListPage() {
               onClick={() => setSearchParams({})}
               className="bg-gray-200 text-gray-700 whitespace-nowrap"
             >
-              ล้างการกรอง
+              Clear Filters
             </button>
           )}
         </div>

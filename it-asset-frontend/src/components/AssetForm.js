@@ -86,7 +86,7 @@ function AssetForm({
           <h2 className="text-2xl font-bold text-gray-900">
             {isEditing ? `Edit device : ${formData.asset_code}` : "Add device"}
           </h2>
-          <p className="text-sm text-gray-500">กรุณากรอกข้อมูลให้ครบถ้วน</p>
+          <p className="text-sm text-gray-500">Please complete all required fields.</p>
         </div>
         <div className="flex space-x-2">
           <button
@@ -108,7 +108,7 @@ function AssetForm({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <InfoCard title="Hardware specifications">
-            <FormField label="รหัสอุปกรณ์">
+            <FormField label="IT Asset">
               <input
                 type="text"
                 name="asset_code"
@@ -118,14 +118,14 @@ function AssetForm({
                 required
               />
             </FormField>
-            <FormField label="หมวดหมู่หลัก">
+            <FormField label="Category">
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
                 className="w-full"
               >
-                <option value="">-- เลือกหมวดหมู่ --</option>
+                <option value="">-- Select Category --</option>
                 {masterData.category.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -133,14 +133,14 @@ function AssetForm({
                 ))}
               </select>
             </FormField>
-            <FormField label="หมวดหมู่ย่อย">
+            <FormField label="Subcategory">
               <select
                 name="subcategory"
                 value={formData.subcategory}
                 onChange={handleChange}
                 className="w-full"
               >
-                <option value="">-- เลือกหมวดหมู่ย่อย --</option>
+                <option value="">-- Select Subcategory --</option>
                 {masterData.subcategory.map((sc) => (
                   <option key={sc} value={sc}>
                     {sc}
@@ -148,14 +148,14 @@ function AssetForm({
                 ))}
               </select>
             </FormField>
-            <FormField label="ยี่ห้อ">
+            <FormField label="Brand">
               <select
                 name="brand"
                 value={formData.brand}
                 onChange={handleChange}
                 className="w-full"
               >
-                <option value="">-- เลือกยี่ห้อ --</option>
+                <option value="">-- Select Brand --</option>
                 {masterData.brand.map((b) => (
                   <option key={b} value={b}>
                     {b}
@@ -163,7 +163,7 @@ function AssetForm({
                 ))}
               </select>
             </FormField>
-            <FormField label="รุ่น">
+            <FormField label="Model">
               <input
                 type="text"
                 name="model"
@@ -172,7 +172,7 @@ function AssetForm({
                 className="w-full"
               />
             </FormField>
-            <FormField label="หมายเลขซีเรียล">
+            <FormField label="Serial Number">
               <input
                 type="text"
                 name="serial_number"
@@ -181,7 +181,7 @@ function AssetForm({
                 className="w-full"
               />
             </FormField>
-            <FormField label="ซีพียู">
+            <FormField label="CPU">
               <input
                 type="text"
                 name="cpu"
@@ -190,14 +190,14 @@ function AssetForm({
                 className="w-full"
               />
             </FormField>
-            <FormField label="หน่วยความจำ (แรม)">
+            <FormField label="Memory (RAM)">
               <select
                 name="ram"
                 value={formData.ram}
                 onChange={handleChange}
                 className="w-full"
               >
-                <option value="">-- เลือก RAM --</option>
+                <option value="">-- Select Ram --</option>
                 {masterData.ram.map((r) => (
                   <option key={r} value={r}>
                     {r}
@@ -205,14 +205,14 @@ function AssetForm({
                 ))}
               </select>
             </FormField>
-            <FormField label="ฮาร์ดดิสก์">
+            <FormField label="Hard Disk">
               <select
                 name="storage"
                 value={formData.storage}
                 onChange={handleChange}
                 className="w-full"
               >
-                <option value="">-- เลือก Storage --</option>
+                <option value="">-- Select Storage --</option>
                 {masterData.storage.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -259,7 +259,7 @@ function AssetForm({
                 className="w-full"
               />
             </FormField>
-            <FormField label="สถานะ WiFi">
+            <FormField label="Status WiFi">
               <select
                 name="wifi_registered"
                 value={formData.wifi_registered || "Wifi not register"}
@@ -280,7 +280,7 @@ function AssetForm({
                 onChange={handleChange}
                 className="w-full"
               >
-                <option value="">-- เลือกรุ่น Windows --</option>
+                <option value="">-- Select Windows --</option>
                 {(masterData.windows || []).map((w) => (
                   <option key={w} value={w}>
                     {w}
@@ -304,7 +304,7 @@ function AssetForm({
                 onChange={handleChange}
                 className="w-full"
               >
-                <option value="">-- เลือกรุ่น Office --</option>
+                <option value="">-- Select Office Model --</option>
                 {(masterData.office || []).map((o) => (
                   <option key={o} value={o}>
                     {o}
@@ -328,7 +328,7 @@ function AssetForm({
                 onChange={handleChange}
                 className="w-full"
               >
-                <option value="">-- เลือกโปรแกรม Antivirus --</option>
+                <option value="">-- Select Antivirus Program --</option>
                 {(masterData.antivirus || []).map((av) => (
                   <option key={av} value={av}>
                     {av}
@@ -347,7 +347,7 @@ function AssetForm({
                       onChange={(e) => handleProgramChange(index, e)}
                       className="p-2 border rounded-md w-full"
                     >
-                      <option value="">-- เลือกโปรแกรม --</option>
+                      <option value="">-- Select Program --</option>
                       {(masterData.special_program || []).map((p) => (
                         <option key={p} value={p}>
                           {p}
@@ -380,7 +380,7 @@ function AssetForm({
                 <input
                   type="text"
                   name="drive_name"
-                  placeholder="Drive (เช่น C:)"
+                  placeholder="Drive (e.g., C:)"
                   value={key.drive_name}
                   onChange={(e) => handleKeyChange(index, e)}
                   className="p-2 border rounded-md w-1/4"
@@ -389,7 +389,7 @@ function AssetForm({
                 <input
                   type="text"
                   name="recovery_key"
-                  placeholder="Recovery Key 48 หลัก"
+                  placeholder="48-digit Recovery Key"
                   value={key.recovery_key}
                   onChange={(e) => handleKeyChange(index, e)}
                   className="p-2 border rounded-md flex-grow"
@@ -416,14 +416,14 @@ function AssetForm({
 
         <div className="lg:col-span-1 space-y-6">
           <InfoCard title="Configuration and location">
-            <FormField label="ผู้ใช้งาน">
+            <FormField label="User">
               <select
                 name="user_name"
                 value={formData.user_name}
                 onChange={handleChange}
                 className="w-full"
               >
-                <option value="">-- เลือกผู้ใช้งาน --</option>
+                <option value="">-- Select User --</option>
                 {masterData.user_name.map((name) => (
                   <option key={name} value={name}>
                     {name}
@@ -444,14 +444,14 @@ function AssetForm({
             </FormField>
             {/* ======================================= */}
 
-            <FormField label="หน่วยงาน / แผนก">
+            <FormField label="Department / Division">
               <select
                 name="department"
                 value={formData.department}
                 onChange={handleChange}
                 className="w-full"
               >
-                <option value="">-- เลือกแผนก --</option>
+                <option value="">-- Select Department --</option>
                 {masterData.department.map((d) => (
                   <option key={d} value={d}>
                     {d}
@@ -459,14 +459,14 @@ function AssetForm({
                 ))}
               </select>
             </FormField>
-            <FormField label="พื้นที่ใช้งาน">
+            <FormField label="Location">
               <select
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
                 className="w-full"
               >
-                <option value="">-- เลือกสถานที่ --</option>
+                <option value="">-- Select Location --</option>
                 {masterData.location.map((l) => (
                   <option key={l} value={l}>
                     {l}
@@ -477,7 +477,7 @@ function AssetForm({
           </InfoCard>
 
           <InfoCard title="Management details">
-            <FormField label="สถานะ">
+            <FormField label="Status">
               <select
                 name="status"
                 value={formData.status}
@@ -485,12 +485,12 @@ function AssetForm({
                 className="w-full"
                 required
               >
-                <option value="">-- เลือกสถานะ --</option>
+                <option value="">-- Select Status --</option>
                 <option value="Enable">Enable</option>
                 <option value="Disable">Disable</option>
               </select>
             </FormField>
-            <FormField label="วันที่เริ่มใช้งาน">
+            <FormField label="Start Date">
               <input
                 type="date"
                 name="start_date"
