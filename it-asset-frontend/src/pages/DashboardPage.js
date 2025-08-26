@@ -87,7 +87,7 @@ function DashboardPage() {
 
   useEffect(() => {
     setCurrentDate(
-      new Date().toLocaleDateString("th-TH", {
+      new Date().toLocaleDateString("en-US", {
         weekday: "long",
         day: "numeric",
         month: "long",
@@ -147,7 +147,7 @@ function DashboardPage() {
       {/* --- Header --- */}
       <div>
         <h1 className="text-3xl font-bold text-gray-800">Dashboard Overview</h1>
-        <p className="text-gray-500">สรุปภาพรวมระบบ ณ วันที่ {currentDate}</p>
+        <p className="text-gray-500">System Overview as of {currentDate}</p>
       </div>
 
       {/* --- Quick Actions --- */}

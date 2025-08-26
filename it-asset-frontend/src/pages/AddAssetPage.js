@@ -65,22 +65,23 @@ function AddAssetPage() {
   }, []);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      // 3. เปลี่ยนไปใช้ `api.post` และไม่ต้องใส่ headers
-      await api.post('/assets', formData);
+  e.preventDefault();
+  try {
+    // 3. Use `api.post` without custom headers
+    await api.post('/assets', formData);
 
-      alert("เพิ่มอุปกรณ์ใหม่สำเร็จ!");
-      navigate('/');
-    } catch (error) {
-      console.error("Error creating asset:", error);
-      alert("ไม่สามารถเพิ่มอุปกรณ์ได้");
-    }
-  };
-
-  if (loading || !masterData) {
-    return <div>กำลังโหลดตัวเลือกสำหรับฟอร์ม...</div>;
+    alert("New asset added successfully!");
+    navigate('/');
+  } catch (error) {
+    console.error("Error creating asset:", error);
+    alert("Unable to add the asset.");
   }
+};
+
+if (loading || !masterData) {
+  return <div>Loading form options...</div>;
+}
+
 
   return (
     <AssetForm

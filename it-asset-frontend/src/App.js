@@ -21,12 +21,10 @@ import LoginPage from "./pages/LoginPage";
 import CreateUserPage from "./pages/CreateUserPage";
 import TicketFormPage from "./pages/TicketFormPage";
 import TicketListPage from "./pages/TicketListPage";
-import UpdateTicketPage from "./pages/UpdateTicketPage";
 import ManagementPage from "./pages/ManagementPage";
 import AssetTicketHistoryPage from "./pages/AssetTicketHistoryPage";
 import ImportAssetsPage from "./pages/ImportAssetsPage";
 import AddDataHubPage from "./pages/AddDataHubPage";
-import AdminTicketFormPage from "./pages/AdminTicketFormPage";
 import UserManagementPage from "./pages/UserManagementPage";
 import DashboardPage from "./pages/DashboardPage";
 import SwitchListPage from "./pages/SwitchListPage";
@@ -64,14 +62,6 @@ function App() {
                 element={<AssetTicketHistoryPage />}
               />
               <Route path="/tickets" element={<TicketListPage />} />
-              <Route
-                path="/update-ticket/:ticketId"
-                element={<UpdateTicketPage />}
-              />
-              <Route
-                path="/admin/create-ticket"
-                element={<AdminTicketFormPage />}
-              />
               <Route path="/switches" element={<SwitchListPage />} />
               <Route
                 path="/switches/:switchId"
@@ -79,75 +69,119 @@ function App() {
               />
               {/* --- ส่วนของ Settings --- */}
               <Route path="/settings" element={<SettingsLayout />}>
-                <Route
-                  path="category"
-                  element={
-                    <ManagementPage
-                      title="จัดการหมวดหมู่อุปกรณ์"
-                      dataType="category"
-                    />
-                  }
-                />
-                <Route
-                  path="subcategory"
-                  element={
-                    <ManagementPage
-                      title="จัดการหมวดหมู่ย่อย"
-                      dataType="subcategory"
-                    />
-                  }
-                />
-                <Route
-                  path="brand"
-                  element={
-                    <ManagementPage title="จัดการยี่ห้อ" dataType="brand" />
-                  }
-                />
-                <Route
-                  path="ram"
-                  element={<ManagementPage title="จัดการ RAM" dataType="ram" />}
-                />
-                <Route
-                  path="storage"
-                  element={
-                    <ManagementPage
-                      title="จัดการ Harddisk"
-                      dataType="storage"
-                    />
-                  }
-                />
-                <Route
-                  path="department"
-                  element={
-                    <ManagementPage title="จัดการแผนก" dataType="department" />
-                  }
-                />
-                <Route
-                  path="location"
-                  element={
-                    <ManagementPage
-                      title="จัดการพื้นที่ใช้งาน"
-                      dataType="location"
-                    />
-                  }
-                />
-                <Route path="users" element={<UserManagementPage />} />
-                <Route
-                  path="repair-type"
-                  element={
-                    <ManagementPage
-                      title="จัดการประเภทการซ่อม"
-                      dataType="repair_type"
-                    />
-                  }
-                />
-                {/* --- (เพิ่มใหม่) Route สำหรับจัดการข้อมูล Software --- */}
-                <Route path="windows" element={<ManagementPage title="จัดการรุ่น Windows" dataType="windows" />} />
-                <Route path="office" element={<ManagementPage title="จัดการรุ่น Office" dataType="office" />} />
-                <Route path="antivirus" element={<ManagementPage title="จัดการโปรแกรม Antivirus" dataType="antivirus" />} />
-                <Route path="special_program" element={<ManagementPage title="จัดการโปรแกรมพิเศษ" dataType="special_program" />} />
-                {/* ---------------------------------------------- */}
-              </Route>
+  <Route
+    path="category"
+    element={
+      <ManagementPage
+        title="Manage Asset Categories"
+        dataType="category"
+      />
+    }
+  />
+  <Route
+    path="subcategory"
+    element={
+      <ManagementPage
+        title="Manage Subcategories"
+        dataType="subcategory"
+      />
+    }
+  />
+  <Route
+    path="brand"
+    element={
+      <ManagementPage
+        title="Manage Brands"
+        dataType="brand"
+      />
+    }
+  />
+  <Route
+    path="ram"
+    element={
+      <ManagementPage
+        title="Manage RAM"
+        dataType="ram"
+      />
+    }
+  />
+  <Route
+    path="storage"
+    element={
+      <ManagementPage
+        title="Manage Hard Disks"
+        dataType="storage"
+      />
+    }
+  />
+  <Route
+    path="department"
+    element={
+      <ManagementPage
+        title="Manage Departments"
+        dataType="department"
+      />
+    }
+  />
+  <Route
+    path="location"
+    element={
+      <ManagementPage
+        title="Manage Locations"
+        dataType="location"
+      />
+    }
+  />
+  <Route path="users" element={<UserManagementPage />} />
+  <Route
+    path="repair-type"
+    element={
+      <ManagementPage
+        title="Manage Repair Types"
+        dataType="repair_type"
+      />
+    }
+  />
+  {/* --- New Routes for Software Management --- */}
+  <Route
+    path="windows"
+    element={
+      <ManagementPage
+        title="Manage Windows Versions"
+        dataType="windows"
+      />
+    }
+  />
+  <Route
+    path="office"
+    element={
+      <ManagementPage
+        title="Manage Office Versions"
+        dataType="office"
+      />
+    }
+  />
+  <Route
+    path="antivirus"
+    element={
+      <ManagementPage
+        title="Manage Antivirus Programs"
+        dataType="antivirus"
+      />
+    }
+  />
+  <Route
+    path="special_program"
+    element={
+      <ManagementPage
+        title="Manage Special Programs"
+        dataType="special_program"
+      />
+    }
+  />
+  {/* ---------------------------------------------- */}
+</Route>
+
             </Route>
           </Routes>
         </main>

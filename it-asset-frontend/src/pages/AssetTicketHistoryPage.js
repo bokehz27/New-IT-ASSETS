@@ -69,8 +69,8 @@ function AssetTicketHistoryPage() {
         </p>
 
         {tickets.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm table-fixed">
+          <div className="overflow-x-auto bg-white rounded-lg shadow-md">
+            <table className="w-full text-sm text-left table-fixed">
               <thead className="bg-blue-600">
                 <tr>
                   <th className="p-3 font-semibold text-white w-48">
@@ -91,7 +91,7 @@ function AssetTicketHistoryPage() {
                   <tr key={ticket.id} className="hover:bg-gray-50">
                     <td className="p-3 align-middle whitespace-nowrap">
                       {new Date(ticket.report_date).toLocaleDateString(
-                        "th-TH",
+                        "en-US",
                         {
                           day: "2-digit",
                           month: "2-digit",
@@ -100,7 +100,7 @@ function AssetTicketHistoryPage() {
                       )}
                       <br />
                       {new Date(ticket.report_date).toLocaleTimeString(
-                        "th-TH",
+                        "en-US",
                         {
                           hour: "2-digit",
                           minute: "2-digit",

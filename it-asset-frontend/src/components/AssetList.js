@@ -1,12 +1,55 @@
 import React from "react";
 import { Link } from "react-router-dom";
+// --- 1. นำเข้าไอคอนที่ต้องการจาก react-icons/fa ---
+// fa คือชุดไอคอนของ Font Awesome, คุณสามารถเลือกชุดอื่นได้เช่นกัน (เช่น md, io)
+import {
+  FaLaptop,
+  FaDesktop,
+  FaPrint,
+  FaServer,
+  FaHdd,
+  FaBoxOpen,
+} from "react-icons/fa";
+
+import {
+  FiPrinter
+} from "react-icons/fi";
+
+// --- 2. สร้าง Component สำหรับเลือกไอคอน (Icon Component) ---
+// Component นี้จะรับ props ชื่อ category และ return ไอคอนที่เหมาะสม
+// ทำให้โค้ดในตารางสะอาดและอ่านง่ายขึ้น
+const AssetIcon = ({ category }) => {
+  // ตั้งค่าขนาดและสไตล์พื้นฐานสำหรับไอคอนทั้งหมด
+  const iconProps = {
+    size: 32, // ขนาดไอคอน
+    className: "text-gray-600", // สีไอคอน
+  };
+
+  switch (category) {
+    case "Notebook - Office (Document)":
+    case "Notebook - Factory (Machine)":
+      return <FaLaptop {...iconProps} />;
+    case "Desktop - Office (Document)":
+    case "Desktop - Factory (Machine)":
+      return <FaDesktop {...iconProps} />;
+    case "Printer":
+      return <FiPrinter {...iconProps} />;
+    case "Server":
+      return <FaServer {...iconProps} />;
+    case "Network Equipments":
+      return <FaHdd {...iconProps} />;
+    // case "ชื่อ Category อื่นๆ":
+    //   return <YourChosenIcon {...iconProps} />;
+    default:
+      // หากไม่ตรงกับ case ไหนเลย จะแสดงไอคอนกล่อง (default)
+      return <FaBoxOpen {...iconProps} />;
+  }
+};
 
 function AssetList({ assets, onDelete }) {
   return (
-    // Card หลัก: ใช้ bg-white และ shadow-md ซึ่งถูก override ใน index.css แล้ว
     <div className="bg-white rounded-lg shadow-md overflow-x-auto">
       <table className="w-full text-left text-sm">
-        {/* หัวตาราง: ใช้ bg-gray-50 และ border-gray-200 ที่ถูก override แล้ว */}
         <thead className="bg-blue-600">
           <tr>
             <th className="p-3 font-semibold text-white">Picture</th>
@@ -21,32 +64,16 @@ function AssetList({ assets, onDelete }) {
             </th>
           </tr>
         </thead>
-        {/* เนื้อหาตาราง: ใช้ divide-gray-200 ที่ถูก override แล้ว */}
         <tbody className="divide-y divide-gray-200">
           {assets && assets.length > 0 ? (
             assets.map((asset) => (
-              // Hover effect: ใช้ hover:bg-gray-50 ที่ถูก override แล้ว
               <tr key={asset.id} className="hover:bg-gray-50">
                 <td className="p-2 align-middle">
-                  {/* รูปภาพ Placeholder: ปรับสีพื้นหลังและไอคอน */}
-                  <div className="w-16 h-16 bg-gray-50 flex items-center justify-center text-gray-500 rounded-md">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6l.01.01"
-                      />
-                    </svg>
+                  {/* --- 3. เรียกใช้ AssetIcon Component ในตาราง --- */}
+                  <div className="w-16 h-16 bg-gray-50 flex items-center justify-center rounded-md">
+                    <AssetIcon category={asset.category} />
                   </div>
                 </td>
-                {/* ข้อความ: ปรับไปใช้ text-gray-800 ที่ map กับ --color-text-primary */}
                 <td className="p-3 align-middle text-gray-800">
                   {asset.category}
                 </td>
@@ -66,13 +93,6 @@ function AssetList({ assets, onDelete }) {
                   {asset.user_id}
                 </td>
                 <td className="p-3 space-x-2 text-center align-middle whitespace-nowrap">
-                  {/*
-                    ปุ่ม Actions:
-                    - เพิ่มคลาส table-action-button เพื่อใช้สไตล์ปุ่มในตารางที่กำหนดไว้
-                    - เปลี่ยน bg-* เป็นคลาสที่ถูก map สีไว้ใน index.css (เช่น bg-purple-500 -> warning)
-                    - ลบคลาสย่อยๆ (px, py, text-xs, rounded, shadow) เพราะถูกรวมอยู่ใน table-action-button แล้ว
-                  */}
-
                   <Link
                     to={`/asset/${asset.id}`}
                     className="bg-blue-600 hover:bg-blue-700 table-action-button"
@@ -85,18 +105,17 @@ function AssetList({ assets, onDelete }) {
                   >
                     History
                   </Link>
-                  <Link
+                  <button
                     onClick={() => onDelete(asset.id)}
                     className="bg-red-500 hover:bg-red-600 table-action-button"
                   >
                     Delete
-                  </Link>
+                  </button>
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              {/* ข้อความ "No assets found": ปรับสีให้เป็น --color-text-secondary */}
               <td colSpan="8" className="text-center p-6 text-gray-500">
                 No assets found.
               </td>

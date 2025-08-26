@@ -67,9 +67,9 @@ function AssetDetailPage() {
         fetchAsset();
     }, [fetchAsset]);
 
-    if (loading) return <div className="text-center p-10">กำลังโหลด...</div>;
+    if (loading) return <div className="text-center p-10">Loading...</div>;
     if (error) return <div className="text-center p-10 text-red-600">{error}</div>;
-    if (!asset) return <div className="text-center p-10">ไม่พบข้อมูลอุปกรณ์</div>;
+    if (!asset) return <div className="text-center p-10">No assets found.</div>;
 
     // --- ส่วน JSX ไม่มีการเปลี่ยนแปลง ---
     return (
@@ -157,7 +157,7 @@ function AssetDetailPage() {
                     </InfoCard>
 
                     <InfoCard title="Management details">
-                        <DetailItem label="Start Date" value={asset.start_date ? new Date(asset.start_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'} />
+                        <DetailItem label="Start Date" value={asset.start_date ? new Date(asset.start_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'} />
                         <DetailItem label="Ref. FIN Asset No." value={asset.fin_asset_ref} />
                     </InfoCard>
                 </div>
