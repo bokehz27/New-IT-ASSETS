@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import Select from "react-select";
+import SearchableDropdown from "./SearchableDropdown"; // ปรับ path ตามที่คุณวางไฟล์
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
@@ -42,7 +42,10 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
       ]);
 
       setOptions({
-        assetOptions: assetRes.data.map(asset => ({ value: asset.asset_code, label: `${asset.asset_code} ${asset.model ? `- ${asset.model}` : ""}`})),
+        assetOptions: assetRes.data.map(asset => ({
+          value: asset.asset_code,
+          label: `${asset.asset_code} ${asset.model ? `- ${asset.model}` : ""}`
+        })),
         adminOptions: adminRes.data.map(admin => ({ value: admin.username, label: admin.username })),
         repairTypeOptions: repairTypeRes.data.map(item => ({ value: item.value, label: item.value })),
         reporterOptions: reporterRes.data.map(name => ({ value: name, label: name })),
@@ -142,13 +145,13 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
               <label className="block mb-1 text-sm font-medium text-gray-600">
                 Reporter Name <span className="text-red-500">*</span>
               </label>
-              <Select
-                classNamePrefix="react-select"
+              <SearchableDropdown
                 options={options.reporterOptions}
-                value={options.reporterOptions.find(o => o.value === ticketData.reporterName)}
-                onChange={opt => setTicketData({ ...ticketData, reporterName: opt ? opt.value : "" })}
+                value={ticketData.reporterName}
+                onChange={(val) => setTicketData({ ...ticketData, reporterName: val || "" })}
                 placeholder="Search name..."
-                isDisabled={mode === 'update'}
+                disabled={mode === 'update'}
+                idPrefix="dd-reporter"
               />
             </div>
 
@@ -156,13 +159,13 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
               <label className="block mb-1 text-sm font-medium text-gray-600">
                 Asset Code <span className="text-red-500">*</span>
               </label>
-              <Select
-                classNamePrefix="react-select"
+              <SearchableDropdown
                 options={options.assetOptions}
-                value={options.assetOptions.find(o => o.value === ticketData.assetCode)}
-                onChange={opt => setTicketData({ ...ticketData, assetCode: opt ? opt.value : "" })}
+                value={ticketData.assetCode}
+                onChange={(val) => setTicketData({ ...ticketData, assetCode: val || "" })}
                 placeholder="Search asset code..."
-                isDisabled={mode === 'update'}
+                disabled={mode === 'update'}
+                idPrefix="dd-asset"
               />
             </div>
 
@@ -172,6 +175,8 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
                 type="text"
                 value={ticketData.contactPhone}
                 onChange={e => setTicketData({ ...ticketData, contactPhone: e.target.value })}
+                className="w-full rounded border border-gray-300 px-3 py-2"
+                placeholder="08x-xxx-xxxx"
               />
             </div>
 
@@ -183,6 +188,8 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
                 rows="4"
                 value={ticketData.problemDescription}
                 onChange={e => setTicketData({ ...ticketData, problemDescription: e.target.value })}
+                className="w-full rounded border border-gray-300 px-3 py-2"
+                placeholder="Describe the problem..."
               ></textarea>
             </div>
           </div>
@@ -193,35 +200,34 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
 
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-600">Handler</label>
-              <Select
-                classNamePrefix="react-select"
+              <SearchableDropdown
                 options={options.adminOptions}
-                value={options.adminOptions.find(o => o.value === adminData.handlerName)}
-                onChange={opt => setAdminData({ ...adminData, handlerName: opt ? opt.value : "" })}
+                value={adminData.handlerName}
+                onChange={(val) => setAdminData({ ...adminData, handlerName: val || "" })}
                 placeholder="-- Assign --"
-                isClearable
+                idPrefix="dd-handler"
               />
             </div>
 
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-600">Repair Type</label>
-              <Select
-                classNamePrefix="react-select"
+              <SearchableDropdown
                 options={options.repairTypeOptions}
-                value={options.repairTypeOptions.find(o => o.value === adminData.repairType)}
-                onChange={opt => setAdminData({ ...adminData, repairType: opt ? opt.value : "" })}
+                value={adminData.repairType}
+                onChange={(val) => setAdminData({ ...adminData, repairType: val || "" })}
                 placeholder="-- Select Type --"
-                isClearable
+                idPrefix="dd-repairtype"
               />
             </div>
 
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-600">Status</label>
-              <Select
-                classNamePrefix="react-select"
+              <SearchableDropdown
                 options={statusOptions}
-                value={statusOptions.find(o => o.value === adminData.status)}
-                onChange={opt => setAdminData({ ...adminData, status: opt ? opt.value : "Wait" })}
+                value={adminData.status}
+                onChange={(val) => setAdminData({ ...adminData, status: val || "Wait" })}
+                placeholder="-- Status --"
+                idPrefix="dd-status"
               />
             </div>
 
@@ -231,6 +237,8 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
                 rows="4"
                 value={adminData.solution}
                 onChange={e => setAdminData({ ...adminData, solution: e.target.value })}
+                className="w-full rounded border border-gray-300 px-3 py-2"
+                placeholder="Root cause / Solution taken..."
               ></textarea>
             </div>
           </div>
