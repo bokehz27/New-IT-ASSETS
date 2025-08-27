@@ -1,6 +1,9 @@
-import React from "react";
+// src/components/AssetForm.js
 
-// --- คอมโพเนนต์ย่อยสำหรับการจัดวางฟอร์ม ---
+import React from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+
+// --- คอมโพเนนต์ย่อยสำหรับการจัดวางฟอร์ม (ปรับปรุงเล็กน้อยเพื่อแสดง error) ---
 const InfoCard = ({ title, children }) => (
   <div className="bg-white shadow-md rounded-lg overflow-hidden">
     <div className="p-4 border-b border-gray-200">
@@ -10,509 +13,316 @@ const InfoCard = ({ title, children }) => (
   </div>
 );
 
-const FormField = ({ label, children }) => (
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
-    <label className="text-sm font-medium text-gray-700 md:text-right md:mr-4">
-      {label}
-    </label>
-    <div className="md:col-span-2">{children}</div>
-  </div>
+const FormField = ({ label, children, error }) => (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-start">
+        <label className="text-sm font-medium text-gray-700 md:text-right md:mr-4 pt-2">
+            {label}
+        </label>
+        <div className="md:col-span-2">
+            {children}
+            {error && <p className="text-red-500 text-xs mt-1">{error.message}</p>}
+        </div>
+    </div>
 );
 
-// --- คอมโพเนนต์หลักของฟอร์ม ---
-function AssetForm({
-  isEditing,
-  formData,
-  setFormData,
-  onSubmit,
-  onCancel,
-  masterData,
-}) {
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
-  // --- ฟังก์ชันสำหรับจัดการ BitLocker Keys ---
-  const handleKeyChange = (index, event) => {
-    const { name, value } = event.target;
-    const updatedKeys = [...(formData.bitlockerKeys || [])];
-    updatedKeys[index][name] = value;
-    setFormData((prev) => ({ ...prev, bitlockerKeys: updatedKeys }));
-  };
+// --- คอมโพเนนต์หลักของฟอร์ม (ฉบับปรับปรุง) ---
+function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
+    const {
+        register,
+        handleSubmit,
+        control,
+        formState: { errors },
+    } = useForm({
+        defaultValues: formData,
+    });
 
-  const handleAddKey = () => {
-    setFormData((prev) => ({
-      ...prev,
-      bitlockerKeys: [
-        ...(prev.bitlockerKeys || []),
-        { drive_name: "", recovery_key: "" },
-      ],
-    }));
-  };
+    const {
+        fields: bitlockerFields,
+        append: appendBitlockerKey,
+        remove: removeBitlockerKey,
+    } = useFieldArray({
+        control,
+        name: "bitlockerKeys",
+    });
 
-  const handleRemoveKey = (index) => {
-    const updatedKeys = [...(formData.bitlockerKeys || [])];
-    updatedKeys.splice(index, 1);
-    setFormData((prev) => ({ ...prev, bitlockerKeys: updatedKeys }));
-  };
+    const {
+        fields: programFields,
+        append: appendProgram,
+        remove: removeProgram,
+    } = useFieldArray({
+        control,
+        name: "specialPrograms",
+    });
 
-  // --- ฟังก์ชันสำหรับจัดการ Special Programs ---
-  const handleProgramChange = (index, event) => {
-    const { value } = event.target;
-    const updatedPrograms = [...(formData.specialPrograms || [])];
-    updatedPrograms[index] = { program_name: value };
-    setFormData((prev) => ({ ...prev, specialPrograms: updatedPrograms }));
-  };
-
-  const handleAddProgram = () => {
-    setFormData((prev) => ({
-      ...prev,
-      specialPrograms: [...(prev.specialPrograms || []), { program_name: "" }],
-    }));
-  };
-
-  const handleRemoveProgram = (index) => {
-    const updatedPrograms = [...(formData.specialPrograms || [])];
-    updatedPrograms.splice(index, 1);
-    setFormData((prev) => ({ ...prev, specialPrograms: updatedPrograms }));
-  };
-
-  return (
-    <form onSubmit={onSubmit} className="p-4 md:p-6 space-y-6">
-      {/* ... ส่วนหัวของหน้า ... */}
-      <div className="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            {isEditing ? `Edit device : ${formData.asset_code}` : "Add device"}
-          </h2>
-          <p className="text-sm text-gray-500">Please complete all required fields.</p>
-        </div>
-        <div className="flex space-x-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-md hover:bg-gray-300 transition"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition"
-          >
-            {isEditing ? "Update" : "Add device"}
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <InfoCard title="Hardware specifications">
-            <FormField label="IT Asset">
-              <input
-                type="text"
-                name="asset_code"
-                value={formData.asset_code}
-                onChange={handleChange}
-                className="w-full"
-                required
-              />
-            </FormField>
-            <FormField label="Category">
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="w-full"
-              >
-                <option value="">-- Select Category --</option>
-                {masterData.category.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label="Subcategory">
-              <select
-                name="subcategory"
-                value={formData.subcategory}
-                onChange={handleChange}
-                className="w-full"
-              >
-                <option value="">-- Select Subcategory --</option>
-                {masterData.subcategory.map((sc) => (
-                  <option key={sc} value={sc}>
-                    {sc}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label="Brand">
-              <select
-                name="brand"
-                value={formData.brand}
-                onChange={handleChange}
-                className="w-full"
-              >
-                <option value="">-- Select Brand --</option>
-                {masterData.brand.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label="Model">
-              <input
-                type="text"
-                name="model"
-                value={formData.model}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FormField>
-            <FormField label="Serial Number">
-              <input
-                type="text"
-                name="serial_number"
-                value={formData.serial_number}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FormField>
-            <FormField label="CPU">
-              <input
-                type="text"
-                name="cpu"
-                value={formData.cpu}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FormField>
-            <FormField label="Memory (RAM)">
-              <select
-                name="ram"
-                value={formData.ram}
-                onChange={handleChange}
-                className="w-full"
-              >
-                <option value="">-- Select Ram --</option>
-                {masterData.ram.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label="Hard Disk">
-              <select
-                name="storage"
-                value={formData.storage}
-                onChange={handleChange}
-                className="w-full"
-              >
-                <option value="">-- Select Storage --</option>
-                {masterData.storage.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-          </InfoCard>
-
-          <InfoCard title="Network information">
-            <FormField label="Device ID">
-              <input
-                type="text"
-                name="device_id"
-                value={formData.device_id || ""}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FormField>
-            <FormField label="IP Address">
-              <input
-                type="text"
-                name="ip_address"
-                value={formData.ip_address || ""}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FormField>
-            <FormField label="Mac Address - LAN">
-              <input
-                type="text"
-                name="mac_address_lan"
-                value={formData.mac_address_lan || ""}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FormField>
-            <FormField label="Mac Address - WiFi">
-              <input
-                type="text"
-                name="mac_address_wifi"
-                value={formData.mac_address_wifi || ""}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FormField>
-            <FormField label="Status WiFi">
-              <select
-                name="wifi_registered"
-                value={formData.wifi_registered || "Wifi not register"}
-                onChange={handleChange}
-                className="w-full"
-              >
-                <option value="Wifi not register">Not Registered</option>
-                <option value="Wifi ok">Registered</option>
-              </select>
-            </FormField>
-          </InfoCard>
-
-          <InfoCard title="Software Information">
-            <FormField label="Windows">
-              <select
-                name="windows_version"
-                value={formData.windows_version || ""}
-                onChange={handleChange}
-                className="w-full"
-              >
-                <option value="">-- Select Windows --</option>
-                {(masterData.windows || []).map((w) => (
-                  <option key={w} value={w}>
-                    {w}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label="Windows Product Key">
-              <input
-                type="text"
-                name="windows_key"
-                value={formData.windows_key || ""}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FormField>
-            <FormField label="Microsoft Office">
-              <select
-                name="office_version"
-                value={formData.office_version || ""}
-                onChange={handleChange}
-                className="w-full"
-              >
-                <option value="">-- Select Office Model --</option>
-                {(masterData.office || []).map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label="Office Product Key">
-              <input
-                type="text"
-                name="office_key"
-                value={formData.office_key || ""}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FormField>
-            <FormField label="Antivirus">
-              <select
-                name="antivirus"
-                value={formData.antivirus || ""}
-                onChange={handleChange}
-                className="w-full"
-              >
-                <option value="">-- Select Antivirus Program --</option>
-                {(masterData.antivirus || []).map((av) => (
-                  <option key={av} value={av}>
-                    {av}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-
-            <FormField label="Special Programs">
-              <div className="space-y-2">
-                {(formData.specialPrograms || []).map((prog, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <select
-                      name="program_name"
-                      value={prog.program_name}
-                      onChange={(e) => handleProgramChange(index, e)}
-                      className="p-2 border rounded-md w-full"
-                    >
-                      <option value="">-- Select Program --</option>
-                      {(masterData.special_program || []).map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                    </select>
+    return (
+        <form onSubmit={handleSubmit(onSubmit)} className="p-4 md:p-6 space-y-6">
+            <div className="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                        {isEditing ? `Edit device : ${formData.asset_code}` : "Add device"}
+                    </h2>
+                    <p className="text-sm text-gray-500">Please complete all required fields.</p>
+                </div>
+                <div className="flex space-x-2">
                     <button
-                      type="button"
-                      onClick={() => handleRemoveProgram(index)}
-                      className="bg-red-500 text-white font-bold py-2 px-3 rounded-md hover:bg-red-600 transition"
+                        type="button"
+                        onClick={onCancel}
+                        className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-md hover:bg-gray-300 transition"
                     >
-                      X
+                        Cancel
                     </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={handleAddProgram}
-                  className="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition mt-2"
-                >
-                  + Add Program
-                </button>
-              </div>
-            </FormField>
-          </InfoCard>
+                    <button
+                        type="submit"
+                        className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition"
+                    >
+                        {isEditing ? "Update" : "Add device"}
+                    </button>
+                </div>
+            </div>
 
-          <InfoCard title="BitLocker Recovery Keys">
-            {(formData.bitlockerKeys || []).map((key, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  name="drive_name"
-                  placeholder="Drive (e.g., C:)"
-                  value={key.drive_name}
-                  onChange={(e) => handleKeyChange(index, e)}
-                  className="p-2 border rounded-md w-1/4"
-                  required
-                />
-                <input
-                  type="text"
-                  name="recovery_key"
-                  placeholder="48-digit Recovery Key"
-                  value={key.recovery_key}
-                  onChange={(e) => handleKeyChange(index, e)}
-                  className="p-2 border rounded-md flex-grow"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveKey(index)}
-                  className="bg-red-500 text-white font-bold py-2 px-3 rounded-md hover:bg-red-600 transition"
-                >
-                  X
-                </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={handleAddKey}
-              className="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition mt-2"
-            >
-              + Add Key
-            </button>
-          </InfoCard>
-        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                    <InfoCard title="Hardware specifications">
+                        <FormField label="IT Asset" error={errors.asset_code}>
+                            <input
+                                type="text"
+                                {...register("asset_code", { required: "IT Asset is required." })}
+                                className="w-full p-2 border rounded-md"
+                            />
+                        </FormField>
+                        <FormField label="Category" error={errors.category}>
+                            <select {...register("category")} className="w-full p-2 border rounded-md">
+                                <option value="">-- Select Category --</option>
+                                {masterData.category.map((c) => (<option key={c} value={c}>{c}</option>))}
+                            </select>
+                        </FormField>
+                         <FormField label="Subcategory">
+                            <select {...register("subcategory")} className="w-full p-2 border rounded-md">
+                                <option value="">-- Select Subcategory --</option>
+                                {masterData.subcategory.map((sc) => (<option key={sc} value={sc}>{sc}</option>))}
+                            </select>
+                        </FormField>
+                        <FormField label="Brand">
+                            <select {...register("brand")} className="w-full p-2 border rounded-md">
+                                <option value="">-- Select Brand --</option>
+                                {masterData.brand.map((b) => (<option key={b} value={b}>{b}</option>))}
+                            </select>
+                        </FormField>
+                        <FormField label="Model">
+                            <input type="text" {...register("model")} className="w-full p-2 border rounded-md" />
+                        </FormField>
+                        <FormField label="Serial Number">
+                             <input type="text" {...register("serial_number")} className="w-full p-2 border rounded-md" />
+                        </FormField>
+                        <FormField label="CPU">
+                            <input type="text" {...register("cpu")} className="w-full p-2 border rounded-md" />
+                        </FormField>
+                        <FormField label="Memory (RAM)">
+                            <select {...register("ram")} className="w-full p-2 border rounded-md">
+                                <option value="">-- Select Ram --</option>
+                                {masterData.ram.map((r) => (<option key={r} value={r}>{r}</option>))}
+                            </select>
+                        </FormField>
+                        <FormField label="Hard Disk">
+                            <select {...register("storage")} className="w-full p-2 border rounded-md">
+                                <option value="">-- Select Storage --</option>
+                                {masterData.storage.map((s) => (<option key={s} value={s}>{s}</option>))}
+                            </select>
+                        </FormField>
+                    </InfoCard>
 
-        <div className="lg:col-span-1 space-y-6">
-          <InfoCard title="Configuration and location">
-            <FormField label="User">
-              <select
-                name="user_name"
-                value={formData.user_name}
-                onChange={handleChange}
-                className="w-full"
-              >
-                <option value="">-- Select User --</option>
-                {masterData.user_name.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </FormField>
+                     <InfoCard title="Network information">
+                        <FormField label="Device ID">
+                            <input type="text" {...register("device_id")} className="w-full p-2 border rounded-md"/>
+                        </FormField>
+                        <FormField label="IP Address">
+                            <input type="text" {...register("ip_address")} className="w-full p-2 border rounded-md"/>
+                        </FormField>
+                        <FormField label="Mac Address - LAN">
+                            <input type="text" {...register("mac_address_lan")} className="w-full p-2 border rounded-md"/>
+                        </FormField>
+                        <FormField label="Mac Address - WiFi">
+                            <input type="text" {...register("mac_address_wifi")} className="w-full p-2 border rounded-md"/>
+                        </FormField>
+                        <FormField label="Status WiFi">
+                            <select {...register("wifi_registered")} className="w-full p-2 border rounded-md">
+                                <option value="Wifi not register">Not Registered</option>
+                                <option value="Wifi ok">Registered</option>
+                            </select>
+                        </FormField>
+                    </InfoCard>
 
-            {/* === เพิ่ม Field สำหรับ User ID เข้ามาตรงนี้ === */}
-            <FormField label="User ID">
-              <input
-                type="text"
-                name="user_id"
-                value={formData.user_id || ""}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FormField>
-            {/* ======================================= */}
+                    <InfoCard title="Software Information">
+                       <FormField label="Windows">
+                            <select {...register("windows_version")} className="w-full p-2 border rounded-md">
+                                <option value="">-- Select Windows --</option>
+                                {(masterData.windows || []).map((w) => (<option key={w} value={w}>{w}</option>))}
+                            </select>
+                        </FormField>
+                        <FormField label="Windows Product Key">
+                            <input type="text" {...register("windows_key")} className="w-full p-2 border rounded-md"/>
+                        </FormField>
+                        <FormField label="Microsoft Office">
+                            <select {...register("office_version")} className="w-full p-2 border rounded-md">
+                                <option value="">-- Select Office Model --</option>
+                                {(masterData.office || []).map((o) => (<option key={o} value={o}>{o}</option>))}
+                            </select>
+                        </FormField>
+                        <FormField label="Office Product Key">
+                            <input type="text" {...register("office_key")} className="w-full p-2 border rounded-md"/>
+                        </FormField>
+                        <FormField label="Antivirus">
+                            <select {...register("antivirus")} className="w-full p-2 border rounded-md">
+                                <option value="">-- Select Antivirus Program --</option>
+                                {(masterData.antivirus || []).map((av) => (<option key={av} value={av}>{av}</option>))}
+                            </select>
+                        </FormField>
+                        {/* --- (แก้ไข) ส่วนของ Special Programs ทั้งหมด --- */}
+                        <FormField label="Special Programs">
+                            <div className="space-y-2">
+                                {programFields.map((field, index) => (
+                                    <div key={field.id} className="grid grid-cols-1 md:grid-cols-10 gap-2 items-center">
+                                        {/* Dropdown สำหรับเลือกโปรแกรม */}
+                                        <div className="md:col-span-5">
+                                            <select
+                                                {...register(`specialPrograms.${index}.program_name`)}
+                                                className="p-2 border rounded-md w-full"
+                                            >
+                                                <option value="">-- Select Program --</option>
+                                                {(masterData.special_program || []).map((p) => (
+                                                    <option key={p} value={p}>{p}</option>
+                                                ))}
+                                            </select>
+                                        </div>
 
-            <FormField label="Department / Division">
-              <select
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                className="w-full"
-              >
-                <option value="">-- Select Department --</option>
-                {masterData.department.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-            <FormField label="Location">
-              <select
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                className="w-full"
-              >
-                <option value="">-- Select Location --</option>
-                {masterData.location.map((l) => (
-                  <option key={l} value={l}>
-                    {l}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-          </InfoCard>
+                                        {/* Input สำหรับกรอก Key */}
+                                        <div className="md:col-span-4">
+                                            <input
+                                                type="text"
+                                                {...register(`specialPrograms.${index}.license_key`)}
+                                                placeholder="Enter license key..."
+                                                className="p-2 border rounded-md w-full"
+                                            />
+                                        </div>
 
-          <InfoCard title="Management details">
-            <FormField label="Status">
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full"
-                required
-              >
-                <option value="">-- Select Status --</option>
-                <option value="Enable">Enable</option>
-                <option value="Disable">Disable</option>
-              </select>
-            </FormField>
-            <FormField label="Start Date">
-              <input
-                type="date"
-                name="start_date"
-                value={formData.start_date}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FormField>
-            <FormField label="Ref. FIN Asset No.">
-              <input
-                type="text"
-                name="fin_asset_ref"
-                value={formData.fin_asset_ref || ""}
-                onChange={handleChange}
-                className="w-full"
-              />
-            </FormField>
-          </InfoCard>
-        </div>
-      </div>
-    </form>
-  );
+                                        {/* ปุ่มลบ */}
+                                        <div className="md:col-span-1 flex justify-end">
+                                            <button
+                                                type="button"
+                                                onClick={() => removeProgram(index)}
+                                                className="bg-red-500 text-white font-bold py-2 px-3 rounded-md hover:bg-red-600 transition"
+                                            >
+                                                X
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => appendProgram({ program_name: "", license_key: "" })}
+                                    className="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition mt-2"
+                                >
+                                    + Add Program
+                                </button>
+                            </div>
+                        </FormField>
+                         {/* --- (สิ้นสุด) ส่วนที่แก้ไข --- */}
+                    </InfoCard>
+
+                    <InfoCard title="BitLocker Recovery Keys">
+                        {bitlockerFields.map((field, index) => (
+                            <div key={field.id} className="grid grid-cols-1 md:grid-cols-10 gap-2 items-start">
+                                <div className="md:col-span-3">
+                                    <input
+                                        type="text"
+                                        {...register(`bitlockerKeys.${index}.drive_name`, { required: "Drive is required." })}
+                                        placeholder="Drive (e.g., C:)"
+                                        className="p-2 border rounded-md w-full"
+                                    />
+                                     {errors.bitlockerKeys?.[index]?.drive_name && <p className="text-red-500 text-xs mt-1">{errors.bitlockerKeys[index].drive_name.message}</p>}
+                                </div>
+                               <div className="md:col-span-6">
+                                    <input
+                                        type="text"
+                                        {...register(`bitlockerKeys.${index}.recovery_key`, { required: "Key is required." })}
+                                        placeholder="48-digit Recovery Key"
+                                        className="p-2 border rounded-md w-full"
+                                    />
+                                    {errors.bitlockerKeys?.[index]?.recovery_key && <p className="text-red-500 text-xs mt-1">{errors.bitlockerKeys[index].recovery_key.message}</p>}
+                               </div>
+                                <div className="md:col-span-1 flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={() => removeBitlockerKey(index)}
+                                        className="bg-red-500 text-white font-bold py-2 px-3 rounded-md hover:bg-red-600 transition"
+                                    >
+                                        X
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => appendBitlockerKey({ drive_name: "", recovery_key: "" })}
+                            className="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition mt-2"
+                        >
+                            + Add Key
+                        </button>
+                    </InfoCard>
+                </div>
+
+                <div className="lg:col-span-1 space-y-6">
+                    <InfoCard title="Configuration and location">
+                        <FormField label="User">
+                            <select {...register("user_name")} className="w-full p-2 border rounded-md">
+                                <option value="">-- Select User --</option>
+                                {masterData.user_name.map((name) => (<option key={name} value={name}>{name}</option>))}
+                            </select>
+                        </FormField>
+                        <FormField label="User ID">
+                            <input type="text" {...register("user_id")} className="w-full p-2 border rounded-md" />
+                        </FormField>
+                        <FormField label="Department / Division">
+                            <select {...register("department")} className="w-full p-2 border rounded-md">
+                                <option value="">-- Select Department --</option>
+                                {masterData.department.map((d) => (<option key={d} value={d}>{d}</option>))}
+                            </select>
+                        </FormField>
+                        <FormField label="Location">
+                            <select {...register("location")} className="w-full p-2 border rounded-md">
+                                <option value="">-- Select Location --</option>
+                                {masterData.location.map((l) => (<option key={l} value={l}>{l}</option>))}
+                            </select>
+                        </FormField>
+                    </InfoCard>
+
+                    <InfoCard title="Management details">
+                        <FormField label="Status" error={errors.status}>
+                            <select
+                                {...register("status", { required: "Status is required." })}
+                                className="w-full p-2 border rounded-md"
+                            >
+                                <option value="">-- Select Status --</option>
+                                <option value="Enable">Enable</option>
+                                <option value="Disable">Disable</option>
+                            </select>
+                        </FormField>
+                        <FormField label="Start Date">
+                           <input
+                                type="date"
+                                {...register("start_date")}
+                                className="w-full p-2 border rounded-md"
+                            />
+                        </FormField>
+                        <FormField label="Ref. FIN Asset No.">
+                            <input type="text" {...register("fin_asset_ref")} className="w-full p-2 border rounded-md" />
+                        </FormField>
+                    </InfoCard>
+                </div>
+            </div>
+        </form>
+    );
 }
 
 export default AssetForm;

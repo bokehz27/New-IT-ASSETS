@@ -5,7 +5,7 @@ const Papa = require('papaparse');
 const Asset = require('../models/asset');
 const BitlockerKey = require('../models/bitlockerKey');
 const sequelize = require('../config/database');
-const AssetSpecialProgram = require('../models/assetSpecialProgram'); // --- (เพิ่ม) Import Model ใหม่ ---
+const AssetSpecialProgram = require('../models/assetSpecialProgram');
 
 const router = express.Router();
 
@@ -46,7 +46,6 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
 // Route สำหรับ Import BitLocker Key จากไฟล์ .txt (ไม่มีการเปลี่ยนแปลง)
 router.post('/:assetId/upload-bitlocker', upload.single('file'), async (req, res) => {
-    // ... โค้ดส่วนนี้เหมือนเดิม ...
     if (!req.file) { return res.status(400).json({ error: 'No file uploaded.' }); }
     const assetId = req.params.assetId;
     const fileContent = req.file.buffer.toString('utf8');
@@ -83,7 +82,6 @@ router.post('/:assetId/upload-bitlocker', upload.single('file'), async (req, res
 
 // [R]ead: ดึงข้อมูลทั้งหมด (ไม่มีการเปลี่ยนแปลง)
 router.get('/', async (req, res) => {
-    // ... โค้ดส่วนนี้เหมือนเดิม ...
     try {
         const { search, page = 1, limit = 20, filter = '' } = req.query;
         const offset = (page - 1) * limit;
@@ -121,13 +119,13 @@ router.get('/', async (req, res) => {
     }
 });
 
-// --- (แก้ไข) [R]ead: ดึงข้อมูลตาม ID เพิ่ม specialPrograms ---
+// [R]ead: ดึงข้อมูลตาม ID (ไฟล์ที่คุณส่งมาแก้ไขถูกต้องแล้ว)
 router.get('/:id', async (req, res) => {
     try {
         const asset = await Asset.findByPk(req.params.id, { 
             include: [
                 { model: BitlockerKey, as: 'bitlockerKeys' },
-                { model: AssetSpecialProgram, as: 'specialPrograms' } // <-- เพิ่มบรรทัดนี้
+                { model: AssetSpecialProgram, as: 'specialPrograms' }
             ] 
         });
         if (asset) { res.json(asset); } else { res.status(404).json({ error: 'Asset not found' }); }
@@ -137,7 +135,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// --- (แก้ไข) [C]reate: สร้าง Asset ใหม่ เพิ่มการจัดการ specialPrograms ---
+// --- (แก้ไข) [C]reate: เพิ่มการบันทึก license_key ---
 router.post('/', async (req, res) => {
     const { bitlockerKeys, specialPrograms, ...assetData } = req.body;
     const transaction = await sequelize.transaction();
@@ -150,11 +148,18 @@ router.post('/', async (req, res) => {
         }
 
         if (specialPrograms && specialPrograms.length > 0) {
-            const programsToCreate = specialPrograms.map(prog => ({
-                program_name: prog.program_name,
-                assetId: newAsset.id
-            }));
-            await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
+            // vvv ส่วนที่แก้ไข vvv
+            const programsToCreate = specialPrograms
+                .filter(prog => prog.program_name) // กรองรายการที่ไม่มีชื่อโปรแกรมออก
+                .map(prog => ({
+                    program_name: prog.program_name,
+                    license_key: prog.license_key || null, // เพิ่ม license_key
+                    assetId: newAsset.id
+                }));
+            // ^^^ สิ้นสุดส่วนที่แก้ไข ^^^
+            if (programsToCreate.length > 0) {
+                await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
+            }
         }
 
         await transaction.commit();
@@ -166,7 +171,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// --- (แก้ไข) [U]pdate: อัปเดตข้อมูล Asset เพิ่มการจัดการ specialPrograms ---
+// --- (แก้ไข) [U]pdate: เพิ่มการบันทึก license_key ---
 router.put('/:id', async (req, res) => {
     const { bitlockerKeys, specialPrograms, ...assetData } = req.body;
     const transaction = await sequelize.transaction();
@@ -183,11 +188,18 @@ router.put('/:id', async (req, res) => {
 
             await AssetSpecialProgram.destroy({ where: { assetId: req.params.id }, transaction });
             if (specialPrograms && specialPrograms.length > 0) {
-                const programsToCreate = specialPrograms.map(prog => ({
-                    program_name: prog.program_name,
-                    assetId: asset.id
-                }));
-                await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
+                // vvv ส่วนที่แก้ไข vvv
+                const programsToCreate = specialPrograms
+                    .filter(prog => prog.program_name) // กรองรายการที่ไม่มีชื่อโปรแกรมออก
+                    .map(prog => ({
+                        program_name: prog.program_name,
+                        license_key: prog.license_key || null, // เพิ่ม license_key
+                        assetId: asset.id
+                    }));
+                // ^^^ สิ้นสุดส่วนที่แก้ไข ^^^
+                if (programsToCreate.length > 0) {
+                    await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
+                }
             }
             
             await transaction.commit();

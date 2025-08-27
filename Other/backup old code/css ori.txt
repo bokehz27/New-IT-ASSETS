@@ -1,0 +1,1256 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-size: 80%; /* คงขนาด Font เดิมไว้ */
+}
+
+/* --- เริ่มต้นโค้ดสำหรับธีม Material Design --- */
+
+/* Import Google Font - Roboto is a classic Material Design font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+:root {
+  /* Material Design Color Palette - ตัวอย่างสีสดใส */
+  --color-primary: #3f51b5; /* Indigo */
+  --color-primary-light: #757de8;
+  --color-primary-dark: #002984;
+
+  --color-secondary: #00bcd4; /* Cyan */
+  --color-secondary-light: #62efff;
+  --color-secondary-dark: #008ba3;
+
+  --color-background: #f5f5f5; /* Light Gray */
+  --color-surface: #ffffff; /* White for cards, forms */
+
+  --color-text-on-primary: #ffffff;
+  --color-text-on-secondary: #000000;
+  --color-text-primary: rgba(0, 0, 0, 0.87); /* Dark text for light backgrounds */
+  --color-text-secondary: rgba(0, 0, 0, 0.6); /* Muted text */
+  --color-text-disabled: rgba(0, 0, 0, 0.38);
+
+  --color-divider: rgba(0, 0, 0, 0.12); /* Light divider */
+  --color-error: #f44336; /* Red error color */
+  --color-success: #4caf50; /* Green success color */
+  --color-warning: #ff9800; /* Orange warning color */
+
+  /* Material Design Shadows (Elevation) */
+  --elevation-0: none;
+  --elevation-1: 0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12);
+  --elevation-2: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
+  --elevation-3: 0px 3px 3px -2px rgba(0,0,0,0.2), 0px 3px 4px 0px rgba(0,0,0,0.14), 0px 1px 8px 0px rgba(0,0,0,0.12);
+  --elevation-4: 0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12);
+  --elevation-6: 0px 3px 5px -1px rgba(0,0,0,0.2), 0px 6px 10px 0px rgba(0,0,0,0.14), 0px 1px 18px 0px rgba(0,0,0,0.12);
+  --elevation-8: 0px 5px 8px -1px rgba(0,0,0,0.2), 0px 8px 10px 1px rgba(0,0,0,0.14), 0px 3px 14px 2px rgba(0,0,0,0.12);
+  --elevation-12: 0px 7px 8px -4px rgba(0,0,0,0.2), 0px 12px 17px 2px rgba(0,0,0,0.14), 0px 5px 22px 4px rgba(0,0,0,0.12);
+  --elevation-16: 0px 8px 10px -5px rgba(0,0,0,0.2), 0px 16px 24px 2px rgba(0,0,0,0.14), 0px 6px 30px 5px rgba(0,0,0,0.12);
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--color-background); /* พื้นหลังหลัก */
+  color: var(--color-text-primary);
+}
+
+/* Global styles for elements to apply Material Design principles */
+
+/* Card / Panel Backgrounds */
+.bg-white { /* สำหรับ div ที่เป็น Card/Panel */
+  background-color: var(--color-surface);
+  border-radius: 4px; /* มุมโค้งมนเล็กน้อยตาม Material */
+  box-shadow: var(--elevation-1); /* เงาเริ่มต้นสำหรับ Card */
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+/* Shadows (Override Tailwind's default shadows with Material elevations) */
+.shadow-sm { box-shadow: var(--elevation-1); }
+.shadow-md { box-shadow: var(--elevation-2); }
+.shadow-lg { box-shadow: var(--elevation-3); }
+.shadow-xl { box-shadow: var(--elevation-4); }
+.shadow-2xl { box-shadow: var(--elevation-6); } /* ใช้ elevation ที่สูงขึ้น */
+
+/* Text Colors */
+.text-gray-800, .text-gray-900 {
+  color: var(--color-text-primary);
+}
+.text-gray-700, .text-gray-600 {
+  color: var(--color-text-secondary);
+}
+.text-gray-500 {
+    color: var(--color-text-secondary); /* ใช้สีเดียวกับ secondary */
+}
+
+/* Border Colors (Material Design มักใช้ Divider มากกว่า Border ชัดเจน) */
+.border, .border-gray-200, .border-gray-300 {
+  border-color: var(--color-divider) !important;
+}
+
+/* Form Controls (Inputs, Textareas, Selects) */
+input[type="text"], 
+input[type="password"], 
+textarea, 
+select {
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-divider) !important;
+  color: var(--color-text-primary) !important;
+  border-radius: 4px !important;
+  padding: 10px 12px !important; /* ปรับ padding ให้มาตรฐาน */
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+input[type="text"]:focus, 
+input[type="password"]:focus, 
+textarea:focus, 
+select:focus {
+  border-color: var(--color-primary) !important; /* สีขอบเมื่อ focus เป็น Primary */
+  box-shadow: 0 0 0 1px var(--color-primary) !important; /* Material focus ring */
+  outline: none !important;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--color-text-secondary) !important;
+  opacity: 1 !important;
+}
+/* Custom File Input (NEW) */
+.file-input-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+  border: 1px solid var(--color-divider);
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: var(--elevation-1);
+}
+
+.file-input-label:hover {
+  background-color: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+  box-shadow: var(--elevation-2);
+}
+
+.file-input-label svg {
+  margin-right: 8px;
+}
+
+
+/* React-Select Customizations (IMPROVED) */
+.react-select__control {
+    background-color: var(--color-surface) !important;
+    border: 1px solid var(--color-divider) !important;
+    border-radius: 4px !important;
+    min-height: 42px; /* กำหนดความสูงให้เท่ากับ Input อื่น */
+    box-shadow: none !important; /* เอาเงาเริ่มต้นออก ให้มีเฉพาะตอน focus */
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.react-select__control--is-focused {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 1px var(--color-primary) !important; /* สไตล์ตอน focus */
+}
+.react-select__value-container {
+    padding: 2px 8px !important; /* ปรับ Padding เพื่อการจัดตำแหน่งที่ดีขึ้น */
+}
+.react-select__single-value {
+    color: var(--color-text-primary) !important;
+    margin: 0 2px !important;
+}
+
+/* แก้ปัญหา Placeholder และ Input ทับกัน */
+.react-select__input-container, .react-select__placeholder {
+    margin: 0 2px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+.react-select__placeholder {
+    color: var(--color-text-secondary) !important;
+}
+
+/* ดีไซน์เมนูและตัวเลือก (Option) */
+.react-select__menu {
+    background-color: var(--color-surface) !important;
+    border: 1px solid var(--color-divider) !important;
+    box-shadow: var(--elevation-8) !important; /* เมนูมีเงาสูง */
+    border-radius: 4px !important;
+    z-index: 20; /* ทำให้เมนูแสดงทับองค์ประกอบอื่น */
+}
+.react-select__option {
+    color: var(--color-text-primary) !important;
+    background-color: var(--color-surface) !important;
+    padding: 10px 16px !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.15s ease-in-out;
+    cursor: pointer;
+}
+.react-select__option--is-focused {
+    background-color: color-mix(in srgb, var(--color-primary) 8%, transparent) !important; /* สีตอน hover */
+}
+.react-select__option--is-selected {
+    background-color: var(--color-primary) !important;
+    color: var(--color-text-on-primary) !important;
+    font-weight: 500;
+}
+/* เพิ่มเครื่องหมายถูก (✓) หลังตัวเลือกที่ถูกเลือก */
+.react-select__option--is-selected::after {
+    content: '✓';
+    font-weight: 700;
+    margin-left: 12px;
+}
+
+/* ดีไซน์ส่วน Indicators (ลูกศรลง, ตัวคั่น) */
+.react-select__indicator-separator {
+    background-color: var(--color-divider) !important;
+}
+.react-select__indicator {
+    color: var(--color-text-secondary) !important;
+}
+
+
+/* Primary Buttons (Text buttons, Contained buttons) */
+.bg-blue-500, .bg-blue-600 { /* ใช้สำหรับปุ่ม Update, Add */
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-on-primary) !important;
+  border-radius: 4px !important;
+  box-shadow: var(--elevation-2);
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.hover\:bg-blue-600:hover, .hover\:bg-blue-700:hover {
+  background-color: var(--color-primary-dark) !important;
+  box-shadow: var(--elevation-4); /* ยกขึ้นเล็กน้อยเมื่อ hover */
+}
+.focus\:ring-blue-500:focus {
+    box-shadow: 0 0 0 2px var(--color-primary); /* Material focus ring */
+}
+.bg-indigo-600 { /* สำหรับปุ่ม Login ใน LoginPage.js */
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-on-primary) !important;
+  border-radius: 4px !important;
+  box-shadow: var(--elevation-2);
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.hover\:bg-indigo-700:hover {
+  background-color: var(--color-primary-dark) !important;
+  box-shadow: var(--elevation-4);
+}
+.bg-green-600 { /* ปุ่มสร้างรายการแจ้งซ่อม */
+  background-color: var(--color-primary) !important; /* ใช้สี Primary */
+  color: var(--color-text-on-primary) !important;
+  border-radius: 4px !important;
+  box-shadow: var(--elevation-2);
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.hover\:bg-green-700:hover {
+  background-color: var(--color-primary-dark) !important;
+  box-shadow: var(--elevation-4);
+}
+.disabled\:bg-gray-400:disabled {
+    background-color: var(--color-divider) !important;
+    color: var(--color-text-disabled) !important;
+    box-shadow: none !important;
+    cursor: not-allowed;
+}
+
+
+/* Status Spans */
+.bg-red-200 { background-color: color-mix(in srgb, var(--color-error) 15%, transparent); }
+.text-red-600 { color: var(--color-error); }
+.bg-yellow-200 { background-color: color-mix(in srgb, var(--color-warning) 15%, transparent); }
+.text-yellow-600 { color: var(--color-warning); }
+.bg-green-200 { background-color: color-mix(in srgb, var(--color-success) 15%, transparent); }
+.text-green-600 { color: var(--color-success); }
+
+
+/* Table Specifics */
+.bg-gray-50 { /* Table header background */
+  background-color: var(--color-background); /* พื้นหลังหลัก */
+}
+.text-gray-600 { /* Table header text */
+  color: var(--color-text-secondary);
+}
+.divide-y.divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: var(--color-divider); /* เส้นแบ่งตาราง */
+}
+.hover\:bg-gray-50:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important; /* Material hover effect */
+}
+/* สไตล์สำหรับปุ่ม Action ในตาราง (Update/Delete/ประวัติ) */
+.table-action-button { 
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important; /* Material default font-weight */
+    border-radius: 4px !important;
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    box-shadow: var(--elevation-1);
+    color: var(--color-text-on-primary) !important; /* สีข้อความบนปุ่ม */
+}
+.table-action-button:hover {
+    box-shadow: var(--elevation-2); /* ยกขึ้นเล็กน้อย */
+}
+.table-action-button:active {
+    box-shadow: var(--elevation-4); /* ยกขึ้นอีกเมื่อกด */
+}
+/* กำหนดสีเฉพาะสำหรับปุ่มในตาราง */
+.bg-blue-500.table-action-button { background-color: var(--color-secondary) !important; } /* ใช้สี Secondary */
+.hover\:bg-blue-600.table-action-button:hover { background-color: var(--color-secondary-dark) !important; }
+.bg-red-500.table-action-button { background-color: var(--color-error) !important; } /* ใช้สี Error */
+.hover\:bg-red-600.table-action-button:hover { background-color: color-mix(in srgb, var(--color-error) 90%, black) !important; }
+.bg-purple-500.table-action-button { background-color: var(--color-warning) !important; } /* ใช้สี Warning */
+.hover\:bg-purple-600.table-action-button:hover { background-color: color-mix(in srgb, var(--color-warning) 90%, black) !important; }
+
+
+/* App Header Specifics */
+.bg-gray-800, .bg-gray-900 { /* Header background (จะถูกเปลี่ยนเป็น bg-surface) */
+    background-color: var(--color-surface); 
+    box-shadow: var(--elevation-4); /* Header มี elevation สูงกว่า */
+}
+.text-xl.font-bold.text-gray-800 { 
+  color: var(--color-text-primary);
+}
+.text-gray-300 { 
+  color: var(--color-text-secondary);
+}
+.hover\:text-blue-400:hover { 
+  color: var(--color-primary); /* ใช้สี Primary */
+}
+/* Logout Button */
+.bg-gray-200.text-gray-700 { 
+    background-color: var(--color-surface) !important; /* พื้นหลังเหมือน Card */
+    color: var(--color-text-primary) !important;
+    box-shadow: var(--elevation-1);
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 4px !important;
+    padding: 8px 16px !important; /* ขนาดมาตรฐาน Material */
+}
+.hover\:bg-gray-300:hover {
+    background-color: rgba(0, 0, 0, 0.08) !important; /* Material hover effect */
+    box-shadow: var(--elevation-2) !important;
+}
+/* Admin Login Button */
+.bg-green-500 { /* Admin Login button (จะถูกเปลี่ยนใน App.js เป็น bg-primary) */
+    background-color: var(--color-primary) !important;
+    color: var(--color-text-on-primary) !important;
+    box-shadow: var(--elevation-2);
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 4px !important;
+    padding: 8px 16px !important;
+}
+.hover\:bg-green-600:hover {
+    background-color: var(--color-primary-dark) !important;
+    box-shadow: var(--elevation-4);
+}
+/* Active NavLink style */
+.text-blue-600.font-semibold {
+    color: var(--color-primary);
+    position: relative;
+}
+.text-blue-600.font-semibold::after { 
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--color-primary);
+    border-radius: 1px;
+}
+
+
+/* Settings Layout Specifics */
+.md\:col-span-1.bg-white { /* Sidebar */
+    background-color: var(--color-surface); 
+    box-shadow: var(--elevation-2); 
+    border-radius: 4px;
+    border: 1px solid var(--color-divider);
+}
+.text-xs.font-bold.uppercase.text-blue-800.bg-blue-100 { /* Group title in sidebar */
+    background-color: var(--color-background); 
+    color: var(--color-text-secondary);
+    border-radius: 4px;
+    border: 1px solid var(--color-divider);
+}
+.block.px-4.py-2.rounded-md.text-gray-700.hover\:bg-gray-100 { /* Nav links in sidebar */
+    color: var(--color-text-primary);
+    transition: background-color 0.2s ease-in-out;
+}
+.hover\:bg-gray-100:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+}
+/* Active link in sidebar */
+.bg-blue-50, .bg-blue-100 { 
+    background-color: rgba(var(--color-primary) 0.08) !important; /* Material ripple effect suggestion */
+    color: var(--color-primary) !important;
+    font-weight: 500 !important;
+    border-radius: 4px !important;
+    border: none !important; /* ไม่มีขอบ */
+    padding: 8px 16px !important;
+}
+.text-blue-700, .text-blue-800 { 
+    color: var(--color-primary) !important;
+    font-weight: 500;
+}
+
+/* --- Animation for Login Page --- */
+@keyframes fadeInSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-slide-down {
+  animation: fadeInSlideDown 0.5s ease-out forwards;
+}
+
+/* --- สิ้นสุดโค้ดสำหรับธีม Material Design --- */
+
+/* --- Navbar Design: Bold & Vibrant --- */
+
+:root {
+  /* กำหนดสี Gradient ไว้ในตัวแปรเพื่อความสะดวก */
+  --header-gradient: #2d3748;
+}
+
+/* === Header หลัก === */
+.header-vibrant {
+  background: var(--header-gradient);
+  color: white;
+}
+
+/* === ลิงก์นำทางบน Desktop === */
+.nav-link-vibrant {
+  font-weight: 500;
+  padding: 0.5rem 1rem; /* 8px 16px */
+  border-radius: 9999px; /* ทำให้เป็นทรงแคปซูล */
+  transition: background-color 0.2s ease-in-out;
+  position: relative;
+  color: white;
+  text-decoration: none;
+}
+
+/* สไตล์เมื่อนำเมาส์ไปชี้ (Hover) และเมื่อเป็นลิงก์ที่ใช้งานอยู่ (Active) */
+.nav-link-vibrant:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.nav-link-vibrant.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  font-weight: 700;
+}
+
+/* === ปุ่มและเมนูโปรไฟล์ (มุมขวา) === */
+.profile-button-vibrant {
+  color: white;
+  background-color: transparent;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease-in-out;
+}
+.profile-button-vibrant:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+/* เมนู Dropdown ของโปรไฟล์ */
+.profile-dropdown-vibrant {
+  background-color: #2d3748; /* สีเทาเข้ม (gray-800) */
+  color: #f7fafc; /* สีเทาอ่อน (gray-100) */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--elevation-8);
+}
+.profile-dropdown-vibrant button {
+  color: #f7fafc;
+  transition: background-color 0.2s ease-in-out;
+}
+.profile-dropdown-vibrant button:hover {
+  background-color: #4a5568; /* สีเทา (gray-700) */
+}
+
+/* === ปุ่มสำหรับผู้ที่ยังไม่ได้ Login === */
+/* ปุ่ม "แจ้งปัญหา" */
+.ghost-button-vibrant {
+  color: white;
+  background-color: transparent;
+  transition: background-color 0.2s ease-in-out;
+}
+.ghost-button-vibrant:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+/* ปุ่ม "Admin Login" (Call to Action) */
+.cta-button-vibrant {
+  background-color: transparent;
+  border: 2px solid white;
+  color: white;
+  font-weight: 700;
+  transition: all 0.2s ease-in-out;
+}
+.cta-button-vibrant:hover {
+  background-color: white;
+  color: #6366f1; /* สีม่วงน้ำเงิน */
+}
+
+/* === Mobile Menu Overlay === */
+.mobile-menu-overlay-vibrant {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--header-gradient);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+.mobile-menu-overlay-vibrant .mobile-nav-link {
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 1rem;
+  border-radius: 8px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.mobile-menu-overlay-vibrant .mobile-nav-link.active {
+  color: white;
+  font-weight: 700;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.mobile-menu-overlay-vibrant .mobile-logout-button {
+  margin-top: 3rem;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  color: white;
+  border: 1px solid rgba(255, 99, 132, 0.8); /* สีแดงโปร่งแสง */
+  background-color: rgba(255, 99, 132, 0.2); /* สีแดงโปร่งแสง */
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+.mobile-menu-overlay-vibrant .mobile-logout-button:hover {
+  background-color: rgba(255, 99, 132, 0.4);
+}
+
+
+
+
+
+/* src/index.css */
+
+/* --- Switch Port Redesign (Final Compact with LAN ID) --- */
+
+.switch-panel-light {
+  background-color: #f9fafb;
+  border: 1px solid var(--color-divider);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.port-row-light {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px; /* ระยะห่างที่เล็กที่สุด */
+  margin-bottom: 4px;
+}
+.port-row-light:last-child {
+  margin-bottom: 0;
+}
+
+.port-slot {
+  flex-shrink: 0;
+  width: 42px;   /* ความกว้างที่ปรับแก้ใหม่ */
+  height: 42px;  /* ความสูงเพื่อให้พอดี 2 บรรทัด */
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 3px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  background-color: #ffffff;
+}
+.port-slot:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elevation-3);
+  border-color: var(--color-primary);
+}
+
+/* Status Highlights */
+.port-slot.status-up {
+  background-color: #e8f5e9;
+  border-color: #a5d6a7;
+}
+/* เพิ่มสำหรับสถานะใหม่ */
+.port-slot.status-uplink {
+  background-color: #e3f2fd; /* สีฟ้าอ่อน */
+  border-color: #90caf9;    /* สีขอบฟ้า */
+}
+.port-slot.status-down {
+  background-color: #fafafa;
+}
+.port-slot.status-disabled {
+  background-color: #ffffff;
+  border-style: dashed;
+  border-color: #e0e0e0;
+}
+.port-slot.status-disabled .port-slot-number,
+.port-slot.status-disabled .port-slot-info {
+   color: var(--color-text-disabled);
+}
+
+
+.port-slot-number {
+  font-weight: 500;
+  font-size: 0.8rem;
+  color: #374151;
+  line-height: 1.1;
+}
+.port-slot.status-up .port-slot-number {
+   color: #1b5e20;
+   font-weight: 700;
+}
+/* เพิ่มสำหรับสถานะใหม่ */
+.port-slot.status-uplink .port-slot-number {
+   color: #1565c0; /* สีตัวอักษรฟ้าเข้ม */
+   font-weight: 700;
+}
+
+/* นำ LAN Cable ID กลับมาแสดง */
+.port-slot-info {
+  display: block;
+  font-size: 0.6rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.2;
+}
+
+.port-slot-note-icon {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+}
+.port-slot-note-icon svg {
+  width: 0.7rem;
+  height: 0.7rem;
+  color: #607d8b;
+}
+.port-slot.status-up .port-slot-note-icon svg {
+    color: #388e3c;
+}
+
+
+/* --- Switch List Page Redesign --- */
+
+/* ใช้ Tailwind's 'group' utility เพื่อสร้าง hover effect 
+  เมื่อนำเมาส์ไปชี้ที่ parent (.group) แล้วให้ child (.group-hover\:opacity-100) แสดงผล
+*/
+.switch-item .actions {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.switch-item:hover .actions {
+  opacity: 1;
+}
+
+/* --- Ticket List Page Redesign (Card Layout) --- */
+
+.ticket-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-left: 5px solid var(--color-primary); /* แถบสีด้านซ้ายเพื่อแยกสถานะ */
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--elevation-1);
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--elevation-4);
+}
+
+/* ปรับแถบสีด้านซ้ายตามสถานะ */
+.ticket-card.status-wait { border-left-color: #0ea5e9; /* Sky-500 */ }
+.ticket-card.status-in-progress { border-left-color: var(--color-warning); }
+.ticket-card.status-success { border-left-color: var(--color-success); }
+.ticket-card.status-cancel { border-left-color: var(--color-error); }
+
+
+.ticket-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  gap: 1rem;
+}
+
+.ticket-card-title {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  word-break: break-word; /* ตัดคำเมื่อยาวเกิน */
+}
+
+.ticket-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem; /* 8px */
+  font-weight: 500;
+  font-size: 0.875rem; /* 14px */
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+.ticket-status-badge svg {
+  width: 1.125rem; /* 18px */
+  height: 1.125rem; /* 18px */
+}
+
+/* สีสำหรับ Status Badge */
+.status-badge-wait { background-color: #e0f2fe; color: #0369a1; }
+.status-badge-in-progress { background-color: color-mix(in srgb, var(--color-warning) 15%, transparent); color: var(--color-warning); }
+.status-badge-success { background-color: color-mix(in srgb, var(--color-success) 15%, transparent); color: var(--color-success); }
+.status-badge-cancel { background-color: color-mix(in srgb, var(--color-error) 15%, transparent); color: var(--color-error); }
+
+
+.ticket-card-body {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+.ticket-card-body strong {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.ticket-card-footer {
+  border-top: 1px solid var(--color-divider);
+  padding-top: 1rem;
+  margin-top: auto; /* ดัน footer ไปอยู่ล่างสุด */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ticket-card-reporter {
+  font-size: 0.875rem;
+}
+
+.ticket-card-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+.ticket-card-actions .action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: all 0.2s ease-in-out;
+  box-shadow: var(--elevation-1);
+  color: var(--color-text-on-primary);
+}
+.ticket-card-actions .action-btn:hover {
+  box-shadow: var(--elevation-2);
+}
+
+.action-btn.update {
+  background-color: var(--color-secondary);
+}
+.action-btn.update:hover {
+  background-color: var(--color-secondary-dark);
+}
+
+.action-btn.delete {
+  background-color: var(--color-error);
+}
+.action-btn.delete:hover {
+  background-color: color-mix(in srgb, var(--color-error) 90%, black);
+}
+
+
+/* --- Create Ticket Form Page Styles --- */
+
+.form-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 80px); /* Adjust 80px based on your navbar height */
+  background-color: var(--color-background);
+}
+
+.form-card {
+  width: 100%;
+  max-width: 650px;
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: var(--elevation-3);
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.form-header h2 {
+  font-size: 1.75rem; /* 28px */
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.form-header p {
+  color: var(--color-text-secondary);
+  font-size: 1rem; /* 16px */
+  margin-top: 0.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem; /* 14px */
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-divider);
+  border-radius: 4px;
+  background-color: #f8fafc; /* Slightly off-white */
+  color: var(--color-text-primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 1rem;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* --- Form Feedback Messages --- */
+.form-feedback {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.form-feedback.success {
+  background-color: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.form-feedback.error {
+  background-color: color-mix(in srgb, var(--color-error) 15%, transparent);
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+}
+
+/* --- Submit Button --- */
+.submit-btn {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-on-primary);
+  background-color: var(--color-primary);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--elevation-1);
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  box-shadow: var(--elevation-2);
+}
+
+.submit-btn:disabled {
+  background-color: #94a3b8; /* gray-400 */
+  cursor: not-allowed;
+}
+
+/* --- Searchable Select Component Styles --- */
+
+.searchable-select-container {
+  position: relative;
+}
+
+.options-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: var(--elevation-2);
+  margin-top: 2px;
+}
+
+.option-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.option-item:hover {
+  background-color: #f1f5f9; /* gray-100 */
+}
+
+.option-item small {
+  display: block;
+  color: var(--color-text-secondary);
+}
+
+.no-options {
+  padding: 0.75rem 1rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+/* src/index.css */
+
+/* ... (โค้ดเดิมของคุณ) ... */
+
+/* --- (เพิ่มใหม่) Styles สำหรับ Settings Page โดยเฉพาะ --- */
+
+.settings-sidebar-group-title {
+  padding: 8px 12px;
+  font-size: 0.75rem; /* 12px */
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.settings-sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  margin: 0 8px; /* เพิ่ม margin ด้านข้าง */
+  border-radius: 6px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.settings-sidebar-link:hover {
+  background-color: rgba(0, 0, 0, 0.04); /* Material hover effect */
+}
+
+.settings-sidebar-link.active {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  box-shadow: var(--elevation-2);
+}
+
+.settings-sidebar-link svg {
+  margin-right: 16px;
+  width: 20px;
+  height: 20px;
+  opacity: 0.7;
+}
+
+.settings-sidebar-link.active svg {
+  opacity: 1;
+}
+
+.settings-content-card {
+  background-color: var(--color-surface);
+  border-radius: 8px; /* มุมโค้งมนขึ้นเล็กน้อย */
+  box-shadow: var(--elevation-2);
+  padding: 24px;
+}
+
+/* --- (เพิ่มใหม่) Styles สำหรับ Settings Page (Card Design) --- */
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem; /* 24px */
+}
+
+.settings-card {
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  box-shadow: var(--elevation-2);
+  transition: all 0.2s ease-in-out;
+  overflow: hidden; /* ป้องกันเงาเลอะออกมา */
+}
+
+.settings-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--elevation-6);
+}
+
+.settings-card-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-divider);
+  background-color: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.settings-card-title {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 500;
+  color: var(--color-primary-dark);
+}
+
+.settings-card-body {
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-card-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem; /* 12px 16px */
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+}
+
+.settings-card-link:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.settings-card-link.active {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.settings-card-link svg {
+  margin-right: 12px;
+  width: 20px;
+  height: 20px;
+  opacity: 0.7;
+}
+
+.settings-card-link.active svg {
+  opacity: 1;
+}
+
+/* --- (เพิ่มใหม่) Styles สำหรับ Settings Page (Accordion Design) --- */
+
+.settings-accordion-group {
+  border-bottom: 1px solid var(--color-divider);
+}
+.settings-accordion-group:last-child {
+  border-bottom: none;
+}
+
+.accordion-trigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 16px 8px;
+  font-size: 1rem; /* 16px */
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.accordion-trigger:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.accordion-icon {
+  transition: transform 0.3s ease;
+}
+.accordion-icon.open {
+  transform: rotate(90deg);
+}
+
+.accordion-content {
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+  /* max-height จะถูกควบคุมโดย inline style */
+}
+
+/* ใช้ CSS เดิมสำหรับ Link แต่ปรับ Margin เล็กน้อย */
+.settings-sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  margin: 0 8px 4px 8px; /* เพิ่ม margin ด้านล่าง */
+  border-radius: 6px;
+  font-weight: 500;
+  color: var(--color-text-secondary); /* สีเริ่มต้นเป็นสีรอง */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.settings-sidebar-link:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--color-text-primary);
+}
+.settings-sidebar-link.active {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  box-shadow: var(--elevation-2);
+}
+.settings-sidebar-link.active svg {
+  color: var(--color-text-on-primary);
+}
+.settings-sidebar-link svg {
+  margin-right: 16px;
+  width: 20px;
+  height: 20px;
+}
+
+/* === (เพิ่มใหม่) Navigation Dropdown (Desktop) === */
+.nav-dropdown-vibrant {
+  background-color: #2d3748; /* gray-800 */
+  color: #f7fafc; /* gray-100 */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--elevation-8);
+  z-index: 60; /* ทำให้แสดงอยู่ชั้นบนสุด */
+}
+.nav-dropdown-vibrant a {
+  color: #f7fafc;
+  transition: background-color 0.2s ease-in-out;
+}
+.nav-dropdown-vibrant a:hover {
+  background-color: #4a5568; /* gray-700 */
+}
+.nav-dropdown-vibrant a.active {
+  background-color: #6366f1; /* สีสำหรับไฮไลท์ */
+  font-weight: bold;
+}
+
+
+/* === (อัปเดต) Mobile Menu Overlay === */
+.mobile-menu-overlay-vibrant {
+  /* ... คงสไตล์เดิมไว้ ... */
+  padding-top: 4rem; /* เพิ่ม padding ด้านบนเพื่อไม่ให้ทับกับปุ่มปิด */
+  padding-bottom: 2rem;
+  overflow-y: auto; /* ทำให้เลื่อนได้ถ้าเนื้อหายาวเกิน */
+}
+.mobile-menu-overlay-vibrant .mobile-nav-link {
+  font-size: 1.5rem; /* ลดขนาดเล็กน้อยเพื่อให้พอดี */
+  font-weight: 500;
+  /* ... คงสไตล์อื่นๆ ไว้ ... */
+}
+/* (เพิ่มใหม่) สไตล์สำหรับกลุ่มเมนูย่อยในมือถือ */
+.mobile-nav-group-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.mobile-nav-link-sub {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0.5rem 1rem;
+  transition: color 0.2s ease;
+}
+.mobile-nav-link-sub.active {
+  color: white;
+  font-weight: 600;
+}
+
+/* --- (แนะนำ) Navbar Design: Material Theme Primary Color --- */
+
+/* === Header หลัก: เปลี่ยนพื้นหลังเป็นสี Primary === */
+.header-vibrant {
+  background: var(--color-primary); /* เปลี่ยนจากสีเทาเข้มเป็นสีน้ำเงิน Indigo */
+  color: var(--color-text-on-primary); /* ใช้สีตัวอักษรสำหรับพื้นหลังสี Primary */
+}
+
+/* === ลิงก์นำทางบน Desktop: ปรับสี Hover และ Active ให้เข้ากัน === */
+.nav-link-vibrant {
+  color: var(--color-text-on-primary);
+}
+
+.nav-link-vibrant:hover {
+  background-color: rgba(255, 255, 255, 0.15); /* ทำให้สว่างขึ้นเล็กน้อยเมื่อชี้ */
+}
+
+.nav-link-vibrant.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  font-weight: 700;
+}
+
+/* === เมนู Dropdown ต่างๆ (Profile & Mini Program) === */
+.profile-dropdown-vibrant,
+.nav-dropdown-vibrant {
+  background-color: var(--color-primary-dark); /* ใช้สีน้ำเงินที่เข้มขึ้นเล็กน้อยเพื่อแยกชั้น */
+  color: var(--color-text-on-primary);
+  border-color: rgba(255, 255, 255, 0.2); /* เส้นขอบที่สว่างขึ้น */
+}
+.profile-dropdown-vibrant button,
+.nav-dropdown-vibrant a {
+  color: var(--color-text-on-primary);
+}
+.profile-dropdown-vibrant button:hover,
+.nav-dropdown-vibrant a:hover {
+  background-color: var(--color-primary-light); /* ใช้สีน้ำเงินที่สว่างขึ้นเมื่อชี้ */
+}
+.nav-dropdown-vibrant a.active {
+  background-color: var(--color-primary-light);
+  font-weight: bold;
+}
+
+/* === ปุ่มสำหรับผู้ที่ยังไม่ได้ Login: ปรับให้เข้ากับพื้นหลังใหม่ === */
+.cta-button-vibrant {
+  border-color: white;
+  color: white;
+}
+.cta-button-vibrant:hover {
+  background-color: white;
+  color: var(--color-primary); /* เมื่อชี้ ให้ตัวอักษรเป็นสี Primary */
+}
+
+/* === Mobile Menu Overlay: เปลี่ยนพื้นหลังให้เหมือนกัน === */
+.mobile-menu-overlay-vibrant {
+  background: var(--color-primary);
+}

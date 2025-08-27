@@ -1,0 +1,106 @@
+import React from "react";
+import { Link } from "react-router-dom";
+
+// --- 1. สร้าง Object สำหรับ Mapping รูปภาพ ---
+// Key: คือชื่อ Category ที่ตรงกับข้อมูลใน database (ไฟล์ it_asset_db_assets.sql)
+// Value: คือ path ไปยังรูปภาพในโฟลเดอร์ public
+const categoryImages = {
+  // "Notebook - Office (Document)": "/images/notebook.png",
+  // "Desktop - Office (Document)": "/images/desktop.png",
+  // "Desktop - Factory (Machine)": "/images/desktop.png",
+  // เพิ่ม Category อื่นๆ ตามต้องการ
+  default: "/images/default.png", // รูปภาพเริ่มต้น
+};
+
+function AssetList({ assets, onDelete }) {
+  return (
+    <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+      <table className="w-full text-left text-sm">
+        <thead className="bg-blue-600">
+          <tr>
+            <th className="p-3 font-semibold text-white">Picture</th>
+            <th className="p-3 font-semibold text-white">Categories</th>
+            <th className="p-3 font-semibold text-white">IT Asset</th>
+            <th className="p-3 font-semibold text-white">Subcategories</th>
+            <th className="p-3 font-semibold text-white">Department</th>
+            <th className="p-3 font-semibold text-white">Device Users</th>
+            <th className="p-3 font-semibold text-white">User ID</th>
+            <th className="p-3 font-semibold text-white text-center">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {assets && assets.length > 0 ? (
+            assets.map((asset) => {
+              // --- 2. ใน loop .map() ให้ดึง URL ของรูปภาพ ---
+              // หาก asset.category มีค่าตรงกับใน object ก็จะใช้รูปนั้นๆ
+              // หากไม่ตรง จะใช้รูป default ที่เรากำหนดไว้
+              const imageUrl =
+                categoryImages[asset.category] || categoryImages.default;
+
+              return (
+                <tr key={asset.id} className="hover:bg-gray-50">
+                  <td className="p-2 align-middle">
+                    {/* --- 3. เปลี่ยนจาก SVG เป็น <img> --- */}
+                    <img
+                      src={imageUrl}
+                      alt={asset.category || "Asset Image"} // ใส่ alt text เพื่อ accessibility
+                      className="w-16 h-16 object-cover rounded-md bg-gray-50"
+                    />
+                  </td>
+                  <td className="p-3 align-middle text-gray-800">
+                    {asset.category}
+                  </td>
+                  <td className="p-3 align-middle font-medium text-gray-800">
+                    {asset.asset_code}
+                  </td>
+                  <td className="p-3 align-middle text-gray-800">
+                    {asset.subcategory}
+                  </td>
+                  <td className="p-3 align-middle text-gray-800">
+                    {asset.department}
+                  </td>
+                  <td className="p-3 align-middle text-gray-800">
+                    {asset.user_name}
+                  </td>
+                  <td className="p-3 align-middle text-gray-800">
+                    {asset.user_id}
+                  </td>
+                  <td className="p-3 space-x-2 text-center align-middle whitespace-nowrap">
+                    <Link
+                      to={`/asset/${asset.id}`}
+                      className="bg-blue-600 hover:bg-blue-700 table-action-button"
+                    >
+                      Detail
+                    </Link>
+                    <Link
+                      to={`/asset/history/${asset.asset_code}`}
+                      className="bg-blue-500 hover:bg-blue-600 table-action-button"
+                    >
+                      History
+                    </Link>
+                    <button // เปลี่ยนเป็น button เพื่อความถูกต้องทาง semantic
+                      onClick={() => onDelete(asset.id)}
+                      className="bg-red-500 hover:bg-red-600 table-action-button"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td colSpan="8" className="text-center p-6 text-gray-500">
+                No assets found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default AssetList;

@@ -10,12 +10,14 @@ function AddAssetPage() {
   const [masterData, setMasterData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [formData, setFormData] = useState({
+  // formData ใช้สำหรับกำหนดค่าเริ่มต้นเท่านั้น
+  const [formData] = useState({
     asset_code: '', serial_number: '', brand: '', model: '', subcategory: '',
     ram: '', cpu: '', storage: '', device_id: '', ip_address: '',
     wifi_registered: 'Wifi not register', mac_address_lan: '', mac_address_wifi: '',
-    start_date: '', location: '', fin_asset_ref: '', user_id: '', user_name: '',
-    department: '', category: '', status: 'Available',
+    start_date: new Date().toISOString().split('T')[0], // ตั้งค่า default เป็นวันปัจจุบัน
+    location: '', fin_asset_ref: '', user_id: '', user_name: '',
+    department: '', category: '', status: 'Enable', // ตั้งค่า default status
     bitlockerKeys: [],
     windows_version: '',
     windows_key: '',
@@ -35,12 +37,6 @@ function AddAssetPage() {
             'windows', 'office', 'antivirus',
             'special_program'
         ];
-        
-        // 2. ไม่ต้องดึง token หรือสร้าง headers เองแล้ว
-        // const token = localStorage.getItem('token');
-        // const headers = { 'x-auth-token': token };
-
-        // 3. เปลี่ยนไปใช้ `api` และใช้ URL แบบย่อ
         const masterDataRequests = masterDataTypes.map(type => api.get(`/master-data/${type}`));
         const employeesRequest = api.get('/employees');
 
@@ -64,30 +60,26 @@ function AddAssetPage() {
     fetchInitialData();
   }, []);
 
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    // 3. Use `api.post` without custom headers
-    await api.post('/assets', formData);
+  // รับ 'data' มาจาก React Hook Form โดยตรง
+  const handleSubmit = async (data) => {
+      try {
+        await api.post('/assets', data);
+        alert("New asset added successfully!");
+        navigate('/');
+      } catch (error) {
+        console.error("Error creating asset:", error);
+        alert("Unable to add the asset.");
+      }
+  };
 
-    alert("New asset added successfully!");
-    navigate('/');
-  } catch (error) {
-    console.error("Error creating asset:", error);
-    alert("Unable to add the asset.");
+  if (loading || !masterData) {
+    return <div className="p-4">Loading form options...</div>;
   }
-};
-
-if (loading || !masterData) {
-  return <div>Loading form options...</div>;
-}
-
 
   return (
     <AssetForm
       isEditing={false}
       formData={formData}
-      setFormData={setFormData}
       onSubmit={handleSubmit}
       onCancel={() => navigate('/')}
       masterData={masterData}

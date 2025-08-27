@@ -1,5 +1,7 @@
+// src/pages/EditAssetPage.js
+
 import React, { useState, useEffect } from 'react';
-import api from '../api'; // Adjust path as needed
+import api from '../api';
 import { useNavigate, useParams } from 'react-router-dom';
 import AssetForm from '../components/AssetForm';
 
@@ -38,7 +40,7 @@ function EditAssetPage() {
           acc[type] = masterDataResponses[index].data.map(item => item.value);
           return acc;
         }, {});
-
+        
         fetchedMasterData.user_name = employeesResponse.data.map(emp => emp.fullName);
         setMasterData(fetchedMasterData);
 
@@ -62,11 +64,11 @@ function EditAssetPage() {
     fetchData();
   }, [assetId]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData) return;
+  // รับ 'data' มาจาก React Hook Form โดยตรง
+  const handleSubmit = async (data) => {
+    if (!data) return;
     try {
-      await api.put(`/assets/${assetId}`, formData);
+      await api.put(`/assets/${assetId}`, data);
       alert("Asset updated successfully!");
       navigate(`/asset/${assetId}`);
     } catch (error) {
@@ -75,15 +77,14 @@ function EditAssetPage() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
-  if (!formData || !masterData) return <div>No data found for editing.</div>;
+  if (loading) return <div className="p-4">Loading...</div>;
+  if (error) return <div className="p-4 text-red-600">{error}</div>;
+  if (!formData || !masterData) return <div className="p-4">No data found for editing.</div>;
 
   return (
     <AssetForm
       isEditing={true}
       formData={formData}
-      setFormData={setFormData}
       onSubmit={handleSubmit}
       onCancel={() => navigate(`/asset/${assetId}`)}
       masterData={masterData}
