@@ -2,14 +2,17 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom'; // แก้ไข: เพิ่ม useNavigate
+
+// Import component ใหม่ที่เราจะสร้าง
+import ReplaceAssetModal from '../components/ReplaceAssetModal';
 
 const StatusBadge = ({ status }) => {
     const statusStyles = {
         'Enable': 'bg-green-100 text-green-800',
         'Disable': 'bg-red-100 text-red-800',
         'In Stock': 'bg-blue-100 text-blue-800',
-        'In Use': 'bg-yellow-100 text-yellow-800',
+        'Replaced': 'bg-red-100 text-red-800',
     };
     return (
         <span className={`px-3 py-1 text-xs font-medium rounded-full ${statusStyles[status] || 'bg-gray-100 text-gray-800'}`}>
@@ -41,9 +44,13 @@ const DetailItem = ({ label, children, value }) => (
 
 function AssetDetailPage() {
     const { assetId } = useParams();
+    const navigate = useNavigate(); // เพิ่ม: เรียกใช้ useNavigate
     const [asset, setAsset] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // เพิ่ม: State สำหรับควบคุม Modal
+    const [isReplaceModalOpen, setReplaceModalOpen] = useState(false);
 
     const fetchAsset = useCallback(async () => {
         try {
@@ -63,6 +70,17 @@ function AssetDetailPage() {
         fetchAsset();
     }, [fetchAsset]);
 
+    // เพิ่ม: ฟังก์ชันเมื่อ replace สำเร็จ
+    const handleReplaceSuccess = (newAsset) => {
+        setReplaceModalOpen(false);
+        alert(`Asset ${asset.asset_code} replaced by ${newAsset.asset_code} successfully!`);
+        // ไปยังหน้า detail ของ asset ใหม่
+        navigate(`/asset/${newAsset.id}`);
+        //  Reload เพื่อให้ข้อมูลอัปเดต (ถ้า navigate ไม่ re-render)
+        window.location.reload();
+    };
+
+
     if (loading) return <div className="text-center p-10">Loading...</div>;
     if (error) return <div className="text-center p-10 text-red-600">{error}</div>;
     if (!asset) return <div className="text-center p-10">No assets found.</div>;
@@ -79,9 +97,19 @@ function AssetDetailPage() {
                         <StatusBadge status={asset.status} />
                     </div>
                 </div>
-                <Link to={`/edit/${asset.id}`} className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition">
-                    Edit
-                </Link>
+                {/* vvv ส่วนที่แก้ไข vvv */}
+                <div className="flex items-center space-x-2">
+                    <button
+                        onClick={() => setReplaceModalOpen(true)}
+                        className="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition"
+                    >
+                        Replace
+                    </button>
+                    <Link to={`/edit/${asset.id}`} className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition">
+                        Edit
+                    </Link>
+                </div>
+                {/* ^^^ สิ้นสุดส่วนที่แก้ไข ^^^ */}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -163,6 +191,16 @@ function AssetDetailPage() {
                     </InfoCard>
                 </div>
             </div>
+
+            {/* vvv เพิ่มการเรียกใช้ Modal ที่นี่ vvv */}
+            {isReplaceModalOpen && (
+                <ReplaceAssetModal 
+                    asset={asset}
+                    onClose={() => setReplaceModalOpen(false)}
+                    onSuccess={handleReplaceSuccess}
+                />
+            )}
+            {/* ^^^ จบส่วนที่เพิ่ม ^^^ */}
         </div>
     );
 }

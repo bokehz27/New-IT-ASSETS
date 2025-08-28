@@ -65,17 +65,22 @@ function EditAssetPage() {
   }, [assetId]);
 
   // รับ 'data' มาจาก React Hook Form โดยตรง
-  const handleSubmit = async (data) => {
-    if (!data) return;
-    try {
-      await api.put(`/assets/${assetId}`, data);
-      alert("Asset updated successfully!");
-      navigate(`/asset/${assetId}`);
-    } catch (error) {
-      console.error("Error updating asset:", error);
-      alert("Unable to update asset.");
-    }
-  };
+const handleSubmit = async (data) => {
+  if (!data) return;
+  const payload = { ...data };
+  if (!payload.start_date || String(payload.start_date).trim() === '') {
+    payload.start_date = null;
+  }
+
+  try {
+    await api.put(`/assets/${assetId}`, payload);
+    alert("Asset updated successfully!");
+    navigate(`/asset/${assetId}`);
+  } catch (error) {
+    console.error("Error updating asset:", error);
+    alert(error?.response?.data?.message || "Unable to update asset.");
+  }
+};
 
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-600">{error}</div>;

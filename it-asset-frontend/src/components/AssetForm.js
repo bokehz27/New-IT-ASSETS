@@ -116,6 +116,7 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
       [
         { value: "Enable", label: "Enable" },
         { value: "Disable", label: "Disable" },
+        { value: "Replaced", label: "Replaced" },
       ],
     []
   );

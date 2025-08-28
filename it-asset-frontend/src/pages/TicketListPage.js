@@ -57,6 +57,14 @@ function TicketListPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [limit, setLimit] = useState(10);
+  
+  const [statusCounts, setStatusCounts] = useState({
+    Request: 0,
+    Wait: 0,
+    InProgress: 0,
+    Success: 0,
+    Cancel: 0,
+  });
 
   const [filters, setFilters] = useState({
     status: "",
@@ -71,6 +79,15 @@ function TicketListPage() {
   const fetchTickets = useCallback(async () => {
     try {
       setLoading(true);
+
+      const statusValues = ["Request", "Wait", "In Progress", "Success", "Cancel"];
+      const counts = {};
+      for (const status of statusValues) {
+        const res = await api.get("/tickets", { params: { status: status, limit: 1 } });
+        counts[status.replace(/\s/g, '')] = res.data.totalItems;
+      }
+      setStatusCounts(counts);
+
       const res = await api.get("/tickets", {
         params: {
           ...filters,
@@ -101,6 +118,14 @@ function TicketListPage() {
     setFilters((prevFilters) => ({
       ...prevFilters,
       [name]: value,
+    }));
+    setCurrentPage(1);
+  };
+  
+  const handleStatusClick = (status) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      status: status
     }));
     setCurrentPage(1);
   };
@@ -157,22 +182,79 @@ function TicketListPage() {
         </button>
       </div>
 
+      {/* เพิ่มส่วนแสดงสถานะและจำนวน */}
+      <div className="flex flex-wrap items-center gap-4 mb-6">
+        <button
+          onClick={() => handleStatusClick("")}
+          className={`flex items-center gap-2 py-2 px-4 rounded-full font-semibold transition-colors ${
+            filters.status === "" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+          }`}
+        >
+          All
+          <span className="bg-white text-gray-800 font-bold px-2 py-1 rounded-full text-xs">
+            {statusCounts.Request + statusCounts.Wait + statusCounts.InProgress + statusCounts.Success + statusCounts.Cancel}
+          </span>
+        </button>
+        <button
+          onClick={() => handleStatusClick("Request")}
+          className={`flex items-center gap-2 py-2 px-4 rounded-full font-semibold transition-colors ${
+            filters.status === "Request" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+          }`}
+        >
+          Request
+          <span className="bg-white text-gray-800 font-bold px-2 py-1 rounded-full text-xs">
+            {statusCounts.Request}
+          </span>
+        </button>
+        <button
+          onClick={() => handleStatusClick("Wait")}
+          className={`flex items-center gap-2 py-2 px-4 rounded-full font-semibold transition-colors ${
+            filters.status === "Wait" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+          }`}
+        >
+          Wait
+          <span className="bg-white text-gray-800 font-bold px-2 py-1 rounded-full text-xs">
+            {statusCounts.Wait}
+          </span>
+        </button>
+        <button
+          onClick={() => handleStatusClick("In Progress")}
+          className={`flex items-center gap-2 py-2 px-4 rounded-full font-semibold transition-colors ${
+            filters.status === "In Progress" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+          }`}
+        >
+          In Progress
+          <span className="bg-white text-gray-800 font-bold px-2 py-1 rounded-full text-xs">
+            {statusCounts.InProgress}
+          </span>
+        </button>
+        <button
+          onClick={() => handleStatusClick("Success")}
+          className={`flex items-center gap-2 py-2 px-4 rounded-full font-semibold transition-colors ${
+            filters.status === "Success" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+          }`}
+        >
+          Success
+          <span className="bg-white text-gray-800 font-bold px-2 py-1 rounded-full text-xs">
+            {statusCounts.Success}
+          </span>
+        </button>
+        <button
+          onClick={() => handleStatusClick("Cancel")}
+          className={`flex items-center gap-2 py-2 px-4 rounded-full font-semibold transition-colors ${
+            filters.status === "Cancel" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+          }`}
+        >
+          Cancel
+          <span className="bg-white text-gray-800 font-bold px-2 py-1 rounded-full text-xs">
+            {statusCounts.Cancel}
+          </span>
+        </button>
+      </div>
+
       <div className="mb-6 p-4 border rounded-lg bg-gray-50">
         <div className="flex flex-wrap items-end gap-4">
-          <div className="flex-grow" style={{ minWidth: "180px" }}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <FaFilter className="inline-block mr-2" />
-              Status
-            </label>
-            <select name="status" value={filters.status} onChange={handleFilterChange} className="w-full">
-              <option value="">All</option>
-              <option value="Request">Request</option>
-              <option value="Wait">Wait</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Success">Success</option>
-              <option value="Cancel">Cancel</option>
-            </select>
-          </div>
+          {/* ลบส่วน Status dropdown ออก */}
           <div className="flex-grow" style={{ minWidth: "150px" }}>
             <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
             <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="w-full" />

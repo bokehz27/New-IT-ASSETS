@@ -145,7 +145,7 @@ function TicketFormPage() {
               <input
                 type="text"
                 className="w-full rounded border border-gray-300 px-3 py-2"
-                placeholder="Internal extension (4 digits) หรือเบอร์มือถือ"
+                placeholder="Internal extension (4 digits)"
                 value={form.contact_phone}
                 onChange={(e) => setField("contact_phone", e.target.value)}
               />

@@ -109,6 +109,7 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
         await axios.put(`${API_URL}/tickets/${ticketId}`, payload, headers);
       } else {
         await axios.post(`${API_URL}/public/tickets`, payload, headers);
+        window.alert("Repair ticket created successfully!");
       }
       onSuccess();
     } catch (err) {
@@ -176,7 +177,7 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
                 value={ticketData.contactPhone}
                 onChange={e => setTicketData({ ...ticketData, contactPhone: e.target.value })}
                 className="w-full rounded border border-gray-300 px-3 py-2"
-                placeholder="08x-xxx-xxxx"
+                placeholder="xxxx"
               />
             </div>
 

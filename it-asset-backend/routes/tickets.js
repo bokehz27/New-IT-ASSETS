@@ -77,7 +77,7 @@ router.get('/asset/:asset_code', async (req, res) => {
 // PUT /api/tickets/:id - (คงเดิม)
 router.put('/:id', async (req, res) => {
   try {
-    const { solution, status, handler_name, problem_description, repair_type } = req.body;
+    const { solution, status, handler_name, problem_description, repair_type, contact_phone } = req.body;
     const ticketId = req.params.id;
     
     const ticket = await Ticket.findByPk(ticketId);
@@ -90,6 +90,7 @@ router.put('/:id', async (req, res) => {
     ticket.handler_name = handler_name;
     ticket.problem_description = problem_description;
     ticket.repair_type = repair_type;
+    ticket.contact_phone = contact_phone;
 
     await ticket.save();
     res.json(ticket);
