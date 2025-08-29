@@ -1,9 +1,9 @@
 // src/components/AddSwitchModal.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import api from "../api";
+import SearchableDropdown from "./SearchableDropdown"; // ปรับ path ให้ตรง
 
 function AddSwitchModal({ onClose, onSwitchAdded }) {
-  // 1. ลด formData ให้เหลือเฉพาะฟิลด์ที่ต้องการ
   const [formData, setFormData] = useState({
     name: "",
     model: "",
@@ -11,20 +11,29 @@ function AddSwitchModal({ onClose, onSwitchAdded }) {
     ip_address: "",
     rackId: "",
   });
-  const [rackOptions, setRackOptions] = useState([]);
+  const [racks, setRacks] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchRacks = async () => {
+    async function fetchRacks() {
       try {
         const res = await api.get("/racks");
-        setRackOptions(res.data);
+        setRacks(res.data || []);
       } catch (err) {
         console.error("Failed to fetch racks", err);
       }
-    };
+    }
     fetchRacks();
   }, []);
+
+  const rackOptions = useMemo(
+    () =>
+      racks.map((r) => ({
+        value: r.id,
+        label: r.location ? `${r.name} (${r.location})` : r.name,
+      })),
+    [racks]
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,7 +43,6 @@ function AddSwitchModal({ onClose, onSwitchAdded }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // ไม่ต้องแปลงค่า rackId แล้ว เพราะบังคับเลือก
       await api.post("/switches", formData);
       onSwitchAdded();
       onClose();
@@ -45,18 +53,18 @@ function AddSwitchModal({ onClose, onSwitchAdded }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[9990]">
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
         <h2 className="text-2xl font-bold mb-4">Add New Switch</h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
-        {/* 2. แก้ไข Form Inputs */}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             name="name"
             value={formData.name}
             onChange={handleChange}
             placeholder="Switch Name"
-            className="w-full"
+            className="w-full rounded border border-gray-300 px-3 py-2"
             required
           />
           <input
@@ -64,7 +72,7 @@ function AddSwitchModal({ onClose, onSwitchAdded }) {
             value={formData.model}
             onChange={handleChange}
             placeholder="Model"
-            className="w-full"
+            className="w-full rounded border border-gray-300 px-3 py-2"
             required
           />
           <input
@@ -73,7 +81,7 @@ function AddSwitchModal({ onClose, onSwitchAdded }) {
             value={formData.port_count}
             onChange={handleChange}
             placeholder="Number of Ports"
-            className="w-full"
+            className="w-full rounded border border-gray-300 px-3 py-2"
             required
           />
           <input
@@ -81,24 +89,22 @@ function AddSwitchModal({ onClose, onSwitchAdded }) {
             value={formData.ip_address}
             onChange={handleChange}
             placeholder="IP Address"
-            className="w-full"
+            className="w-full rounded border border-gray-300 px-3 py-2"
           />
 
-          {/* 3. แก้ไข Select ให้เป็น required */}
-          <select
-            name="rackId"
-            value={formData.rackId}
-            onChange={handleChange}
-            className="w-full"
-            required
-          >
-            <option value="">--- Select a Rack ---</option>
-            {rackOptions.map((rack) => (
-              <option key={rack.id} value={rack.id}>
-                {`${rack.name} (${rack.location})`}
-              </option>
-            ))}
-          </select>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Rack
+            </label>
+            <SearchableDropdown
+              options={rackOptions}
+              value={formData.rackId}
+              onChange={(val) => setFormData((p) => ({ ...p, rackId: val }))}
+              placeholder="--- Select a Rack ---"
+              idPrefix="dd-add-rack"
+              menuZIndex={10000}
+            />
+          </div>
 
           <div className="flex justify-end gap-4 pt-4">
             <button

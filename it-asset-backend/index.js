@@ -20,6 +20,7 @@ const switchRoutes = require('./routes/switchRoutes');
 const rackRoutes = require('./routes/rackRoutes');
 const AssetSpecialProgram = require('./models/assetSpecialProgram');
 const reportRoutes = require('./routes/reports');
+const path = require('path');
 // Import middleware
 const authMiddleware = require('./middleware/authMiddleware');
 
@@ -73,6 +74,8 @@ app.use('/api/dashboard', authMiddleware, dashboardRoutes);
 app.use('/api/ports', authMiddleware, portRoutes);
 app.use('/api/switches', authMiddleware, switchRoutes);
 app.use('/api/racks', authMiddleware, rackRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/public', publicRoutes);
 const HOST = '0.0.0.0'; // ทำให้รับการเชื่อมต่อจากทุก IP Address
 
 app.listen(PORT, HOST, () => {

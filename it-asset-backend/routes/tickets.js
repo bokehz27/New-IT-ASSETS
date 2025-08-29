@@ -1,121 +1,139 @@
+// routes/tickets.js
 const express = require('express');
 const { Op } = require('sequelize');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
 const Ticket = require('../models/ticket');
+
 const router = express.Router();
 
-// GET /api/tickets - (แก้ไข) เพิ่มระบบ Pagination
+/* ============ Local storage ============ */
+const UPLOAD_DIR = path.join(__dirname, '..', 'uploads', 'tickets');
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
+  filename: (_req, file, cb) => {
+    let ext = path.extname(file.originalname).toLowerCase();
+    if (ext === '.jfif') ext = '.jpg';  // แปลง jfif -> jpg
+
+    const safe = path.basename(file.originalname, path.extname(file.originalname))
+                  .replace(/[^a-zA-Z0-9._-]/g, '_');
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, `${unique}-${safe}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+});
+
+/* ============ List + Filter ============ */
 router.get('/', async (req, res) => {
   try {
-    // 1. รับค่า page และ limit จาก query string
-    const page = parseInt(req.query.page, 10) || 1;
+    const page  = parseInt(req.query.page, 10)  || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const offset = (page - 1) * limit;
 
     const { status, startDate, endDate } = req.query;
-    const whereClause = {};
-
-    if (status) {
-      whereClause.status = status;
-    }
-
+    const where = {};
+    if (status) where.status = status;
     if (startDate && endDate) {
-      whereClause.report_date = {
-        [Op.between]: [new Date(startDate), new Date(endDate + 'T23:59:59')]
-      };
+      const start = new Date(startDate);
+      const end   = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      where.report_date = { [Op.between]: [start, end] };
     }
 
-    // 2. เปลี่ยนมาใช้ findAndCountAll เพื่อนับจำนวนทั้งหมดสำหรับ Pagination
     const { count, rows } = await Ticket.findAndCountAll({
-      where: whereClause,
+      where,
       order: [['report_date', 'DESC']],
-      limit: limit,
-      offset: offset
+      limit,
+      offset,
     });
 
-    // 3. จัดรูปแบบข้อมูลที่ส่งกลับให้ Frontend
-    res.json({
-      tickets: rows,
-      totalItems: count,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page
-    });
-
-  } catch (error) {
-    console.error("Failed to fetch tickets:", error);
+    res.json({ tickets: rows, totalItems: count, totalPages: Math.ceil(count / limit), currentPage: page });
+  } catch (e) {
+    console.error('GET /tickets error:', e);
     res.status(500).json({ error: 'Failed to fetch tickets' });
   }
 });
 
-
-// GET /api/tickets/:id - (คงเดิม)
+/* ============ Detail ============ */
 router.get('/:id', async (req, res) => {
   try {
-    const ticket = await Ticket.findByPk(req.params.id);
-    if (ticket) {
-      res.json(ticket);
-    } else {
-      res.status(404).json({ error: 'Ticket not found' });
-    }
-  } catch (error) {
+    const t = await Ticket.findByPk(req.params.id);
+    if (!t) return res.status(404).json({ error: 'Ticket not found' });
+    res.json(t);
+  } catch (e) {
     res.status(500).json({ error: 'Failed to fetch the ticket' });
   }
 });
 
-// GET /api/tickets/asset/:asset_code - (คงเดิม)
+/* ============ History by asset ============ */
 router.get('/asset/:asset_code', async (req, res) => {
   try {
-    const tickets = await Ticket.findAll({
-      where: { asset_code: req.params.asset_code },
-      order: [['report_date', 'DESC']]
-    });
-    res.json(tickets);
-  } catch (error) {
+    const rows = await Ticket.findAll({ where: { asset_code: req.params.asset_code }, order: [['report_date','DESC']] });
+    res.json(rows);
+  } catch (e) {
     res.status(500).json({ error: 'Failed to fetch ticket history' });
   }
 });
 
-// PUT /api/tickets/:id - (คงเดิม)
-router.put('/:id', async (req, res) => {
-  try {
-    const { solution, status, handler_name, problem_description, repair_type, contact_phone } = req.body;
-    const ticketId = req.params.id;
-    
-    const ticket = await Ticket.findByPk(ticketId);
-    if (!ticket) {
-      return res.status(404).json({ error: 'Ticket not found' });
+/* ============ Update + Attachments (Admin/User) ============ */
+router.put(
+  '/:id',
+  upload.fields([{ name: 'attachment_admin', maxCount: 1 }, { name: 'attachment_user', maxCount: 1 }]),
+  async (req, res) => {
+    try {
+      const t = await Ticket.findByPk(req.params.id);
+      if (!t) return res.status(404).json({ error: 'Ticket not found' });
+
+      const { solution, status, handler_name, problem_description, repair_type, contact_phone } = req.body;
+
+      // build URLs ถ้ามีไฟล์อัปโหลด
+      const fAdmin = req.files?.attachment_admin?.[0] || null;
+      const fUser  = req.files?.attachment_user?.[0]  || null;
+      const adminUrl = fAdmin ? `/uploads/tickets/${fAdmin.filename}` : null;
+      const userUrl  = fUser  ? `/uploads/tickets/${fUser.filename}`  : null;
+
+      // เขียนลงคอลัมน์ที่มีอยู่ (รองรับทั้งแบบ 2 ช่อง และช่องเดียว)
+      const hasUserCol  = Object.prototype.hasOwnProperty.call(t.dataValues, 'attachment_user_url');
+      const hasAdminCol = Object.prototype.hasOwnProperty.call(t.dataValues, 'attachment_admin_url');
+      const hasSingle   = Object.prototype.hasOwnProperty.call(t.dataValues, 'attachment_url');
+
+      if (userUrl)  { if (hasUserCol)  t.attachment_user_url  = userUrl;  else if (hasSingle) t.attachment_url = userUrl; }
+      if (adminUrl) { if (hasAdminCol) t.attachment_admin_url = adminUrl; else if (hasSingle) t.attachment_url = adminUrl; }
+
+      // อัปเดตฟิลด์อื่นๆ
+      if (solution !== undefined)            t.solution = solution;
+      if (status !== undefined)              t.status = status;
+      if (handler_name !== undefined)        t.handler_name = handler_name;
+      if (problem_description !== undefined) t.problem_description = problem_description;
+      if (repair_type !== undefined)         t.repair_type = repair_type;
+      if (contact_phone !== undefined)       t.contact_phone = contact_phone;
+
+      await t.save();
+      res.json(t);
+    } catch (e) {
+      console.error('PUT /tickets/:id error:', e);
+      res.status(500).json({ error: 'Failed to update ticket', details: e.message });
     }
-
-    ticket.solution = solution;
-    ticket.status = status;
-    ticket.handler_name = handler_name;
-    ticket.problem_description = problem_description;
-    ticket.repair_type = repair_type;
-    ticket.contact_phone = contact_phone;
-
-    await ticket.save();
-    res.json(ticket);
-  } catch (error) {
-    console.error("Failed to update ticket:", error);
-    res.status(500).json({ error: 'Failed to update ticket', details: error.message });
   }
-});
+);
 
-// DELETE /api/tickets/:id - (คงเดิม)
+/* ============ Delete ============ */
 router.delete('/:id', async (req, res) => {
   try {
-    const ticketId = req.params.id;
-    const deleted = await Ticket.destroy({
-      where: { id: ticketId }
-    });
-    if (deleted) {
-      res.status(204).send();
-    } else {
-      res.status(404).json({ error: 'Ticket not found' });
-    }
-  } catch (error)
- {
-    console.error("Failed to delete ticket:", error);
-    res.status(500).json({ error: 'Failed to delete ticket', details: error.message });
+    const deleted = await Ticket.destroy({ where: { id: req.params.id } });
+    if (!deleted) return res.status(404).json({ error: 'Ticket not found' });
+    res.status(204).send();
+  } catch (e) {
+    console.error('DELETE /tickets/:id error:', e);
+    res.status(500).json({ error: 'Failed to delete ticket', details: e.message });
   }
 });
 

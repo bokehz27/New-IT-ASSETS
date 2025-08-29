@@ -78,7 +78,7 @@ router.post('/login', async (req, res) => {
 
     // สร้าง Token โดยดึง Secret Key จาก .env
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: '5h', // ขยายเวลาหมดอายุ
+      expiresIn: '2h', // ขยายเวลาหมดอายุ
     });
     
     res.json({

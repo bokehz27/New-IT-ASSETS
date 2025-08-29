@@ -318,8 +318,8 @@ function TicketListPage() {
                     <td className="p-3 align-middle text-gray-800">{ticket.asset_code}</td>
                     <td className="p-3 align-middle text-gray-800">{ticket.reporter_name}</td>
                     <td className="p-3 align-middle font-medium text-gray-900 break-words">{ticket.problem_description}</td>
-                    <td className="p-3 align-middle text-gray-800 break-words">{ticket.solution || "No solution yet"}</td>
-                    <td className="p-3 align-middle text-gray-800">{ticket.handler_name || "Not assigned"}</td>
+                    <td className="p-3 align-middle text-gray-800 break-words">{ticket.solution || ""}</td>
+                    <td className="p-3 align-middle text-gray-800">{ticket.handler_name || ""}</td>
                     <td className="p-3 align-middle">
                       <span
                         className={`inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}

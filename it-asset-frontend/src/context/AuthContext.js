@@ -12,11 +12,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true); // เริ่มต้นด้วยสถานะ loading
 
   // --- ฟังก์ชัน Logout ที่จะถูกเรียกใช้จากหลายที่ ---
-  const logout = () => {
+const logout = () => {
     localStorage.removeItem('token');
     delete axios.defaults.headers.common['x-auth-token'];
     setToken(null);
     setUser(null);
+    window.location.href = '/login'; // <-- เพิ่มบรรทัดนี้
   };
 
   useEffect(() => {

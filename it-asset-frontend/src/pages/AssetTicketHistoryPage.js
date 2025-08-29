@@ -1,17 +1,51 @@
-// src/pages/AssetTicketHistoryPage.js (Example Path)
+// src/pages/AssetTicketHistoryPage.js
 
 import React, { useState, useEffect, useCallback } from "react";
-// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
-import api from "../api"; // Adjust the path based on your project structure
+import api from "../api";
 import { useParams } from "react-router-dom";
 import Modal from "react-modal";
 import TicketFormModal from "../components/TicketFormModal";
-import { FaEdit } from "react-icons/fa";
-
-// --- CHANGE 2: Remove the unnecessary API_URL constant ---
-// const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
+import {
+  FaEdit,
+  FaSpinner,
+  FaCheckCircle,
+  FaClock,
+  FaTimesCircle,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 
 Modal.setAppElement("#root");
+
+// ✅ ยกมาจาก TicketListPage ให้เหมือนกัน
+const StatusIcon = ({ status }) => {
+  switch (status) {
+    case "In Progress":
+      return <FaSpinner className="animate-spin text-blue-500" />;
+    case "Success":
+      return <FaCheckCircle className="text-green-500" />;
+    case "Wait":
+      return <FaClock className="text-yellow-500" />;
+    case "Cancel":
+      return <FaTimesCircle className="text-red-500" />;
+    default:
+      return <FaExclamationTriangle className="text-gray-500" />;
+  }
+};
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case "In Progress":
+      return "status-badge-in-progress";
+    case "Success":
+      return "status-badge-success";
+    case "Wait":
+      return "status-badge-wait";
+    case "Cancel":
+      return "status-badge-cancel";
+    default:
+      return "bg-gray-200 text-gray-600";
+  }
+};
 
 function AssetTicketHistoryPage() {
   const { assetCode } = useParams();
@@ -23,8 +57,6 @@ function AssetTicketHistoryPage() {
   const fetchHistory = useCallback(async () => {
     try {
       setLoading(true);
-      // --- CHANGE 3: Use the 'api' instance for the GET request ---
-      // This is cleaner and automatically includes the auth token.
       const res = await api.get(`/tickets/asset/${assetCode}`);
       setTickets(res.data);
     } catch (error) {
@@ -53,16 +85,12 @@ function AssetTicketHistoryPage() {
     fetchHistory();
   };
 
-  if (loading)
-    return <div className="text-center p-10">Loading history...</div>;
+  if (loading) return <div className="text-center p-10">Loading history...</div>;
 
-  // --- No changes to JSX ---
   return (
     <div className="my-8 px-4 sm:px-6 lg:px-8">
       <div className="bg-white p-6 md:p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-2 text-gray-700">
-          Repair History
-        </h2>
+        <h2 className="text-2xl font-bold mb-2 text-gray-700">Repair History</h2>
         <p className="mb-6 text-gray-500">
           For IT Asset :{" "}
           <span className="font-semibold text-gray-800">{assetCode}</span>
@@ -73,12 +101,8 @@ function AssetTicketHistoryPage() {
             <table className="w-full text-sm text-left table-fixed">
               <thead className="bg-blue-600">
                 <tr>
-                  <th className="p-3 font-semibold text-white w-48">
-                    Reported Date
-                  </th>
-                  <th className="p-3 font-semibold text-white w-40">
-                    Reporter
-                  </th>
+                  <th className="p-3 font-semibold text-white w-48">Reported Date</th>
+                  <th className="p-3 font-semibold text-white w-40">Reporter</th>
                   <th className="p-3 font-semibold text-white">Issue</th>
                   <th className="p-3 font-semibold text-white">Solution</th>
                   <th className="p-3 font-semibold text-white w-32">Status</th>
@@ -90,31 +114,33 @@ function AssetTicketHistoryPage() {
                 {tickets.map((ticket) => (
                   <tr key={ticket.id} className="hover:bg-gray-50">
                     <td className="p-3 align-middle whitespace-nowrap">
-                      {new Date(ticket.report_date).toLocaleDateString(
-                        "en-US",
-                        {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        }
-                      )}
+                      {new Date(ticket.report_date).toLocaleDateString("en-US", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
                       <br />
-                      {new Date(ticket.report_date).toLocaleTimeString(
-                        "en-US",
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }
-                      )}
+                      {new Date(ticket.report_date).toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </td>
                     <td className="p-3 align-middle">{ticket.reporter_name}</td>
-                    <td className="p-3 align-middle break-words">
-                      {ticket.problem_description}
-                    </td>
+                    <td className="p-3 align-middle break-words">{ticket.problem_description}</td>
                     <td className="p-3 align-middle break-words">
                       {ticket.solution || "N/A"}
                     </td>
-                    <td className="p-3 align-middle">{ticket.status}</td>
+                    {/* ✅ ใช้ Badge + Icon แบบเดียวกับ TicketListPage */}
+                    <td className="p-3 align-middle">
+                      <span
+                        className={`inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                          ticket.status
+                        )}`}
+                      >
+                        <StatusIcon status={ticket.status} />
+                        {ticket.status}
+                      </span>
+                    </td>
                     <td className="p-3 align-middle">
                       {ticket.handler_name || "N/A"}
                     </td>

@@ -125,7 +125,42 @@ router.get('/', async (req, res) => {
 
     if (filter === 'incomplete') {
       const assetAttributes = Object.keys(Asset.rawAttributes);
-      const fieldsToCheck = assetAttributes.filter((attr) => !["id", "createdAt", "updatedAt"].includes(attr));
+
+      // กรอง field ที่ไม่ต้องการตรวจสอบออก (เช่น primary key, timestamps)
+          const fieldsToCheck = assetAttributes.filter(
+        (attr) =>
+          ![
+            "id",
+            //"model",
+            //"category",
+            //"subcategory",
+            //"ram",
+            //"cpu",
+            //"storage",
+            //"device_id",
+            //"ip_address",
+            //"wifi_registered",
+            //"mac_address_lan",
+            //"mac_address_wifi",
+            //"serial_number",
+            //"brand",
+            //"start_date",
+            //"location",
+            //"fin_asset_ref",
+            //"user_id",
+            //"user_name",
+            //"department",
+            //"status",
+            "createdAt",
+            "updatedAt",
+            "windows_version",
+            "windows_key",
+            "office_version",
+            "office_key",
+            "antivirus"
+          ].includes(attr)
+      );
+
       const assetAttributesWithTypes = Asset.rawAttributes;
 
       const orConditions = fieldsToCheck.reduce((acc, field) => {
@@ -399,7 +434,7 @@ router.post('/:id/replace', async (req, res) => {
     return res.status(201).json({ message: 'Asset created and MOVED successfully.', newAsset: refreshed });
   } catch (err) {
     console.error('Replace (move) error:', err);
-    try { await t.rollback(); } catch (_) {}
+    try { await t.rollback(); } catch (_) { }
     return res.status(500).json({ message: 'Failed to move asset data.' });
   }
 });

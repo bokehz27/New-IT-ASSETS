@@ -99,12 +99,12 @@ function AssetDetailPage() {
                 </div>
                 {/* vvv ส่วนที่แก้ไข vvv */}
                 <div className="flex items-center space-x-2">
-                    <button
+                    <Link
                         onClick={() => setReplaceModalOpen(true)}
-                        className="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition"
+                        className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition"
                     >
                         Replace
-                    </button>
+                    </Link>
                     <Link to={`/edit/${asset.id}`} className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition">
                         Edit
                     </Link>

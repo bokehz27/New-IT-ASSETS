@@ -1,30 +1,71 @@
-// models/ticket.js
+// it-asset-backend/models/ticket.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const Ticket = sequelize.define('Ticket', {
-  report_date: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
+const Ticket = sequelize.define(
+  'Ticket',
+  {
+    // PK (Sequelize จะสร้าง id: INTEGER, autoIncrement ให้โดยอัตโนมัติ)
+    report_date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    asset_code: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    },
+    reporter_name: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    contact_phone: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    problem_description: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+
+    // ✅ แนบไฟล์ (ผู้ใช้ / แอดมิน) + ช่องเดิมสำหรับ fallback
+    attachment_user_url: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    attachment_admin_url: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    attachment_url: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      comment: 'ใช้เป็นช่องเดิม/สำรอง กรณีโปรเจ็กต์เก่าเก็บไฟล์แค่ช่องเดียว',
+    },
+
+    // ส่วนของงานซ่อม
+    repair_type: {
+      type: DataTypes.STRING(100), // ถ้ามีชุดค่าตายตัว จะเปลี่ยนเป็น ENUM ก็ได้
+      allowNull: true,
+    },
+    solution: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    handler_name: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    status: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      defaultValue: 'Request', // คงค่าเริ่มต้นเดิม
+    },
   },
-  asset_code: { type: DataTypes.STRING },
-  reporter_name: { type: DataTypes.STRING, allowNull: false },
-  contact_phone: { type: DataTypes.STRING },
-  problem_description: { type: DataTypes.TEXT, allowNull: false },
-  attachment_url: { type: DataTypes.STRING },
-  solution: { type: DataTypes.TEXT },
-  handler_name: { type: DataTypes.STRING },
-  status: {
-    type: DataTypes.STRING,
-    defaultValue: 'Request', // สถานะเริ่มต้น
-  },
-  // เพิ่ม field ใหม่สำหรับประเภทการซ่อม
-  repair_type: {
-    type: DataTypes.STRING, // หรือ DataTypes.ENUM ถ้ามีประเภทที่แน่นอน
-    allowNull: true, // อนุญาตให้เป็นค่าว่างได้
+  {
+    tableName: 'tickets',
+    timestamps: true, // มี createdAt / updatedAt ตามที่ DB แสดง
   }
-}, {
-  tableName: 'tickets'
-});
+);
 
 module.exports = Ticket;

@@ -1,223 +1,144 @@
 // src/pages/TicketFormPage.js
-import React, { useEffect, useState } from "react";
-import api from "../api";
-import { useNavigate } from "react-router-dom";
-import SearchableDropdown from "../components/SearchableDropdown"; // ปรับ path ให้ตรงโปรเจกต์ของคุณ
+import React, { useEffect, useState, useCallback } from "react";
+import axios from "axios";
+import SearchableDropdown from "../components/SearchableDropdown"; // ปรับ path ตามโปรเจกต์
 
-function TicketFormPage() {
-  const navigate = useNavigate();
+const API_URL = process.env.REACT_APP_API_URL || "http://172.18.1.61:5000/api";
 
-  // options สำหรับดรอปดาวน์
-  const [reporterOptions, setReporterOptions] = useState([]);
-  const [assetOptions, setAssetOptions] = useState([]);
+export default function TicketFormPage() {
+  const [options, setOptions] = useState({ reporterOptions: [], assetOptions: [] });
+  const [file, setFile] = useState(null);
+  const [message, setMessage] = useState("");
+  const [successUrl, setSuccessUrl] = useState(""); // url ของไฟล์ที่อัปโหลด (จาก response)
+  const [loading, setLoading] = useState(true);
 
-  // ฟอร์มของ user เท่านั้น (ไม่มีส่วน admin)
-  const [form, setForm] = useState({
-    reporter_name: "",
-    asset_code: "",
-    contact_phone: "",
-    problem_description: "",
+  const [ticketData, setTicketData] = useState({
+    reporterName: "",
+    assetCode: "",
+    contactPhone: "",
+    problemDescription: "",
   });
 
-  const [attachment, setAttachment] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [msg, setMsg] = useState("");
-
-  useEffect(() => {
-    async function bootstrap() {
+  const fetchOptions = useCallback(async () => {
+    try {
       setLoading(true);
-      setMsg("");
-      try {
-        // ดึงรายชื่อผู้ใช้ (สาธารณะ)
-        const u = await api.get("/public/asset-users");
-        setReporterOptions(u.data.map((name) => ({ value: name, label: name })));
-
-        // ดึงรายการทรัพย์สิน (สาธารณะ)
-        const a = await api.get("/public/assets-list");
-        setAssetOptions(
-          a.data.map((asset) => ({
-            value: asset.asset_code,
-            label: `${asset.asset_code}${asset.model ? ` - ${asset.model}` : ""}`,
-          }))
-        );
-      } catch (e) {
-        console.error(e);
-        setMsg("ไม่สามารถโหลดข้อมูลเริ่มต้นได้");
-      } finally {
-        setLoading(false);
-      }
+      const [reporterRes, assetRes] = await Promise.all([
+        axios.get(`${API_URL}/public/asset-users`),
+        axios.get(`${API_URL}/public/assets-list`),
+      ]);
+      setOptions({
+        reporterOptions: (reporterRes.data || []).map(n => ({ value: n, label: n })),
+        assetOptions: (assetRes.data || []).map(a => ({ value: a.asset_code, label: `${a.asset_code}${a.model ? ` - ${a.model}` : ""}` })),
+      });
+    } catch (e) {
+      setMessage("Failed to load options.");
+    } finally {
+      setLoading(false);
     }
-    bootstrap();
   }, []);
 
-  function setField(name, value) {
-    setForm((f) => ({ ...f, [name]: value }));
-  }
+  useEffect(() => { fetchOptions(); }, [fetchOptions]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMsg("");
+    setMessage("");
+    setSuccessUrl("");
 
-    // ตรวจสอบข้อมูลขั้นต่ำ
-    if (!form.reporter_name || !form.asset_code || !form.problem_description) {
-      setMsg("กรุณากรอกข้อมูลที่จำเป็นให้ครบ");
+    const { reporterName, assetCode, problemDescription } = ticketData;
+    if (!reporterName || !assetCode || !problemDescription) {
+      setMessage("Please fill in all required fields.");
       return;
     }
 
-    setSubmitting(true);
-    try {
-      // ส่งเป็น multipart/form-data เพื่อรองรับไฟล์แนบ
-      const fd = new FormData();
-      fd.append("reporter_name", form.reporter_name);
-      fd.append("asset_code", form.asset_code);
-      fd.append("contact_phone", form.contact_phone);
-      fd.append("problem_description", form.problem_description);
-      if (attachment) fd.append("attachment", attachment);
+    const fd = new FormData();
+    fd.append("reporter_name", ticketData.reporterName);
+    fd.append("asset_code", ticketData.assetCode);
+    fd.append("contact_phone", ticketData.contactPhone);
+    fd.append("problem_description", ticketData.problemDescription);
+    if (file) fd.append("attachment_user", file);
 
-      await api.post("/public/tickets", fd); // endpoint สาธารณะสำหรับสร้าง ticket
-      alert("ส่งคำขอซ่อมเรียบร้อยแล้ว ขอบคุณค่ะ/ครับ");
-      navigate("/"); // กลับหน้าแรกหรือเปลี่ยนเป็นหน้าที่คุณต้องการ
-    } catch (err) {
-      console.error(err);
-      setMsg("เกิดข้อผิดพลาดระหว่างส่งคำขอ");
-    } finally {
-      setSubmitting(false);
+    try {
+      const res = await axios.post(`${API_URL}/public/tickets`, fd);
+      setMessage("Submitted!");
+      setSuccessUrl(res.data?.attachment_user_url || "");
+      setTicketData({ reporterName: "", assetCode: "", contactPhone: "", problemDescription: "" });
+      setFile(null);
+    } catch (e) {
+      setMessage(e.response?.data?.error || "Failed to submit.");
     }
   };
 
-  if (loading) {
-    return (
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-3xl mx-auto text-center">
-        กำลังโหลดข้อมูลแบบฟอร์ม...
-      </div>
-    );
-  }
+  if (loading) return <div className="p-8 text-center">Loading...</div>;
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold mb-2 text-gray-900">Report an Issue</h2>
-      <p className="text-gray-500 mb-8">
-        โปรดกรอกข้อมูลด้านล่างเพื่อแจ้งปัญหาไปยังฝ่าย IT
-      </p>
+    <div className="max-w-3xl mx-auto p-4">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Repair Request</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* ส่วนข้อมูลผู้แจ้ง & อุปกรณ์ */}
-        <div className="border-b border-gray-200 pb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Reporter & Device Information
-          </h3>
+      <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 border rounded-lg">
+        <div>
+          <label className="block mb-1 text-sm font-medium text-gray-600">Reporter Name <span className="text-red-500">*</span></label>
+          <SearchableDropdown
+            options={options.reporterOptions}
+            value={ticketData.reporterName}
+            onChange={(val) => setTicketData((p) => ({ ...p, reporterName: val || "" }))}
+            placeholder="Search name..."
+            idPrefix="user-dd-reporter"
+            menuZIndex={10000}
+          />
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <SearchableDropdown
-                label="Reporter Name"
-                idPrefix="dd-reporter"
-                options={reporterOptions}
-                value={form.reporter_name}
-                onChange={(val) => setField("reporter_name", val || "")}
-                placeholder="-- Search or select your name --"
-              />
-            </div>
+        <div>
+          <label className="block mb-1 text-sm font-medium text-gray-600">Asset Code <span className="text-red-500">*</span></label>
+          <SearchableDropdown
+            options={options.assetOptions}
+            value={ticketData.assetCode}
+            onChange={(val) => setTicketData((p) => ({ ...p, assetCode: val || "" }))}
+            placeholder="Search asset code..."
+            idPrefix="user-dd-asset"
+            menuZIndex={10000}
+          />
+        </div>
 
-            <div>
-              <SearchableDropdown
-                label="Asset Code"
-                idPrefix="dd-asset"
-                options={assetOptions}
-                value={form.asset_code}
-                onChange={(val) => setField("asset_code", val || "")}
-                placeholder="-- Search or select asset code --"
-              />
-            </div>
+        <div>
+          <label className="block mb-1 text-sm font-medium text-gray-600">Contact Phone</label>
+          <input
+            className="w-full rounded border border-gray-300 px-3 py-2"
+            value={ticketData.contactPhone}
+            onChange={(e) => setTicketData((p) => ({ ...p, contactPhone: e.target.value }))}
+            placeholder="08x-xxx-xxxx"
+          />
+        </div>
+
+        <div>
+          <label className="block mb-1 text-sm font-medium text-gray-600">Problem Description <span className="text-red-500">*</span></label>
+          <textarea
+            className="w-full rounded border border-gray-300 px-3 py-2"
+            rows={4}
+            value={ticketData.problemDescription}
+            onChange={(e) => setTicketData((p) => ({ ...p, problemDescription: e.target.value }))}
+            placeholder="Describe the problem..."
+          />
+        </div>
+
+        <div>
+          <label className="block mb-1 text-sm font-medium text-gray-600">Attachment (optional)</label>
+          <div className="flex items-center gap-3">
+            <label htmlFor="user-upload" className="inline-flex items-center gap-2 rounded border px-3 py-2 cursor-pointer hover:bg-gray-50">
+              <span>Select file</span>
+            </label>
+            <input id="user-upload" type="file" className="hidden" onChange={(e)=>setFile(e.target.files?.[0]||null)}/>
+            <span className="text-sm text-gray-500">{file?.name || "No file"}</span>
+            {successUrl && (
+              <a href={successUrl} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline">View last uploaded</a>
+            )}
           </div>
         </div>
 
-        {/* รายละเอียดปัญหา */}
-        <div className="border-b border-gray-200 pb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Issue Details</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-1 text-sm font-semibold text-gray-600">
-                Contact Phone
-              </label>
-              <input
-                type="text"
-                className="w-full rounded border border-gray-300 px-3 py-2"
-                placeholder="Internal extension (4 digits)"
-                value={form.contact_phone}
-                onChange={(e) => setField("contact_phone", e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 text-sm font-semibold text-gray-600">
-                Attach File (ถ้ามี)
-              </label>
-              <div className="flex items-center gap-4">
-                <label
-                  htmlFor="attachment-input"
-                  className="file-input-label inline-flex items-center gap-2 rounded border px-3 py-2 cursor-pointer hover:bg-gray-50"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                    />
-                  </svg>
-                  <span>Select File</span>
-                </label>
-                <span className="text-sm text-gray-500">
-                  {attachment ? attachment.name : "No file selected"}
-                </span>
-              </div>
-              <input
-                id="attachment-input"
-                type="file"
-                className="hidden"
-                onChange={(e) => setAttachment(e.target.files?.[0] || null)}
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block mb-1 text-sm font-semibold text-gray-600">
-                Describe the Issue <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                rows="5"
-                className="w-full rounded border border-gray-300 px-3 py-2"
-                placeholder="กรุณาอธิบายอาการ/ปัญหาโดยละเอียด..."
-                value={form.problem_description}
-                onChange={(e) => setField("problem_description", e.target.value)}
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ปุ่มส่ง */}
-        <div className="pt-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          {msg && <p className="text-red-600 font-semibold">{msg}</p>}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full md:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-md hover:bg-indigo-700 transition disabled:bg-gray-400 shadow-md hover:shadow-lg"
-          >
-            {submitting ? "Submitting..." : "Submit Repair Request"}
-          </button>
+        <div className="flex items-center justify-between pt-2">
+          <div className="text-sm">{message && <span className="font-semibold">{message}</span>}</div>
+          <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded-md hover:bg-blue-700">Submit</button>
         </div>
       </form>
     </div>
   );
 }
-
-export default TicketFormPage;

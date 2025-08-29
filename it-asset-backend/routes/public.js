@@ -1,97 +1,120 @@
 // routes/public.js
-const express = require('express');
-const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
-const { Sequelize } = require('sequelize');
-const Ticket = require('../models/ticket');
-const Asset = require('../models/asset');
+const express = require("express");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const { Op } = require("sequelize");
+
+const Ticket = require("../models/ticket");
+const Asset = require("../models/asset");
 
 const router = express.Router();
 
-// Cloudinary configuration (ตรวจสอบว่าตั้งค่า environment variables ถูกต้อง)
-cloudinary.config({ 
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-  api_key: process.env.CLOUDINARY_API_KEY, 
-  api_secret: process.env.CLOUDINARY_API_SECRET 
+/* ============ Local storage (multer.diskStorage) ============ */
+const UPLOAD_DIR = path.join(__dirname, "..", "uploads", "tickets");
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
+  filename: (_req, file, cb) => {
+    let ext = path.extname(file.originalname).toLowerCase();
+    if (ext === ".jfif") ext = ".jpg"; // แปลง jfif -> jpg
+
+    const safe = path
+      .basename(file.originalname, path.extname(file.originalname))
+      .replace(/[^a-zA-Z0-9._-]/g, "_");
+    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, `${unique}-${safe}${ext}`);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
 });
 
-// Multer setup
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+/* ============ Public Routes ============ */
 
-// POST /api/public/tickets - สร้างใบแจ้งซ่อมใหม่
-// Endpoint นี้จะรับข้อมูลจากทั้งผู้ใช้ทั่วไปและ Admin
-router.post('/tickets', upload.single('attachment'), async (req, res) => {
+/**
+ * GET /api/public/asset-users
+ * คืนรายชื่อ "พนักงานผู้ใช้ทรัพย์สิน" จาก Asset.user_name (ไม่ใช้ login username)
+ * - unique
+ * - ตัดค่าว่าง/null
+ * - เรียงตามตัวอักษร (ASC)
+ */
+router.get("/asset-users", async (_req, res) => {
   try {
-    // เพิ่ม solution เข้ามาใน req.body
-    const { reporter_name, asset_code, problem_description, contact_phone, handler_name, status, repair_type, solution } = req.body; // <-- เพิ่ม solution ตรงนี้
-    let attachment_url = null;
-
-    if (req.file) {
-      const b64 = Buffer.from(req.file.buffer).toString("base64");
-      let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-      const result = await cloudinary.uploader.upload(dataURI, {
-        resource_type: "auto",
-        folder: "it_asset_tickets"
-      });
-      attachment_url = result.secure_url;
-    }
-
-    const newTicket = await Ticket.create({
-      reporter_name,
-      asset_code,
-      problem_description,
-      contact_phone,
-      attachment_url,
-      // เพิ่มฟิลด์เหล่านี้ (ถ้ามาจาก Admin จะมีค่า ถ้ามาจาก Public จะเป็น undefined/empty)
-      handler_name: handler_name || null, 
-      status: status || 'Request', 
-      repair_type: repair_type || null,
-      solution: solution || null // <-- เพิ่มการบันทึก solution ตรงนี้
+    const rows = await Asset.findAll({
+      attributes: ["user_name"],
+      where: { user_name: { [Op.ne]: null } },
+      group: ["user_name"],
+      order: [["user_name", "ASC"]],
     });
-
-    res.status(201).json(newTicket);
-  } catch (error) {
-    console.error("Ticket submission error:", error);
-    res.status(500).json({ error: 'Failed to submit ticket.' });
+    const names = rows.map((r) => r.user_name).filter(Boolean);
+    res.json(names);
+  } catch (e) {
+    console.error("GET /asset-users error:", e);
+    res.status(500).json({ error: "Failed to fetch asset users" });
   }
 });
 
-// GET /api/public/asset-users - ดึงรายชื่อผู้ใช้จากตาราง assets
-router.get('/asset-users', async (req, res) => {
+// รายการทรัพย์สิน (ใช้แสดง Asset Code)
+router.get("/assets-list", async (_req, res) => {
   try {
-    const users = await Asset.findAll({
-      attributes: [
-        [Sequelize.fn('DISTINCT', Sequelize.col('user_name')), 'user_name']
-      ],
-      where: {
-        user_name: { [Sequelize.Op.ne]: null, [Sequelize.Op.ne]: '' }
+    const rows = await Asset.findAll({
+      attributes: ["asset_code", "model"],
+      order: [["asset_code", "ASC"]],
+    });
+    res.json(rows);
+  } catch (e) {
+    console.error("GET /assets-list error:", e);
+    res.status(500).json({ error: "Failed to fetch assets" });
+  }
+});
+
+// ผู้ใช้สร้าง ticket + แนบไฟล์ (field: attachment_user หรือชื่อเก่า attachment)
+router.post(
+  "/tickets",
+  upload.fields([
+    { name: "attachment_user", maxCount: 1 },
+    { name: "attachment", maxCount: 1 }, // รองรับชื่อเดิม
+  ]),
+  async (req, res) => {
+    try {
+      const {
+        reporter_name,
+        asset_code,
+        contact_phone = "",
+        problem_description,
+      } = req.body;
+      if (!reporter_name || !asset_code || !problem_description) {
+        return res.status(400).json({ error: "Missing required fields" });
       }
-    });
-    res.json(users.map(u => u.user_name));
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch asset users' });
-  }
-});
 
-// GET /api/public/assets-list - ดึงรหัสอุปกรณ์และรุ่นทั้งหมด
-router.get('/assets-list', async (req, res) => {
-  try {
-    const assets = await Asset.findAll({
-      attributes: ['asset_code', 'model'],
-      where: {
-        asset_code: {
-          [Sequelize.Op.ne]: null,
-          [Sequelize.Op.ne]: ''
-        }
-      },
-      order: [['asset_code', 'ASC']]
-    });
-    res.json(assets);
-  } catch (error) {
-    console.error("Failed to fetch assets list", error);
-    res.status(500).json({ error: 'Failed to fetch assets list' });
+      const f =
+        req.files?.attachment_user?.[0] || req.files?.attachment?.[0] || null;
+      const fileUrl = f ? `/uploads/tickets/${f.filename}` : null;
+
+      // ถ้ามีคอลัมน์แยก -> ใช้ attachment_user_url, ถ้าไม่มีก็ fallback ไป attachment_url
+      const hasUserCol = "attachment_user_url" in Ticket.getAttributes();
+
+      const t = await Ticket.create({
+        reporter_name,
+        asset_code,
+        contact_phone,
+        problem_description,
+        status: "Wait",
+        report_date: new Date(),
+        ...(hasUserCol
+          ? { attachment_user_url: fileUrl }
+          : { attachment_url: fileUrl }),
+      });
+
+      res.status(201).json(t);
+    } catch (e) {
+      console.error("POST /public/tickets error:", e);
+      res.status(500).json({ error: "Failed to create ticket" });
+    }
   }
-});
+);
 
 module.exports = router;

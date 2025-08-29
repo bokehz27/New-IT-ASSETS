@@ -105,12 +105,12 @@ function AssetList({ assets, onDelete }) {
                   >
                     History
                   </Link>
-                  <button
+                  <Link
                     onClick={() => onDelete(asset.id)}
                     className="bg-red-500 hover:bg-red-600 table-action-button"
                   >
                     Delete
-                  </button>
+                  </Link>
                 </td>
               </tr>
             ))

@@ -204,7 +204,7 @@ function DashboardPage() {
               </div>
             </Link>
             <StatCard
-              title="Ongoing Tasks"
+              title="Ticket In Progress"
               value={summary.inProgressCount}
               color="bg-yellow-500 text-white"
             />

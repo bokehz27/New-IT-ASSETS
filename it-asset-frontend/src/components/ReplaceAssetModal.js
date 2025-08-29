@@ -61,12 +61,12 @@ const ReplaceAssetModal = ({ asset, onClose, onSuccess }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
                 <h2 className="text-xl font-bold mb-4">
-                    Replace Asset: <span className="text-blue-600">{asset.asset_code}</span>
+                    Replace Asset : <span className="text-blue-600">{asset.asset_code}</span>
                 </h2>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label className="block text-gray-700 text-sm font-bold mb-2">
-                            Fields to Copy:
+                            Fields to Move :
                         </label>
                         <div className="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-md">
                             {Object.entries(fieldsToCopy).map(([key, label]) => (
@@ -86,7 +86,7 @@ const ReplaceAssetModal = ({ asset, onClose, onSuccess }) => {
 
                     <div className="mb-6">
                         <label htmlFor="newAssetCode" className="block text-gray-700 text-sm font-bold mb-2">
-                            New Asset Code (e.g., IT20000):
+                            New Asset Code :
                         </label>
                         <input
                             id="newAssetCode"
