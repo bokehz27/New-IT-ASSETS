@@ -77,9 +77,19 @@ const logout = () => {
     }
   };
 
-  const register = async (username, password) => {
-    // ... ฟังก์ชัน register เหมือนเดิม ...
-  };
+  const register = async (username, password, role = "it_staff") => {
+  try {
+    const res = await axios.post(`${API_URL}/auth/register`, {
+      username,
+      password,
+      role,
+    });
+    return res.data; // { id, username, role }
+  } catch (err) {
+    console.error("Register failed:", err.response?.data);
+    throw err;
+  }
+};
 
   // ไม่ต้องส่ง loading แล้ว เพราะเราจะรอจนกว่าจะเช็ค Token เสร็จ
   return (

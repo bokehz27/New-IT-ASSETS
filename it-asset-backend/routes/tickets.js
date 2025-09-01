@@ -31,14 +31,36 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
 });
 
-/* ============ List + Filter ============ */
+/* ===== Helpers: map URL -> local path & safe unlink ===== */
+function resolveLocalPathFromUrl(u) {
+  try {
+    if (!u) return null;
+    const bn = path.basename(u);
+    if (!bn) return null;
+    return path.join(UPLOAD_DIR, bn);
+  } catch {
+    return null;
+  }
+}
+function safeUnlink(p) {
+  if (!p) return;
+  try {
+    if (fs.existsSync(p)) fs.unlinkSync(p);
+  } catch (e) {
+    console.warn('unlink failed:', p, e.message);
+  }
+}
+
+/* ============ List + Filter (Protected) ============ */
 router.get('/', async (req, res) => {
   try {
     const page  = parseInt(req.query.page, 10)  || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const offset = (page - 1) * limit;
 
-    const { status, startDate, endDate } = req.query;
+    // เพิ่มดึงพารามิเตอร์
+    const { status, startDate, endDate, reporterName, assetCode } = req.query;
+
     const where = {};
     if (status) where.status = status;
     if (startDate && endDate) {
@@ -46,6 +68,13 @@ router.get('/', async (req, res) => {
       const end   = new Date(endDate);
       end.setHours(23, 59, 59, 999);
       where.report_date = { [Op.between]: [start, end] };
+    }
+    // NEW: filter ชื่อผู้แจ้ง/รหัสทรัพย์
+    if (reporterName) {
+      where.reporter_name = { [Op.like]: `%${reporterName}%` };
+    }
+    if (assetCode) {
+      where.asset_code = { [Op.like]: `%${assetCode}%` };
     }
 
     const { count, rows } = await Ticket.findAndCountAll({
@@ -59,6 +88,44 @@ router.get('/', async (req, res) => {
   } catch (e) {
     console.error('GET /tickets error:', e);
     res.status(500).json({ error: 'Failed to fetch tickets' });
+  }
+});
+
+/* ============ PUBLIC list (no auth) ============ */
+router.get('/public', async (req, res) => {
+  try {
+    const page  = parseInt(req.query.page, 10)  || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const offset = (page - 1) * limit;
+
+    const { status, startDate, endDate, reporterName, assetCode } = req.query;
+    const where = {};
+    if (status) where.status = status;
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end   = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      where.report_date = { [Op.between]: [start, end] };
+    }
+    if (reporterName) where.reporter_name = { [Op.like]: `%${reporterName}%` };
+    if (assetCode)    where.asset_code    = { [Op.like]: `%${assetCode}%` };
+
+    const { count, rows } = await Ticket.findAndCountAll({
+      where,
+      order: [['report_date', 'DESC']],
+      limit,
+      offset,
+    });
+
+    res.json({
+      tickets: rows,
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page
+    });
+  } catch (e) {
+    console.error('GET /tickets/public error:', e);
+    res.status(500).json({ error: 'Failed to fetch public tickets' });
   }
 });
 
@@ -92,7 +159,10 @@ router.put(
       const t = await Ticket.findByPk(req.params.id);
       if (!t) return res.status(404).json({ error: 'Ticket not found' });
 
-      const { solution, status, handler_name, problem_description, repair_type, contact_phone } = req.body;
+      const {
+        solution, status, handler_name, problem_description, repair_type, contact_phone,
+        remove_attachment_user, remove_attachment_admin,
+      } = req.body;
 
       // build URLs ถ้ามีไฟล์อัปโหลด
       const fAdmin = req.files?.attachment_admin?.[0] || null;
@@ -105,8 +175,33 @@ router.put(
       const hasAdminCol = Object.prototype.hasOwnProperty.call(t.dataValues, 'attachment_admin_url');
       const hasSingle   = Object.prototype.hasOwnProperty.call(t.dataValues, 'attachment_url');
 
-      if (userUrl)  { if (hasUserCol)  t.attachment_user_url  = userUrl;  else if (hasSingle) t.attachment_url = userUrl; }
-      if (adminUrl) { if (hasAdminCol) t.attachment_admin_url = adminUrl; else if (hasSingle) t.attachment_url = adminUrl; }
+      // เก็บค่าเดิมไว้เพื่อลบไฟล์เก่าถ้ามี
+      const prevUserUrl  = hasUserCol ? t.attachment_user_url : (hasSingle ? t.attachment_url : null);
+      const prevAdminUrl = hasAdminCol ? t.attachment_admin_url : null;
+
+      // (1) ธงลบไฟล์ (ไม่อัปโหลดใหม่)
+      if (remove_attachment_user === 'true') {
+        safeUnlink(resolveLocalPathFromUrl(prevUserUrl));
+        if (hasUserCol) t.attachment_user_url = null;
+        else if (hasSingle) t.attachment_url = null;
+      }
+      if (remove_attachment_admin === 'true') {
+        safeUnlink(resolveLocalPathFromUrl(prevAdminUrl));
+        if (hasAdminCol) t.attachment_admin_url = null;
+        else if (hasSingle) t.attachment_url = null;
+      }
+
+      // (2) อัปโหลดใหม่ -> ลบไฟล์เดิมทิ้งแล้วตั้งค่าใหม่
+      if (userUrl) {
+        safeUnlink(resolveLocalPathFromUrl(prevUserUrl));
+        if (hasUserCol) t.attachment_user_url = userUrl;
+        else if (hasSingle) t.attachment_url = userUrl;
+      }
+      if (adminUrl) {
+        safeUnlink(resolveLocalPathFromUrl(prevAdminUrl));
+        if (hasAdminCol) t.attachment_admin_url = adminUrl;
+        else if (hasSingle) t.attachment_url = adminUrl;
+      }
 
       // อัปเดตฟิลด์อื่นๆ
       if (solution !== undefined)            t.solution = solution;
@@ -128,8 +223,21 @@ router.put(
 /* ============ Delete ============ */
 router.delete('/:id', async (req, res) => {
   try {
-    const deleted = await Ticket.destroy({ where: { id: req.params.id } });
-    if (!deleted) return res.status(404).json({ error: 'Ticket not found' });
+    const t = await Ticket.findByPk(req.params.id);
+    if (!t) return res.status(404).json({ error: 'Ticket not found' });
+
+    // รองรับทั้ง schema แยกช่องและช่องเดียว
+    const userUrl  = Object.prototype.hasOwnProperty.call(t.dataValues,'attachment_user_url')
+      ? t.attachment_user_url
+      : (Object.prototype.hasOwnProperty.call(t.dataValues,'attachment_url') ? t.attachment_url : null);
+    const adminUrl = Object.prototype.hasOwnProperty.call(t.dataValues,'attachment_admin_url')
+      ? t.attachment_admin_url
+      : null;
+
+    safeUnlink(resolveLocalPathFromUrl(userUrl));
+    safeUnlink(resolveLocalPathFromUrl(adminUrl));
+
+    await t.destroy();
     res.status(204).send();
   } catch (e) {
     console.error('DELETE /tickets/:id error:', e);

@@ -15,6 +15,31 @@ function toAbsoluteFileURL(u) {
   return `${API_HOST}${path}`;
 }
 
+// ดึงชื่อไฟล์ (พร้อมสกุลไฟล์) จาก URL หรือ path
+function getFileName(u) {
+  if (!u) return "";
+  try {
+    const clean = u.split("?")[0].split("#")[0];
+    return clean.split("/").pop() || "";
+  } catch {
+    return "";
+  }
+}
+
+// ปุ่มกากบาทแบบเล็กๆ ใช้ซ้ำได้
+function ClearBtn({ onClick, title = "Remove" }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className="inline-flex items-center justify-center w-6 h-6 rounded-full border border-red-300 text-red-500 hover:bg-red-50"
+    >
+      ✕
+    </button>
+  );
+}
+
 function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
   const [ticketData, setTicketData] = useState({
     reporterName: "",
@@ -42,6 +67,10 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
   const [adminFile, setAdminFile] = useState(null);
   // เก็บ “ค่าดิบ” จาก backend (relative path) แล้วค่อยแปลงตอน render
   const [links, setLinks] = useState({ user: "", admin: "" });
+
+  // ธงสั่งลบไฟล์ใน backend
+  const [removeUser, setRemoveUser] = useState(false);
+  const [removeAdmin, setRemoveAdmin] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -97,6 +126,8 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
           user: data.attachment_user_url || data.attachment_url || "",
           admin: data.attachment_admin_url || "",
         });
+        setRemoveUser(false);
+        setRemoveAdmin(false);
       }
     } catch (err) {
       console.error(err);
@@ -136,6 +167,10 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
         if (userFile) fd.append("attachment_user", userFile);
         if (adminFile) fd.append("attachment_admin", adminFile);
 
+        // ธงลบไฟล์
+        if (removeUser) fd.append("remove_attachment_user", "true");
+        if (removeAdmin) fd.append("remove_attachment_admin", "true");
+
         const res = await axios.put(`${API_URL}/tickets/${ticketId}`, fd, {
           headers: { "x-auth-token": token },
         });
@@ -145,6 +180,10 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
           user: d.attachment_user_url || d.attachment_url || "",
           admin: d.attachment_admin_url || "",
         });
+        setUserFile(null);
+        setAdminFile(null);
+        setRemoveUser(false);
+        setRemoveAdmin(false);
 
         onSuccess && onSuccess();
       } else {
@@ -175,6 +214,11 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
           headers: { "x-auth-token": token },
         });
 
+        setUserFile(null);
+        setAdminFile(null);
+        setRemoveUser(false);
+        setRemoveAdmin(false);
+
         onSuccess && onSuccess();
       }
     } catch (err) {
@@ -186,14 +230,6 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
   };
 
   if (loading) return <div className="text-center p-8">Loading Form...</div>;
-
-  const statusOptions = [
-    { value: "Request", label: "Request" },
-    { value: "Wait", label: "Wait" },
-    { value: "In Progress", label: "In Progress" },
-    { value: "Success", label: "Success" },
-    { value: "Cancel", label: "Cancel" },
-  ];
 
   return (
     <div>
@@ -242,7 +278,7 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
                 value={ticketData.contactPhone}
                 onChange={(e) => setTicketData({ ...ticketData, contactPhone: e.target.value })}
                 className="w-full rounded border border-gray-300 px-3 py-2"
-                placeholder="08x-xxx-xxxx"
+                placeholder="xxxx"
               />
             </div>
 
@@ -263,11 +299,29 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-600">Attachment (User)</label>
               <div className="flex items-center gap-3">
-                <label htmlFor="ticket-user-file" className="inline-flex items-center gap-2 rounded border px-3 py-2 cursor-pointer hover:bg-gray-50">
+                <label
+                  htmlFor="ticket-user-file"
+                  className="inline-flex items-center gap-2 rounded border px-3 py-2 cursor-pointer hover:bg-gray-50"
+                >
                   <span>Select file</span>
                 </label>
-                <input id="ticket-user-file" type="file" className="hidden" onChange={(e)=>setUserFile(e.target.files?.[0]||null)} />
-                <span className="text-sm text-gray-500">{userFile?.name || (links.user ? "Existing file" : "No file")}</span>
+                <input
+                  id="ticket-user-file"
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    setUserFile(f);
+                    if (f) setRemoveUser(false);
+                  }}
+                />
+
+                {/* ชื่อไฟล์ */}
+                <span className="text-sm text-gray-500">
+                  {userFile?.name || getFileName(links.user) || "No file"}
+                </span>
+
+                {/* View เดิม */}
                 {links.user && (
                   <a
                     className="text-blue-600 text-sm underline"
@@ -277,6 +331,18 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
                   >
                     View
                   </a>
+                )}
+
+                {/* ปุ่มกากบาทเพื่อล้างไฟล์ */}
+                {(userFile || links.user) && (
+                  <ClearBtn
+                    title="Remove user attachment"
+                    onClick={() => {
+                      setUserFile(null);
+                      setLinks((prev) => ({ ...prev, user: "" }));
+                      setRemoveUser(true); // แจ้ง backend ให้ลบไฟล์เดิม
+                    }}
+                  />
                 )}
               </div>
             </div>
@@ -343,11 +409,29 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-600">Attachment (Admin)</label>
               <div className="flex items-center gap-3">
-                <label htmlFor="ticket-admin-file" className="inline-flex items-center gap-2 rounded border px-3 py-2 cursor-pointer hover:bg-gray-50">
+                <label
+                  htmlFor="ticket-admin-file"
+                  className="inline-flex items-center gap-2 rounded border px-3 py-2 cursor-pointer hover:bg-gray-50"
+                >
                   <span>Select file</span>
                 </label>
-                <input id="ticket-admin-file" type="file" className="hidden" onChange={(e)=>setAdminFile(e.target.files?.[0]||null)} />
-                <span className="text-sm text-gray-500">{adminFile?.name || (links.admin ? "Existing file" : "No file")}</span>
+                <input
+                  id="ticket-admin-file"
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    setAdminFile(f);
+                    if (f) setRemoveAdmin(false);
+                  }}
+                />
+
+                {/* ชื่อไฟล์ */}
+                <span className="text-sm text-gray-500">
+                  {adminFile?.name || getFileName(links.admin) || "No file"}
+                </span>
+
+                {/* View เดิม */}
                 {links.admin && (
                   <a
                     className="text-blue-600 text-sm underline"
@@ -358,6 +442,18 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
                     View
                   </a>
                 )}
+
+                {/* ปุ่มกากบาทเพื่อล้างไฟล์ */}
+                {(adminFile || links.admin) && (
+                  <ClearBtn
+                    title="Remove admin attachment"
+                    onClick={() => {
+                      setAdminFile(null);
+                      setLinks((prev) => ({ ...prev, admin: "" }));
+                      setRemoveAdmin(true);
+                    }}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -367,10 +463,18 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
         <div className="mt-6 flex items-center justify-between">
           <div>{message && <p className="text-red-600 font-semibold">{message}</p>}</div>
           <div className="flex gap-4">
-            <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-md hover:bg-gray-300">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-md hover:bg-gray-300"
+            >
               Cancel
             </button>
-            <button type="submit" disabled={submitting} className="bg-green-600 text-white font-bold py-2 px-6 rounded-md hover:bg-green-700 disabled:bg-gray-400">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="bg-green-600 text-white font-bold py-2 px-6 rounded-md hover:bg-green-700 disabled:bg-gray-400"
+            >
               {submitting ? "Saving..." : "Save"}
             </button>
           </div>
