@@ -5,7 +5,10 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
+// --- เพิ่มการ import Model ที่จำเป็น ---
 const Ticket = require('../models/ticket');
+const Asset = require('../models/asset'); 
+const Employee = require('../models/Employee');
 
 const router = express.Router();
 
@@ -43,13 +46,6 @@ function setAttachmentOnPayload(payload, url) {
 }
 
 /* ===================== PUBLIC: list tickets ===================== */
-/**
- * GET /api/public/tickets
- * query:
- *  - page, limit
- *  - q (ค้นหาทั้ง reporter_name หรือ asset_code)
- *  - reporterName, assetCode, status, startDate, endDate (fallback)
- */
 router.get('/tickets', async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
@@ -69,7 +65,6 @@ router.get('/tickets', async (req, res) => {
     }
 
     if (q) {
-      // ✅ search OR
       where[Op.or] = [
         { reporter_name: { [Op.like]: `%${q}%` } },
         { asset_code: { [Op.like]: `%${q}%` } },
@@ -130,15 +125,16 @@ router.post('/tickets', upload.single('attachment_user'), async (req, res) => {
   }
 });
 
-/* ===================== PUBLIC: dropdown helpers ===================== */
+/* ===================== PUBLIC: dropdown helpers (FIXED) ===================== */
 router.get('/asset-users', async (_req, res) => {
   try {
-    const rows = await Ticket.findAll({
-      attributes: ['reporter_name'],
-      group: ['reporter_name'],
-      order: [['reporter_name', 'ASC']],
+    // --- UPDATED: ดึงข้อมูลจากตาราง Employee โดยตรง ---
+    const rows = await Employee.findAll({
+      attributes: ['fullName'],
+      group: ['fullName'],
+      order: [['fullName', 'ASC']],
     });
-    res.json(rows.map((r) => r.reporter_name).filter(Boolean));
+    res.json(rows.map((r) => r.fullName).filter(Boolean));
   } catch (e) {
     console.error('GET /api/public/asset-users error:', e);
     res.status(500).json({ error: 'Failed to load asset users' });
@@ -147,12 +143,15 @@ router.get('/asset-users', async (_req, res) => {
 
 router.get('/assets-list', async (_req, res) => {
   try {
-    const rows = await Ticket.findAll({
-      attributes: ['asset_code'],
-      group: ['asset_code'],
+    // --- UPDATED: ดึงข้อมูลจากตาราง Asset โดยตรง ---
+    const rows = await Asset.findAll({
+      attributes: ['asset_code', 'model'],
+      where: {
+        status: 'Enable', // เลือกเฉพาะทรัพย์สินที่ยังใช้งานอยู่
+      },
       order: [['asset_code', 'ASC']],
     });
-    res.json(rows.map((r) => ({ asset_code: r.asset_code })).filter((a) => a.asset_code));
+    res.json(rows);
   } catch (e) {
     console.error('GET /api/public/assets-list error:', e);
     res.status(500).json({ error: 'Failed to load assets list' });

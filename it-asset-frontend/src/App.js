@@ -15,7 +15,7 @@ import AddAssetPage from "./pages/AddAssetPage";
 import EditAssetPage from "./pages/EditAssetPage";
 import AssetDetailPage from "./pages/AssetDetailPage";
 import LoginPage from "./pages/LoginPage";
-import CreateUserPage from "./pages/CreateUserPage";
+import AdminManagementPage from "./pages/AdminManagementPage";
 import TicketListPage from "./pages/TicketListPage";
 import ManagementPage from "./pages/ManagementPage";
 import AssetTicketHistoryPage from "./pages/AssetTicketHistoryPage";
@@ -48,7 +48,7 @@ function App() {
               element={user ? <DashboardPage /> : <PublicTicketListPage />}
             />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<CreateUserPage />} />
+            <Route path="/register" element={<AdminManagementPage />} />
             <Route path="/public/tickets" element={<PublicTicketListPage />} />
 
             {/* Protected Routes */}
@@ -64,7 +64,7 @@ function App() {
                 path="/asset/history/:assetCode"
                 element={<AssetTicketHistoryPage />}
               />
-              <Route path="/create-user" element={<CreateUserPage />} />
+              <Route path="/create-user" element={<AdminManagementPage />} />
               <Route path="/tickets" element={<TicketListPage />} />
               <Route path="/switches" element={<SwitchListPage />} />
               <Route path="/switches/:switchId" element={<SwitchDetailPage />} />
