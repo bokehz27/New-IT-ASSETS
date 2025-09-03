@@ -1,11 +1,7 @@
 // src/pages/ReportPage.js
 
 import React, { useState, useEffect } from 'react';
-// --- CHANGE 1: Import the central 'api' instance instead of 'axios' ---
 import api from '../api'; // Adjust path as needed
-
-// --- CHANGE 2: Remove the unnecessary API_URL constant ---
-// const API_URL = process.env.REACT_APP_API_URL || 'http://172.18.1.61:5000/api';
 
 const ReportPage = () => {
     const availableFields = [
@@ -22,6 +18,9 @@ const ReportPage = () => {
         { key: 'status', label: 'Status' }, { key: 'windows_version', label: 'Windows Version' },
         { key: 'windows_key', label: 'Windows Key' }, { key: 'office_version', label: 'Office Version' },
         { key: 'office_key', label: 'Office Key' }, { key: 'antivirus', label: 'Antivirus' },
+        // --- ADD: New checkboxes for exporting additional sheets ---
+        { key: 'export_special_programs', label: 'Special Programs' },
+        { key: 'export_bitlocker_keys', label: 'BitLocker Keys' },
     ];
 
     const [selectedFields, setSelectedFields] = useState({});
@@ -108,16 +107,28 @@ const ReportPage = () => {
     };
 
     const handleExport = async () => {
-        const fieldsToExport = Object.keys(selectedFields).filter(field => selectedFields[field]);
-        if (fieldsToExport.length === 0) {
-            alert('Please select at least one field to export.');
+        // Filter out the new special keys from the main fields list
+        const mainFieldsToExport = Object.keys(selectedFields).filter(field => 
+            selectedFields[field] && field !== 'export_special_programs' && field !== 'export_bitlocker_keys'
+        );
+        
+        const exportSpecial = !!selectedFields['export_special_programs'];
+        const exportBitlocker = !!selectedFields['export_bitlocker_keys'];
+
+        // --- MODIFY: Check if anything at all is selected ---
+        if (mainFieldsToExport.length === 0 && !exportSpecial && !exportBitlocker) {
+            alert('Please select at least one field or data type to export.');
             return;
         }
+
         try {
-            // --- CHANGE 3: Use the 'api' instance for the export request ---
-            // Headers are now handled automatically.
+            // --- MODIFY: Send the new options as query parameters ---
             const response = await api.get('/reports/assets/export-simple', {
-                params: { fields: fieldsToExport.join(',') },
+                params: { 
+                    fields: mainFieldsToExport.join(','),
+                    export_special_programs: exportSpecial,
+                    export_bitlocker_keys: exportBitlocker,
+                },
                 responseType: 'blob',
             });
             const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -133,7 +144,6 @@ const ReportPage = () => {
         }
     };
     
-    // --- No changes to JSX below ---
     return (
         <div className="container mx-auto p-4 space-y-6">
             <h1 className="text-3xl font-bold">Asset Report Generator</h1>

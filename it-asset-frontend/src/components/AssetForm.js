@@ -106,8 +106,10 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
   const wifiStatusOptions = useMemo(
     () =>
       [
-        { value: "Wifi not register", label: "Not Registered" },
-        { value: "Wifi ok", label: "Registered" },
+        { value: "NONE", label: "NONE" },
+        { value: "Registered Korat", label: "Registered Korat" },
+        { value: "Registered Nava", label: "Registered Nava" },
+        { value: "Registered Nava & Korat", label: "Registered Nava & Korat" },
       ],
     []
   );

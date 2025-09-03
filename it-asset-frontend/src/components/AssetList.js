@@ -2,18 +2,15 @@ import React from "react";
 import { Link } from "react-router-dom";
 // --- 1. นำเข้าไอคอนที่ต้องการจาก react-icons/fa ---
 // fa คือชุดไอคอนของ Font Awesome, คุณสามารถเลือกชุดอื่นได้เช่นกัน (เช่น md, io)
-import {
-  FaLaptop,
-  FaDesktop,
-  FaPrint,
-  FaServer,
-  FaHdd,
-  FaBoxOpen,
-} from "react-icons/fa";
 
-import {
-  FiPrinter
-} from "react-icons/fi";
+import { FaLaptop, FaServer, FaHdd, FaBoxOpen } from "react-icons/fa"; // Notebook, Server, Network Equipments, defult
+import { AiFillPrinter } from "react-icons/ai";
+import { FaComputer } from "react-icons/fa6"; // Desktop
+import { FaCarBattery } from "react-icons/fa6"; // UPS
+import { GrLicense } from "react-icons/gr"; // License
+import { MdOutlineScreenshotMonitor } from "react-icons/md"; // Monitor
+import { PiVideoConferenceFill } from "react-icons/pi"; // Conference
+import { BiSolidMemoryCard } from "react-icons/bi"; // Memery
 
 // --- 2. สร้าง Component สำหรับเลือกไอคอน (Icon Component) ---
 // Component นี้จะรับ props ชื่อ category และ return ไอคอนที่เหมาะสม
@@ -21,7 +18,7 @@ import {
 const AssetIcon = ({ category }) => {
   // ตั้งค่าขนาดและสไตล์พื้นฐานสำหรับไอคอนทั้งหมด
   const iconProps = {
-    size: 32, // ขนาดไอคอน
+    size: 35, // ขนาดไอคอน
     className: "text-gray-600", // สีไอคอน
   };
 
@@ -31,13 +28,23 @@ const AssetIcon = ({ category }) => {
       return <FaLaptop {...iconProps} />;
     case "Desktop - Office (Document)":
     case "Desktop - Factory (Machine)":
-      return <FaDesktop {...iconProps} />;
+      return <FaComputer {...iconProps} />;
     case "Printer":
-      return <FiPrinter {...iconProps} />;
+      return <AiFillPrinter {...iconProps} />;
     case "Server":
       return <FaServer {...iconProps} />;
     case "Network Equipments":
       return <FaHdd {...iconProps} />;
+    case "UPS":
+      return <FaCarBattery {...iconProps} />;
+    case "License":
+      return <GrLicense {...iconProps} />;
+    case "Monitor":
+      return <MdOutlineScreenshotMonitor {...iconProps} />;
+    case "Conference Equipments":
+      return <PiVideoConferenceFill {...iconProps} />;
+    case "Memory Card and Camera":
+      return <BiSolidMemoryCard {...iconProps} />;
     // case "ชื่อ Category อื่นๆ":
     //   return <YourChosenIcon {...iconProps} />;
     default:
