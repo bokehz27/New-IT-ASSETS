@@ -338,12 +338,12 @@ function TicketListPage() {
                           <FaEdit />
                         </button>
                         <button
-                          onClick={() => handleDeleteClick(ticket.id)}
-                          className="bg-red-500 hover:bg-red-600 table-action-button"
-                          title="Delete"
-                        >
-                          <FaTrashAlt />
-                        </button>
+  onClick={() => handleDeleteClick(ticket.id)}
+  className="bg-red-500 hover:bg-red-600 text-white table-action-button"
+  title="Delete"
+>
+  <FaTrashAlt />
+</button>
                       </div>
                     </td>
                   </tr>

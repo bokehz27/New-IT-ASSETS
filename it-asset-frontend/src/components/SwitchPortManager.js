@@ -17,12 +17,12 @@ function SwitchPortManager({ switchId }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingPort, setEditingPort] = useState(null);
-  const [portGroups, setPortGroups] = useState({ odd: [], even: [] });
+  const [portRows, setPortRows] = useState([]);
 
   const getStatusClass = (status) => {
     switch (status) {
       case 'Up': return 'status-up';
-      case 'Up Link': return 'status-uplink'; // <-- บรรทัดที่เพิ่มเข้ามา
+      case 'Up Link': return 'status-uplink';
       case 'Down': return 'status-down';
       case 'Disabled':
       default:
@@ -36,10 +36,15 @@ function SwitchPortManager({ switchId }) {
       const response = await api.get(`/switches/${switchId}/ports`);
       const sortedPorts = response.data.sort((a, b) => a.portNumber - b.portNumber);
       
+      // --- LOGIC REVERT: กลับไปใช้การแบ่งกลุ่มแบบเลขคู่/เลขคี่ ---
       const oddPorts = sortedPorts.filter(p => p.portNumber % 2 !== 0);
       const evenPorts = sortedPorts.filter(p => p.portNumber % 2 === 0);
-      setPortGroups({ odd: oddPorts, even: evenPorts });
 
+      const rows = [];
+      if (oddPorts.length > 0) rows.push(oddPorts);
+      if (evenPorts.length > 0) rows.push(evenPorts);
+      setPortRows(rows);
+      
       setPorts(sortedPorts);
       setError(null);
     } catch (err) {
@@ -69,19 +74,19 @@ function SwitchPortManager({ switchId }) {
   if (error) return <div className="text-center p-4 text-red-600">{error}</div>;
 
   return (
-    <div className="bg-white rounded-lg shadow-md">
+    <div className="card">
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-bold text-gray-800">Switch Port Status</h2>
+        <h2 className="text-lg font-bold">Switch Port Status</h2>
       </div>
       
       {ports.length === 0 ? (
         <p className="p-6 text-gray-500">No ports found for this device.</p>
       ) : (
         <div className="p-4">
-          <div className="switch-panel-light">
-            {[portGroups.odd, portGroups.even].map((group, index) => (
-              <div key={index} className="port-row-light">
-                {group.map((port) => {
+          <div className="switch-panel">
+            {portRows.map((row, rowIndex) => (
+              <div key={rowIndex} className="port-row">
+                {row.map((port) => {
                   const tooltipText = port.notes || '';
                   return (
                     <div
@@ -92,7 +97,6 @@ function SwitchPortManager({ switchId }) {
                     >
                       {port.notes && <NoteIcon />}
                       <div className="port-slot-number">{port.portNumber}</div>
-                      {/* นำ LAN Cable ID กลับมาแสดงผล */}
                       <div className="port-slot-info">{port.lanCableId || '----'}</div>
                     </div>
                   );

@@ -51,8 +51,6 @@ const CloseIcon = () => (
     />
   </svg>
 );
-
-// --- (เพิ่มใหม่) ไอคอนลูกศรสำหรับ Dropdown ---
 const ChevronDownIcon = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -65,7 +63,6 @@ const ChevronDownIcon = ({ className }) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
   </svg>
 );
-// ---------------------------------------------
 
 const AppHeader = () => {
   const { token, logout } = useAuth();
@@ -122,11 +119,11 @@ const AppHeader = () => {
 
   return (
     <>
-      <header className="header-vibrant sticky top-0 z-50 shadow-lg">
+      <header className="header-vibrant sticky top-0 z-50"> {/* CHANGED: remove shadow as it's in the class */}
         <nav className="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
           {/* --- Brand & Desktop Nav --- */}
           <div className="flex items-center space-x-6">
-            <Link to="/" className="text-2xl font-bold text-Black">
+            <Link to="/" className="text-2xl font-bold"> {/* CHANGED: Remove text-Black */}
               IT COMMAND
             </Link>
 
@@ -145,7 +142,6 @@ const AppHeader = () => {
                 ))}
 
                 <div className="relative" ref={miniProgramMenuRef}>
-                  {/* --- (แก้ไข) เพิ่มไอคอนและ animation --- */}
                   <button
                     onClick={() => setIsMiniProgramOpen(!isMiniProgramOpen)}
                     className="nav-link-vibrant flex items-center gap-1"
@@ -157,7 +153,6 @@ const AppHeader = () => {
                       }`}
                     />
                   </button>
-                  {/* -------------------------------------- */}
                   {isMiniProgramOpen && (
                     <div className="nav-dropdown-vibrant absolute top-full left-0 mt-2 w-48 rounded-md shadow-lg py-1">
                       <NavLink
@@ -187,7 +182,7 @@ const AppHeader = () => {
               >
                 <button
                   onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                  className="p-2 profile-button-vibrant flex items-center"
+                  className="p-2 profile-button-vibrant flex items-center" /* CHANGED */
                 >
                   <UserIcon />
                 </button>
@@ -220,7 +215,7 @@ const AppHeader = () => {
                 </Link>
                 <Link
                   to="/login"
-                  className="cta-button-vibrant px-4 py-2 rounded-full text-sm"
+                  className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold"
                 >
                   Admin Login
                 </Link>
@@ -230,7 +225,7 @@ const AppHeader = () => {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-white p-2"
+                className="p-2" // No need for text-white, inherited from header
               >
                 {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
               </button>
@@ -245,7 +240,7 @@ const AppHeader = () => {
           <div className="absolute top-5 right-5">
             <button
               onClick={() => setIsMobileMenuOpen(false)}
-              className="text-white p-2"
+              className="p-2"
             >
               <CloseIcon />
             </button>

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 
+// Import icons from react-icons
 import {
   FiServer as Archive,
   FiBox as Box,
@@ -10,7 +11,6 @@ import {
   FiTv as Tv,
   FiShield as ShieldCheck,
   FiTool as Wrench,
-  FiChevronRight as ChevronRight,
   FiBriefcase as Building,
   FiMapPin as MapPin,
   FiUsers as Users,
@@ -18,90 +18,61 @@ import {
   FiType as Type
 } from 'react-icons/fi';
 
+// Define the menu structure
 const settingsMenu = [
   {
     title: 'Asset Configuration',
     items: [
-      { name: 'Asset Category', path: '/settings/category', icon: <Archive size={18} /> },
-      { name: 'Subcategory', path: '/settings/subcategory', icon: <Box size={18} /> },
-      { name: 'Brand', path: '/settings/brand', icon: <Tag size={18} /> },
-      { name: 'RAM', path: '/settings/ram', icon: <Cpu size={18} /> },
-      { name: 'Hard Disk', path: '/settings/storage', icon: <HardDrive size={18} /> },
-      { name: 'Windows', path: '/settings/windows', icon: <Tv size={18} /> },
-      { name: 'Microsoft Office', path: '/settings/office', icon: <Type size={18} /> },
-      { name: 'Antivirus', path: '/settings/antivirus', icon: <ShieldCheck size={18} /> },
-      { name: 'Special Program', path: '/settings/special_program', icon: <Key size={18} /> },
-      { name: 'Repair Type', path: '/settings/repair-type', icon: <Wrench size={18} /> },
+      { name: 'Asset Category', path: '/settings/category', icon: <Archive /> },
+      { name: 'Subcategory', path: '/settings/subcategory', icon: <Box /> },
+      { name: 'Brand', path: '/settings/brand', icon: <Tag /> },
+      { name: 'RAM', path: '/settings/ram', icon: <Cpu /> },
+      { name: 'Hard Disk', path: '/settings/storage', icon: <HardDrive /> },
+      { name: 'Windows', path: '/settings/windows', icon: <Tv /> },
+      { name: 'Microsoft Office', path: '/settings/office', icon: <Type /> },
+      { name: 'Antivirus', path: '/settings/antivirus', icon: <ShieldCheck /> },
+      { name: 'Special Program', path: '/settings/special_program', icon: <Key /> },
+      { name: 'Repair Type', path: '/settings/repair-type', icon: <Wrench /> },
     ]
   },
   {
     title: 'Organization',
     items: [
-      { name: 'Department', path: '/settings/department', icon: <Building size={18} /> },
-      { name: 'Location', path: '/settings/location', icon: <MapPin size={18} /> },
-    ]
-  },
-  {
-    title: 'Users',
-    items: [
-      { name: 'User List', path: '/settings/users', icon: <Users size={18} /> },
+      { name: 'Department', path: '/settings/department', icon: <Building /> },
+      { name: 'Location', path: '/settings/location', icon: <MapPin /> },
+      { name: 'User List', path: '/settings/users', icon: <Users /> },
     ]
   },
 ];
 
-const AccordionItem = ({ group, openAccordion, setOpenAccordion }) => {
-  const isOpen = openAccordion === group.title;
-  const toggleAccordion = () => setOpenAccordion(isOpen ? null : group.title);
-
-  return (
-    <div className="settings-accordion-group">
-      <button onClick={toggleAccordion} className="accordion-trigger">
-        <span>{group.title}</span>
-        <ChevronRight className={`accordion-icon ${isOpen ? 'open' : ''}`} size={20} />
-      </button>
-      <div
-        className="accordion-content"
-        style={{
-          maxHeight: isOpen ? `${group.items.length * 50}px` : '0px',
-          paddingTop: isOpen ? '8px' : '0',
-          paddingBottom: isOpen ? '8px' : '0'
-        }}
-      >
-        {group.items.map(item => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) => `settings-sidebar-link ${isActive ? 'active' : ''}`}
-          >
-            {item.icon}
-            <span>{item.name}</span>
-          </NavLink>
-        ))}
-      </div>
-    </div>
-  );
-};
-
 function SettingsLayout() {
-  const [openAccordion, setOpenAccordion] = useState('Asset Configuration');
-
   return (
     <div className="flex flex-col md:flex-row gap-6">
+      {/* Sidebar Navigation */}
       <aside className="md:w-72 flex-shrink-0">
-        <div className="bg-white p-2 rounded-lg shadow-md h-full">
-          <nav>
-            {settingsMenu.map(group => (
-              <AccordionItem
-                key={group.title}
-                group={group}
-                openAccordion={openAccordion}
-                setOpenAccordion={setOpenAccordion}
-              />
-            ))}
-          </nav>
-        </div>
+        <nav className="settings-sidebar h-full">
+          {settingsMenu.map((group) => (
+            // Use React.Fragment to group elements without adding extra nodes to the DOM
+            <React.Fragment key={group.title}>
+              <h3 className="settings-menu-group-title">
+                {group.title}
+              </h3>
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) => `settings-sidebar-link ${isActive ? 'active' : ''}`}
+                >
+                  {item.icon}
+                  <span>{item.name}</span>
+                </NavLink>
+              ))}
+            </React.Fragment>
+          ))}
+        </nav>
       </aside>
 
+      {/* Main Content Area */}
       <main className="flex-1">
         <div className="bg-white p-6 rounded-lg shadow-md min-h-full">
           <Outlet />
