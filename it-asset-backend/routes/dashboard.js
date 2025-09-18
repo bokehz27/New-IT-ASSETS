@@ -43,7 +43,8 @@ router.get("/summary", async (req, res) => {
             "windows_key",
             "office_version",
             "office_key",
-            "antivirus"
+            "antivirus",
+            "bitlocker_file_url"
           ].includes(attr)
       );
 

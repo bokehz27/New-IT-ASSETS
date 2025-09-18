@@ -11,7 +11,9 @@ function UserManagementPage() {
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
+  const [searchTerm, setSearchTerm] = useState('');
 
+  // ... (ส่วน fetchData และ useEffects เหมือนเดิม) ...
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -19,7 +21,6 @@ function UserManagementPage() {
         api.get('/employees'),
         api.get('/master-data/department')
       ]);
-
       setEmployees(employeesRes.data);
       setDepartmentOptions(departmentsRes.data.map(item => item.value));
       setError('');
@@ -34,10 +35,19 @@ function UserManagementPage() {
     fetchData();
   }, []);
 
+  const filteredEmployees = employees.filter(emp =>
+    emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (emp.email && emp.email.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+  
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = employees.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(employees.length / itemsPerPage);
+  const currentItems = filteredEmployees.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -45,7 +55,8 @@ function UserManagementPage() {
     setIsEditModalOpen(false);
     setEditingEmployee(null);
   };
-
+  
+  // ... (ส่วน handleSave, handleAddClick, handleEditClick, handleDelete เหมือนเดิม) ...
   const handleSave = async (dataFromModal) => {
     if (!dataFromModal.fullName.trim()) {
       alert('Please enter the full name.');
@@ -98,18 +109,54 @@ function UserManagementPage() {
         </button>
       </div>
 
+      {/* ▼▼▼ ส่วนที่แก้ไข: เพิ่มปุ่มกากบาทในช่องค้นหา ▼▼▼ */}
+      <div className="mb-4 relative">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search by Full Name or E-Mail..."
+          className="form-input w-full pr-10"
+        />
+        {searchTerm && (
+          <button
+            onClick={() => setSearchTerm('')}
+            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-red-500 transition"
+            aria-label="Clear search"
+          >
+            <svg
+              className="h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        )}
+      </div>
+      {/* ▲▲▲ สิ้นสุดส่วนที่แก้ไข ▲▲▲ */}
+
+
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
-      <div className="overflow-x-auto">
+      {/* ... (ส่วนของ Table และ Pagination เหมือนเดิม) ... */}
+      <div className="overflow-x-auto bg-white rounded-lg shadow-md">
         <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50 border-b-2 border-gray-200">
+           <thead className="bg-blue-600">
             <tr>
-              <th className="p-3 font-semibold text-gray-600">Full Name</th>
-              <th className="p-3 font-semibold text-gray-600">Position</th>
-              <th className="p-3 font-semibold text-gray-600">E-Mail</th>
-              <th className="p-3 font-semibold text-gray-600">Contact Number</th>
-              <th className="p-3 font-semibold text-gray-600">Department</th>
-              <th className="p-3 font-semibold text-gray-600 text-center">Actions</th>
+              <th className="p-3 font-semibold text-white">Full Name</th>
+              <th className="p-3 font-semibold text-white">Position</th>
+              <th className="p-3 font-semibold text-white">E-Mail</th>
+              <th className="p-3 font-semibold text-white">Contact Number</th>
+              <th className="p-3 font-semibold text-white">Department</th>
+              <th className="p-3 font-semibold text-white text-center">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -133,7 +180,7 @@ function UserManagementPage() {
                         title="Edit User"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.586a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002 2v-5m-1.414-9.586a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </button>
                       <button
@@ -150,14 +197,21 @@ function UserManagementPage() {
                 </tr>
               ))
             )}
+            {!loading && currentItems.length === 0 && (
+              <tr>
+                <td colSpan="6" className="p-4 text-center text-gray-500">
+                  No users found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
-
+      
       {totalPages > 1 && (
         <div className="flex justify-between items-center mt-4">
           <span className="text-sm text-gray-700">
-            Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, employees.length)} of {employees.length} entries
+            Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredEmployees.length)} of {filteredEmployees.length} entries
           </span>
           <div className="flex">
             <button

@@ -57,7 +57,7 @@ function TicketListPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [limit, setLimit] = useState(10);
-  
+
   const [statusCounts, setStatusCounts] = useState({
     Request: 0,
     Wait: 0,
@@ -80,11 +80,19 @@ function TicketListPage() {
     try {
       setLoading(true);
 
-      const statusValues = ["Request", "Wait", "In Progress", "Success", "Cancel"];
+      const statusValues = [
+        "Request",
+        "Wait",
+        "In Progress",
+        "Success",
+        "Cancel",
+      ];
       const counts = {};
       for (const status of statusValues) {
-        const res = await api.get("/tickets", { params: { status: status, limit: 1 } });
-        counts[status.replace(/\s/g, '')] = res.data.totalItems;
+        const res = await api.get("/tickets", {
+          params: { status: status, limit: 1 },
+        });
+        counts[status.replace(/\s/g, "")] = res.data.totalItems;
       }
       setStatusCounts(counts);
 
@@ -101,7 +109,10 @@ function TicketListPage() {
       setCurrentPage(res.data.currentPage || 1);
       setTotalItems(res.data.totalItems || 0);
     } catch (err) {
-      console.error("Failed to fetch tickets", err.response ? err.response.data : err.message);
+      console.error(
+        "Failed to fetch tickets",
+        err.response ? err.response.data : err.message
+      );
       setError("Unable to load repair tickets.");
       setTickets([]);
     } finally {
@@ -121,11 +132,11 @@ function TicketListPage() {
     }));
     setCurrentPage(1);
   };
-  
+
   const handleStatusClick = (status) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
-      status: status
+      status: status,
     }));
     setCurrentPage(1);
   };
@@ -163,8 +174,14 @@ function TicketListPage() {
         fetchTickets();
         alert("Repair ticket deleted successfully!");
       } catch (err) {
-        console.error("Failed to delete ticket:", err.response ? err.response.data : err.message);
-        alert("Error deleting repair ticket: " + (err.response?.data?.msg || err.message));
+        console.error(
+          "Failed to delete ticket:",
+          err.response ? err.response.data : err.message
+        );
+        alert(
+          "Error deleting repair ticket: " +
+            (err.response?.data?.msg || err.message)
+        );
       }
     }
   };
@@ -187,18 +204,26 @@ function TicketListPage() {
         <button
           onClick={() => handleStatusClick("")}
           className={`flex items-center gap-2 py-2 px-4 rounded-full font-semibold transition-colors ${
-            filters.status === "" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            filters.status === ""
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
           }`}
         >
           All
           <span className="bg-white text-gray-800 font-bold px-2 py-1 rounded-full text-xs">
-            {statusCounts.Request + statusCounts.Wait + statusCounts.InProgress + statusCounts.Success + statusCounts.Cancel}
+            {statusCounts.Request +
+              statusCounts.Wait +
+              statusCounts.InProgress +
+              statusCounts.Success +
+              statusCounts.Cancel}
           </span>
         </button>
         <button
           onClick={() => handleStatusClick("Request")}
           className={`flex items-center gap-2 py-2 px-4 rounded-full font-semibold transition-colors ${
-            filters.status === "Request" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            filters.status === "Request"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
           }`}
         >
           Request
@@ -209,7 +234,9 @@ function TicketListPage() {
         <button
           onClick={() => handleStatusClick("Wait")}
           className={`flex items-center gap-2 py-2 px-4 rounded-full font-semibold transition-colors ${
-            filters.status === "Wait" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            filters.status === "Wait"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
           }`}
         >
           Wait
@@ -220,7 +247,9 @@ function TicketListPage() {
         <button
           onClick={() => handleStatusClick("In Progress")}
           className={`flex items-center gap-2 py-2 px-4 rounded-full font-semibold transition-colors ${
-            filters.status === "In Progress" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            filters.status === "In Progress"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
           }`}
         >
           In Progress
@@ -231,7 +260,9 @@ function TicketListPage() {
         <button
           onClick={() => handleStatusClick("Success")}
           className={`flex items-center gap-2 py-2 px-4 rounded-full font-semibold transition-colors ${
-            filters.status === "Success" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            filters.status === "Success"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
           }`}
         >
           Success
@@ -242,7 +273,9 @@ function TicketListPage() {
         <button
           onClick={() => handleStatusClick("Cancel")}
           className={`flex items-center gap-2 py-2 px-4 rounded-full font-semibold transition-colors ${
-            filters.status === "Cancel" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+            filters.status === "Cancel"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
           }`}
         >
           Cancel
@@ -256,12 +289,28 @@ function TicketListPage() {
         <div className="flex flex-wrap items-end gap-4">
           {/* ลบส่วน Status dropdown ออก */}
           <div className="flex-grow" style={{ minWidth: "150px" }}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-            <input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="w-full" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Start Date
+            </label>
+            <input
+              type="date"
+              name="startDate"
+              value={filters.startDate}
+              onChange={handleFilterChange}
+              className="w-full"
+            />
           </div>
           <div className="flex-grow" style={{ minWidth: "150px" }}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-            <input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="w-full" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              End Date
+            </label>
+            <input
+              type="date"
+              name="endDate"
+              value={filters.endDate}
+              onChange={handleFilterChange}
+              className="w-full"
+            />
           </div>
           <div>
             <button
@@ -276,13 +325,17 @@ function TicketListPage() {
       </div>
 
       {loading ? (
-        <div className="text-center p-16 text-gray-500 text-xl">Loading data...</div>
+        <div className="text-center p-16 text-gray-500 text-xl">
+          Loading data...
+        </div>
       ) : error ? (
         <div className="text-center p-16 text-red-600">{error}</div>
       ) : tickets.length === 0 ? (
         <div className="text-center py-16 text-gray-500 bg-white rounded-lg shadow-md">
           <h3 className="text-2xl font-semibold">No Repair Tickets Found</h3>
-          <p className="mt-2">Try adjusting the filters or there may be no data in the system.</p>
+          <p className="mt-2">
+            Try adjusting the filters or there may be no data in the system.
+          </p>
         </div>
       ) : (
         <>
@@ -290,39 +343,63 @@ function TicketListPage() {
             <table className="w-full text-sm text-left table-fixed">
               <thead className="bg-blue-600">
                 <tr>
-                  <th className="p-3 font-semibold text-white">Reported Date</th>
+                  <th className="p-3 font-semibold text-white">
+                    Reported Date
+                  </th>
                   <th className="p-3 font-semibold text-white">IT Asset</th>
                   <th className="p-3 font-semibold text-white">Reporter</th>
                   <th className="p-3 font-semibold text-white w-1/4">Issue</th>
-                  <th className="p-3 font-semibold text-white w-1/4">Solution</th>
+                  <th className="p-3 font-semibold text-white w-1/4">
+                    Solution
+                  </th>
                   <th className="p-3 font-semibold text-white">Handler</th>
                   <th className="p-3 font-semibold text-white">Status</th>
-                  <th className="p-3 font-semibold text-white text-center">Actions</th>
+                  <th className="p-3 font-semibold text-white text-center">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {tickets.map((ticket) => (
                   <tr key={ticket.id} className="hover:bg-gray-50">
                     <td className="p-3 align-middle text-gray-800">
-                      {new Date(ticket.report_date).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
+                      {new Date(ticket.report_date).toLocaleDateString(
+                        "en-GB",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        }
+                      )}
                       <br />
-                      {new Date(ticket.report_date).toLocaleTimeString("en-GB", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {new Date(ticket.report_date).toLocaleTimeString(
+                        "en-GB",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
                     </td>
-                    <td className="p-3 align-middle text-gray-800">{ticket.asset_code}</td>
-                    <td className="p-3 align-middle text-gray-800">{ticket.reporter_name}</td>
-                    <td className="p-3 align-middle font-medium text-gray-900 break-words">{ticket.problem_description}</td>
-                    <td className="p-3 align-middle text-gray-800 break-words">{ticket.solution || ""}</td>
-                    <td className="p-3 align-middle text-gray-800">{ticket.handler_name || ""}</td>
+                    <td className="p-3 align-middle text-gray-800">
+                      {ticket.asset_code}
+                    </td>
+                    <td className="p-3 align-middle text-gray-800">
+                      {ticket.reporter_name}
+                    </td>
+                    <td className="p-3 align-middle font-medium text-gray-900 break-words">
+                      {ticket.problem_description}
+                    </td>
+                    <td className="p-3 align-middle text-gray-800 break-words">
+                      {ticket.solution || ""}
+                    </td>
+                    <td className="p-3 align-middle text-gray-800">
+                      {ticket.handler_name || ""}
+                    </td>
                     <td className="p-3 align-middle">
                       <span
-                        className={`inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}
+                        className={`inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                          ticket.status
+                        )}`}
                       >
                         <StatusIcon status={ticket.status} />
                         {ticket.status}
@@ -338,12 +415,12 @@ function TicketListPage() {
                           <FaEdit />
                         </button>
                         <button
-  onClick={() => handleDeleteClick(ticket.id)}
-  className="bg-red-500 hover:bg-red-600 text-white table-action-button"
-  title="Delete"
->
-  <FaTrashAlt />
-</button>
+                          onClick={() => handleDeleteClick(ticket.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white table-action-button"
+                          title="Delete"
+                        >
+                          <FaTrashAlt />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -362,27 +439,34 @@ function TicketListPage() {
                 <option value={100}>100</option>
               </select>
             </div>
+            <div className="flex items-center justify-between mt-4">
+            {/* ... (ส่วนแสดง Rows per page) ... */}
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-700">
                 Page {currentPage} of {totalPages} ({totalItems} items)
               </span>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
                   disabled={currentPage === 1}
-                  className="bg-gray-200 text-gray-700 disabled:opacity-50"
+                  className="btn bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
-                  className="bg-gray-200 text-gray-700 disabled:opacity-50"
+                  className="btn bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>
               </div>
             </div>
+          </div>
           </div>
         </>
       )}
@@ -397,7 +481,12 @@ function TicketListPage() {
         <button onClick={closeModal} className="modal-close-button">
           &times;
         </button>
-        <TicketFormModal mode={modalMode} ticketId={selectedTicketId} onSuccess={handleFormSuccess} onCancel={closeModal} />
+        <TicketFormModal
+          mode={modalMode}
+          ticketId={selectedTicketId}
+          onSuccess={handleFormSuccess}
+          onCancel={closeModal}
+        />
       </Modal>
     </div>
   );

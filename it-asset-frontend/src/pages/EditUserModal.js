@@ -11,10 +11,12 @@ function EditUserModal({ isOpen, onClose, employee, onSave, departmentOptions })
   
   const [formData, setFormData] = useState(initialFormState);
 
+  // 1. สร้าง Array ของตัวเลือกสำหรับ Position
+  const positionOptions = ['A2', 'A1', 'M3', 'M2', 'M1', 'SM', 'DEM'];
+
   useEffect(() => {
     if (isOpen) {
       if (employee) {
-        // Edit mode: populate form with existing employee data
         setFormData({
           fullName: employee.fullName || '',
           position: employee.position || '',
@@ -23,7 +25,6 @@ function EditUserModal({ isOpen, onClose, employee, onSave, departmentOptions })
           department: employee.department || '',
         });
       } else {
-        // Add mode: clear the form
         setFormData(initialFormState);
       }
     }
@@ -44,7 +45,6 @@ function EditUserModal({ isOpen, onClose, employee, onSave, departmentOptions })
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg z-50">
-        {/* Dynamic Heading */}
         <h2 className="text-2xl font-bold mb-4">
           {employee ? 'Edit User Information' : 'Add New User'}
         </h2>
@@ -61,16 +61,24 @@ function EditUserModal({ isOpen, onClose, employee, onSave, departmentOptions })
                 required
               />
             </div>
+
+            {/* ▼▼▼ 2. เปลี่ยนจาก <input> เป็น <select> ▼▼▼ */}
             <div>
               <label className="block text-sm font-medium text-gray-700">Position</label>
-              <input
-                type="text"
+              <select
                 name="position"
                 value={formData.position}
                 onChange={handleChange}
                 className="w-full mt-1"
-              />
+              >
+                <option value="">-- Select Position --</option>
+                {positionOptions.map(pos => (
+                  <option key={pos} value={pos}>{pos}</option>
+                ))}
+              </select>
             </div>
+            {/* ▲▲▲ สิ้นสุดส่วนที่แก้ไข ▲▲▲ */}
+
             <div>
               <label className="block text-sm font-medium text-gray-700">Department</label>
               <select

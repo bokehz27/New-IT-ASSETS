@@ -1,7 +1,8 @@
 // src/components/AssetForm.js
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import SearchableDropdown from "./SearchableDropdown"; // ✅ ปรับ path ตามโปรเจกต์ของคุณ
+import axios from "axios";
 
 // --- คอมโพเนนต์ย่อยสำหรับการจัดวางฟอร์ม (เดิม) ---
 const InfoCard = ({ title, children }) => (
@@ -27,6 +28,34 @@ const FormField = ({ label, children, error }) => (
 
 // --- คอมโพเนนต์หลักของฟอร์ม (อัปเดตให้ใช้ SearchableDropdown) ---
 function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
+  const [bitlockerFile, setBitlockerFile] = useState(null);
+  const [removeFile, setRemoveFile] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFormSubmit = async (data) => {
+    await onSubmit(data);
+
+    // ถ้ากดลบไฟล์
+    if (removeFile && isEditing) {
+      await axios.put(
+        `${process.env.REACT_APP_API_URL}/assets/${formData.id}`,
+        { bitlocker_file_url: null },
+        { headers: { "x-auth-token": localStorage.getItem("token") } }
+      );
+    }
+
+    // ถ้าเลือกไฟล์ใหม่
+    if (bitlockerFile && isEditing) {
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", bitlockerFile);
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/assets/${formData.id}/upload-bitlocker`,
+        formDataUpload,
+        { headers: { "x-auth-token": localStorage.getItem("token") } }
+      );
+    }
+  };
+
   const {
     register,
     handleSubmit,
@@ -88,7 +117,8 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
     [masterData.antivirus]
   );
   const specialProgramOptions = useMemo(
-    () => (masterData.special_program || []).map((v) => ({ value: v, label: v })),
+    () =>
+      (masterData.special_program || []).map((v) => ({ value: v, label: v })),
     [masterData.special_program]
   );
   const userNameOptions = useMemo(
@@ -104,33 +134,36 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
     [masterData.location]
   );
   const wifiStatusOptions = useMemo(
-    () =>
-      [
-        { value: "NONE", label: "NONE" },
-        { value: "Registered Korat", label: "Registered Korat" },
-        { value: "Registered Nava", label: "Registered Nava" },
-        { value: "Registered Nava & Korat", label: "Registered Nava & Korat" },
-      ],
+    () => [
+      { value: "NONE", label: "NONE" },
+      { value: "Registered Korat", label: "Registered Korat" },
+      { value: "Registered Nava", label: "Registered Nava" },
+      { value: "Registered Nava & Korat", label: "Registered Nava & Korat" },
+    ],
     []
   );
   const statusOptions = useMemo(
-    () =>
-      [
-        { value: "Enable", label: "Enable" },
-        { value: "Disable", label: "Disable" },
-        { value: "Replaced", label: "Replaced" },
-      ],
+    () => [
+      { value: "Enable", label: "Enable" },
+      { value: "Disable", label: "Disable" },
+      { value: "Replaced", label: "Replaced" },
+    ],
     []
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="p-4 md:p-6 space-y-6">
+    <form
+      onSubmit={handleSubmit(handleFormSubmit)}
+      className="p-4 md:p-6 space-y-6"
+    >
       <div className="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
             {isEditing ? `Edit device : ${formData.asset_code}` : "Add device"}
           </h2>
-          <p className="text-sm text-gray-500">Please complete all required fields.</p>
+          <p className="text-sm text-gray-500">
+            Please complete all required fields.
+          </p>
         </div>
         <div className="flex space-x-2">
           <button
@@ -155,7 +188,9 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
             <FormField label="IT Asset" error={errors.asset_code}>
               <input
                 type="text"
-                {...register("asset_code", { required: "IT Asset is required." })}
+                {...register("asset_code", {
+                  required: "IT Asset is required.",
+                })}
                 className="w-full p-2 border rounded-md"
               />
             </FormField>
@@ -209,15 +244,27 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
             </FormField>
 
             <FormField label="Model">
-              <input type="text" {...register("model")} className="w-full p-2 border rounded-md" />
+              <input
+                type="text"
+                {...register("model")}
+                className="w-full p-2 border rounded-md"
+              />
             </FormField>
 
             <FormField label="Serial Number">
-              <input type="text" {...register("serial_number")} className="w-full p-2 border rounded-md" />
+              <input
+                type="text"
+                {...register("serial_number")}
+                className="w-full p-2 border rounded-md"
+              />
             </FormField>
 
             <FormField label="CPU">
-              <input type="text" {...register("cpu")} className="w-full p-2 border rounded-md" />
+              <input
+                type="text"
+                {...register("cpu")}
+                className="w-full p-2 border rounded-md"
+              />
             </FormField>
 
             <FormField label="Memory (RAM)">
@@ -255,16 +302,32 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
 
           <InfoCard title="Network information">
             <FormField label="Device ID">
-              <input type="text" {...register("device_id")} className="w-full p-2 border rounded-md" />
+              <input
+                type="text"
+                {...register("device_id")}
+                className="w-full p-2 border rounded-md"
+              />
             </FormField>
             <FormField label="IP Address">
-              <input type="text" {...register("ip_address")} className="w-full p-2 border rounded-md" />
+              <input
+                type="text"
+                {...register("ip_address")}
+                className="w-full p-2 border rounded-md"
+              />
             </FormField>
             <FormField label="Mac Address - LAN">
-              <input type="text" {...register("mac_address_lan")} className="w-full p-2 border rounded-md" />
+              <input
+                type="text"
+                {...register("mac_address_lan")}
+                className="w-full p-2 border rounded-md"
+              />
             </FormField>
             <FormField label="Mac Address - WiFi">
-              <input type="text" {...register("mac_address_wifi")} className="w-full p-2 border rounded-md" />
+              <input
+                type="text"
+                {...register("mac_address_wifi")}
+                className="w-full p-2 border rounded-md"
+              />
             </FormField>
 
             <FormField label="Status WiFi">
@@ -302,7 +365,11 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
             </FormField>
 
             <FormField label="Windows Product Key">
-              <input type="text" {...register("windows_key")} className="w-full p-2 border rounded-md" />
+              <input
+                type="text"
+                {...register("windows_key")}
+                className="w-full p-2 border rounded-md"
+              />
             </FormField>
 
             <FormField label="Microsoft Office">
@@ -322,7 +389,11 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
             </FormField>
 
             <FormField label="Office Product Key">
-              <input type="text" {...register("office_key")} className="w-full p-2 border rounded-md" />
+              <input
+                type="text"
+                {...register("office_key")}
+                className="w-full p-2 border rounded-md"
+              />
             </FormField>
 
             <FormField label="Antivirus">
@@ -345,7 +416,10 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
             <FormField label="Special Programs">
               <div className="space-y-2">
                 {programFields.map((fieldItem, index) => (
-                  <div key={fieldItem.id} className="grid grid-cols-1 md:grid-cols-10 gap-2 items-center">
+                  <div
+                    key={fieldItem.id}
+                    className="grid grid-cols-1 md:grid-cols-10 gap-2 items-center"
+                  >
                     {/* Dropdown Program Name */}
                     <div className="md:col-span-5">
                       <Controller
@@ -387,7 +461,9 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 ))}
                 <button
                   type="button"
-                  onClick={() => appendProgram({ program_name: "", license_key: "" })}
+                  onClick={() =>
+                    appendProgram({ program_name: "", license_key: "" })
+                  }
                   className="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition mt-2"
                 >
                   + Add Program
@@ -396,53 +472,51 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
             </FormField>
           </InfoCard>
 
-          <InfoCard title="BitLocker Recovery Keys">
-            {bitlockerFields.map((fieldItem, index) => (
-              <div key={fieldItem.id} className="grid grid-cols-1 md:grid-cols-10 gap-2 items-start">
-                <div className="md:col-span-3">
-                  <input
-                    type="text"
-                    {...register(`bitlockerKeys.${index}.drive_name`, { required: "Drive is required." })}
-                    placeholder="Drive (e.g., C:)"
-                    className="p-2 border rounded-md w-full"
-                  />
-                  {errors.bitlockerKeys?.[index]?.drive_name && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors.bitlockerKeys[index].drive_name.message}
-                    </p>
-                  )}
-                </div>
-                <div className="md:col-span-6">
-                  <input
-                    type="text"
-                    {...register(`bitlockerKeys.${index}.recovery_key`, { required: "Key is required." })}
-                    placeholder="48-digit Recovery Key"
-                    className="p-2 border rounded-md w-full"
-                  />
-                  {errors.bitlockerKeys?.[index]?.recovery_key && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {errors.bitlockerKeys[index].recovery_key.message}
-                    </p>
-                  )}
-                </div>
-                <div className="md:col-span-1 flex justify-end">
+          <InfoCard title="BitLocker CSV File">
+            {formData.bitlocker_file_url && !removeFile ? (
+              <div className="bitlocker-section flex justify-between items-center">
+                <a
+                  href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${
+                    formData.bitlocker_file_url
+                  }`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="bitlocker-link"
+                >
+                  Download current file
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setRemoveFile(true)}
+                  className="bg-red-500 text-white text-sm font-semibold py-1 px-3 rounded-md hover:bg-red-600 transition"
+                >
+                  Delete file
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  accept=".csv"
+                  ref={fileInputRef}
+                  className="bitlocker-input"
+                  onChange={(e) => setBitlockerFile(e.target.files[0])}
+                />
+                {bitlockerFile && (
                   <button
                     type="button"
-                    onClick={() => removeBitlockerKey(index)}
-                    className="bg-red-500 text-white font-bold py-2 px-3 rounded-md hover:bg-red-600 transition"
+                    onClick={() => {
+                      setBitlockerFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    className="text-red-500 hover:text-red-700 text-lg font-bold"
+                    title="ยกเลิกไฟล์ที่เลือก"
                   >
-                    X
+                    ❌
                   </button>
-                </div>
+                )}
               </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => appendBitlockerKey({ drive_name: "", recovery_key: "" })}
-              className="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition mt-2"
-            >
-              + Add Key
-            </button>
+            )}
           </InfoCard>
         </div>
 
@@ -465,7 +539,11 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
             </FormField>
 
             <FormField label="User ID">
-              <input type="text" {...register("user_id")} className="w-full p-2 border rounded-md" />
+              <input
+                type="text"
+                {...register("user_id")}
+                className="w-full p-2 border rounded-md"
+              />
             </FormField>
 
             <FormField label="Department / Division">
@@ -520,11 +598,19 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
             </FormField>
 
             <FormField label="Start Date">
-              <input type="date" {...register("start_date")} className="w-full p-2 border rounded-md" />
+              <input
+                type="date"
+                {...register("start_date")}
+                className="w-full p-2 border rounded-md"
+              />
             </FormField>
 
             <FormField label="Ref. FIN Asset No.">
-              <input type="text" {...register("fin_asset_ref")} className="w-full p-2 border rounded-md" />
+              <input
+                type="text"
+                {...register("fin_asset_ref")}
+                className="w-full p-2 border rounded-md"
+              />
             </FormField>
           </InfoCard>
         </div>

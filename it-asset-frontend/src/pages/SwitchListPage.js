@@ -7,7 +7,7 @@ import ManageRackModal from "../components/ManageRackModal";
 import AddSwitchModal from "../components/AddSwitchModal";
 import EditSwitchModal from "../components/EditSwitchModal";
 
-// --- ICONS (No changes needed) ---
+// --- ICONS (No changes needed, but adding new ones) ---
 const RackIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
@@ -28,19 +28,28 @@ const PageHeaderIcon = () => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
     </svg>
 );
+// [NEW] Chevron Icon for collapsible sections
+const ChevronDownIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+    </svg>
+);
+// [NEW] Grid and List view Icons
+const GridViewIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 8.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 018.25 20.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6A2.25 2.25 0 0115.75 3.75h2.25A2.25 2.25 0 0120.25 6v2.25a2.25 2.25 0 01-2.25 2.25h-2.25A2.25 2.25 0 0113.5 8.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25h2.25a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>);
+const ListViewIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" /></svg>);
 
 
 // --- REDESIGNED SUB-COMPONENTS ---
 
 const SwitchInRack = ({ sw, onEdit, onDelete }) => (
-  <div className="switch-item"> {/* <-- CHANGED */}
+  <div className="switch-item">
     <Link to={`/switches/${sw.id}`} className="flex-grow overflow-hidden cursor-pointer">
       <p className="font-semibold text-[var(--color-text-primary)] truncate">{sw.name}</p>
       <p className="text-sm text-[var(--color-text-secondary)] truncate">
         {sw.ip_address ? `IP: ${sw.ip_address}` : (sw.model || "No model")}
       </p>
     </Link>
-    <div className="switch-item-actions"> {/* <-- CHANGED */}
+    <div className="switch-item-actions">
       <button onClick={() => onEdit(sw)} title="Edit Switch">
         <EditIcon />
       </button>
@@ -52,14 +61,14 @@ const SwitchInRack = ({ sw, onEdit, onDelete }) => (
 );
 
 const RackCard = ({ title, switches, onEditSwitch, onDeleteSwitch }) => (
-  <div className="switch-list-card"> {/* <-- CHANGED */}
-    <div className="switch-list-header"> {/* <-- CHANGED */}
-      <div className="icon mr-3"> {/* <-- CHANGED */}
+  <div className="switch-list-card">
+    <div className="switch-list-header">
+      <div className="icon mr-3">
         <RackIcon />
       </div>
-      <h3 className="title">{title}</h3> {/* <-- CHANGED */}
+      <h3 className="title">{title}</h3>
     </div>
-    <div className="switch-list-body"> {/* <-- CHANGED */}
+    <div className="switch-list-body">
       {switches && switches.length > 0 ? (
         switches.map((sw) => (
           <SwitchInRack
@@ -70,7 +79,7 @@ const RackCard = ({ title, switches, onEditSwitch, onDeleteSwitch }) => (
           />
         ))
       ) : (
-        <div className="flex items-center justify-center p-6 text-[var(--color-text-secondary)] text-sm"> {/* <-- CHANGED */}
+        <div className="flex items-center justify-center p-6 text-[var(--color-text-secondary)] text-sm">
           <p>No devices in this rack.</p>
         </div>
       )}
@@ -88,6 +97,11 @@ function SwitchListPage() {
   const [showRackModal, setShowRackModal] = useState(false);
   const [showAddSwitchModal, setShowAddSwitchModal] = useState(false);
   const [editingSwitch, setEditingSwitch] = useState(null);
+
+  // [NEW] State for view mode (grid/list)
+  const [viewMode, setViewMode] = useState('grid');
+  // [NEW] State for collapsible sections
+  const [collapsedSections, setCollapsedSections] = useState({});
 
   const fetchData = useCallback(async () => {
     try {
@@ -116,6 +130,14 @@ function SwitchListPage() {
     fetchData();
   }, [fetchData]);
 
+  // [NEW] Function to toggle section visibility
+  const toggleSection = (sectionName) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionName]: !prev[sectionName]
+    }));
+  };
+
   const handleDeleteSwitch = async (switchId) => {
     if (window.confirm("Are you sure you want to delete this switch?")) {
       try {
@@ -132,7 +154,7 @@ function SwitchListPage() {
   return (
     <div className="space-y-8">
       {/* --- PAGE HEADER --- */}
-      <div className="card flex flex-wrap justify-between items-center gap-4 p-5"> {/* <-- CHANGED */}
+      <div className="card flex flex-wrap justify-between items-center gap-4 p-5">
         <div className="flex items-center gap-4">
             <PageHeaderIcon />
             <div>
@@ -142,17 +164,29 @@ function SwitchListPage() {
                 <p className="text-[var(--color-text-secondary)]">Overview of all network racks and devices.</p>
             </div>
         </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowRackModal(true)}
-            className="btn btn-primary" /* <-- CHANGED */
-          >
+        <div className="flex items-center gap-3">
+          {/* [NEW] View Mode Toggle */}
+          <div className="view-toggle-group">
+            <button 
+              className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`} 
+              onClick={() => setViewMode('grid')}
+              title="Grid View"
+            >
+              <GridViewIcon />
+            </button>
+            <button 
+              className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => setViewMode('list')}
+              title="List View"
+            >
+              <ListViewIcon />
+            </button>
+          </div>
+          <div className="h-8 w-px bg-[var(--color-divider)]"></div> {/* Vertical Separator */}
+          <button onClick={() => setShowRackModal(true)} className="btn btn-primary">
             Manage Racks
           </button>
-          <button
-            onClick={() => setShowAddSwitchModal(true)}
-            className="btn btn-primary" /* <-- CHANGED */
-          >
+          <button onClick={() => setShowAddSwitchModal(true)} className="btn btn-primary">
             Add Switch
           </button>
         </div>
@@ -162,32 +196,72 @@ function SwitchListPage() {
 
       {/* --- CONTENT AREA --- */}
       <div className="space-y-10">
-        {Object.entries(groupedRacks).map(([location, racksInLocation]) => (
-          <section key={location}>
-            <h2 className="text-xl font-bold text-[var(--color-text-secondary)] mb-4 ml-1"> {/* <-- CHANGED */}
-              {location}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {racksInLocation.map((rack) => (
-                <RackCard
-                  key={rack.id}
-                  title={rack.name}
-                  switches={rack.Switches}
-                  onEditSwitch={setEditingSwitch}
-                  onDeleteSwitch={handleDeleteSwitch}
-                />
-              ))}
-            </div>
-          </section>
-        ))}
+        {Object.entries(groupedRacks).map(([location, racksInLocation]) => {
+          const isCollapsed = collapsedSections[location];
+          return (
+            <section key={location}>
+              {/* === MODIFIED SECTION START === */}
+              <button className="location-header-new" onClick={() => toggleSection(location)}>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-[var(--color-text-secondary)]">
+                    {location}
+                  </h2>
+                  <span className={`section-toggle-icon ${isCollapsed ? 'collapsed' : ''}`}>
+                    <ChevronDownIcon />
+                  </span>
+                </div>
+              </button>
+              {/* === MODIFIED SECTION END === */}
+              
+              {!isCollapsed && (
+                viewMode === 'grid' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-4">
+                    {racksInLocation.map((rack) => (
+                      <RackCard
+                        key={rack.id}
+                        title={rack.name}
+                        switches={rack.Switches}
+                        onEditSwitch={setEditingSwitch}
+                        onDeleteSwitch={handleDeleteSwitch}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="list-view-container mt-4 space-y-4">
+                    {racksInLocation.map((rack) => (
+                      <div key={rack.id} className="switch-list-card">
+                        <div className="switch-list-header">
+                            <div className="icon mr-3"><RackIcon /></div>
+                            <h3 className="title">{rack.name}</h3>
+                        </div>
+                        <div className="switch-list-body">
+                          {rack.Switches && rack.Switches.length > 0 ? (
+                            rack.Switches.map((sw) => (
+                              <SwitchInRack key={sw.id} sw={sw} onEdit={setEditingSwitch} onDelete={handleDeleteSwitch} />
+                            ))
+                          ) : (
+                            <div className="flex items-center justify-center p-6 text-[var(--color-text-secondary)] text-sm">
+                              <p>No devices in this rack.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+            </section>
+          )
+        })}
 
         {unrackedSwitches.length > 0 && (
-          <section>
-            <h2 className="text-xl font-bold text-[var(--color-text-secondary)] mb-4 ml-1"> {/* <-- CHANGED */}
+          // [NEW] Added `unassigned-section` class for special styling
+          <section className="unassigned-section">
+            <h2 className="text-xl font-bold text-[var(--color-text-secondary)] mb-4 ml-1">
                 Unassigned Devices
             </h2>
-            <div className="switch-list-card"> {/* <-- CHANGED */}
-              <div className="switch-list-body"> {/* <-- CHANGED */}
+            <div className="switch-list-card">
+              <div className="switch-list-body">
                 {unrackedSwitches.map((sw) => (
                   <SwitchInRack
                     key={sw.id}

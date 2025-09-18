@@ -2,24 +2,25 @@ const express = require('express');
 const { Op, fn, col, where } = require('sequelize');
 const multer = require('multer');
 const Papa = require('papaparse');
+const path = require('path');
+const fs = require('fs');
 
 const Asset = require('../models/asset');
-const BitlockerKey = require('../models/bitlockerKey');
 const AssetSpecialProgram = require('../models/assetSpecialProgram');
 const sequelize = require('../config/database');
 
 const router = express.Router();
 
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
 /**
  * =========================
- * Upload CSV (unchanged)
+ * Upload CSV (Bulk Import Asset)
  * =========================
  */
-router.post('/upload', upload.single('file'), async (req, res) => {
-  if (!req.file) { return res.status(400).json({ error: 'No file uploaded.' }); }
+const memoryStorage = multer.memoryStorage();
+const uploadMemory = multer({ storage: memoryStorage });
+
+router.post('/upload', uploadMemory.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
   try {
     const csvData = req.file.buffer.toString('utf8');
     Papa.parse(csvData, {
@@ -29,9 +30,9 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         try {
           const assetsToCreate = results.data.map(row => {
             for (const key in row) {
-              if (row[key] === '' || row[key] === 'N/A') { row[key] = null; }
+              if (row[key] === '' || row[key] === 'N/A') row[key] = null;
             }
-            if (row.start_date && !Date.parse(row.start_date)) { row.start_date = null; }
+            if (row.start_date && !Date.parse(row.start_date)) row.start_date = null;
             return row;
           });
           await Asset.bulkCreate(assetsToCreate);
@@ -53,63 +54,99 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 });
 
 /**
- * ==========================================
- * Import BitLocker Key from .txt (unchanged)
- * ==========================================
+ * =========================
+ * Upload BitLocker CSV File (ใหม่)
+ * =========================
  */
-router.post('/:assetId/upload-bitlocker', upload.single('file'), async (req, res) => {
-  if (!req.file) { return res.status(400).json({ error: 'No file uploaded.' }); }
-  const assetId = req.params.assetId;
-  const fileContent = req.file.buffer.toString('utf8');
-  const originalFilename = req.file.originalname;
+const bitlockerDir = path.join(__dirname, '../uploads/bitlocker');
+if (!fs.existsSync(bitlockerDir)) fs.mkdirSync(bitlockerDir, { recursive: true });
+
+// เพิ่มโฟลเดอร์ log สำหรับเก็บไฟล์เก่า
+const logDir = path.join(__dirname, '../uploads/log_bitlocker');
+if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
+
+const storageBL = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, bitlockerDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
+});
+const uploadBL = multer({ storage: storageBL });
+
+router.post('/:assetId/upload-bitlocker', uploadBL.single('file'), async (req, res) => {
   try {
-    const asset = await Asset.findByPk(assetId);
-    if (!asset) { return res.status(404).json({ error: 'Asset not found.' }); }
+    if (!req.file) return res.status(400).json({ error: 'กรุณาเลือกไฟล์' });
 
-    const keysToCreate = [];
-    const filenameRegex = /^([A-Z])_/i;
-    const filenameMatch = originalFilename.match(filenameRegex);
-    const driveLetter = filenameMatch ? `${filenameMatch[1].toUpperCase()}:` : null;
+    const asset = await Asset.findByPk(req.params.assetId);
+    if (!asset) return res.status(404).json({ error: 'Asset not found.' });
 
-    const keyRegex = /(?:\s*)?Recovery Key:\s*([\d-]+)/i;
-    const keyMatch = fileContent.match(keyRegex);
-    const recoveryKey = keyMatch ? keyMatch[1].replace(/\s/g, '') : null;
-
-    if (driveLetter && recoveryKey) {
-      keysToCreate.push({ assetId: assetId, drive_name: driveLetter, recovery_key: recoveryKey });
+    // ✅ ย้ายไฟล์เก่าไปเก็บใน log
+    if (asset.bitlocker_file_url) {
+      const oldFilePath = path.join(bitlockerDir, path.basename(asset.bitlocker_file_url));
+      if (fs.existsSync(oldFilePath)) {
+        const logFileName = `${Date.now()}-${path.basename(asset.bitlocker_file_url)}`;
+        const logPath = path.join(logDir, logFileName);
+        fs.renameSync(oldFilePath, logPath);
+      }
     }
 
-    if (keysToCreate.length === 0) {
-      return res.status(400).json({
-        error: 'Cannot find key. Ensure filename starts with drive letter (e.g., "C_") and content includes "Recovery Key:".'
-      });
-    }
+    // อัปเดตไฟล์ใหม่
+    asset.bitlocker_file_url = `/uploads/bitlocker/${req.file.filename}`;
+    await asset.save();
 
-    const transaction = await sequelize.transaction();
-    try {
-      await BitlockerKey.bulkCreate(keysToCreate, { transaction, updateOnDuplicate: ["recovery_key"] });
-      await transaction.commit();
-      res.status(201).json({ message: `${keysToCreate.length} BitLocker key(s) imported for asset ${asset.asset_code}.` });
-    } catch (dbError) {
-      await transaction.rollback();
-      throw dbError;
-    }
+    res.json({ message: "อัปโหลดไฟล์สำเร็จ", file_url: asset.bitlocker_file_url });
   } catch (error) {
-    console.error("Bitlocker import error:", error);
-    res.status(500).json({ error: 'Failed to import BitLocker keys.', details: error.message });
+    console.error("BitLocker upload error:", error);
+    res.status(500).json({ error: 'ไม่สามารถอัปโหลดไฟล์ได้', details: error.message });
   }
 });
 
+
 /**
  * =========================
- * [R] List assets (unchanged)
+ * Delete BitLocker File (ย้ายไป log)
+ * =========================
+ */
+router.delete('/:assetId/delete-bitlocker', async (req, res) => {
+  try {
+    const asset = await Asset.findByPk(req.params.assetId);
+    if (!asset) return res.status(404).json({ error: 'Asset not found' });
+
+    if (asset.bitlocker_file_url) {
+      const oldFile = path.join(bitlockerDir, path.basename(asset.bitlocker_file_url));
+      if (fs.existsSync(oldFile)) {
+        // ย้ายไฟล์ไป log
+        const logFileName = `${Date.now()}-${path.basename(asset.bitlocker_file_url)}`;
+        const logPath = path.join(logDir, logFileName);
+        fs.renameSync(oldFile, logPath);
+      }
+
+      // ล้างค่าใน DB
+      asset.bitlocker_file_url = null;
+      await asset.save();
+    }
+
+    res.json({ message: 'ไฟล์ถูกลบและย้ายไป log แล้ว' });
+  } catch (error) {
+    console.error('Delete BitLocker file error:', error);
+    res.status(500).json({ error: 'ไม่สามารถลบไฟล์ได้', details: error.message });
+  }
+});
+
+
+
+/**
+ * =========================
+ * [R] List assets
  * =========================
  */
 router.get('/', async (req, res) => {
   try {
     const { search, page = 1, limit = 20, filter = '' } = req.query;
     const offset = (page - 1) * limit;
-
     const whereClause = { [Op.and]: [] };
 
     if (search) {
@@ -125,55 +162,22 @@ router.get('/', async (req, res) => {
 
     if (filter === 'incomplete') {
       const assetAttributes = Object.keys(Asset.rawAttributes);
+      const fieldsToCheck = assetAttributes.filter(attr => ![
+        "id","createdAt","updatedAt","windows_version","windows_key",
+        "office_version","office_key","antivirus","bitlocker_file_url"
+      ].includes(attr));
 
-      // กรอง field ที่ไม่ต้องการตรวจสอบออก (เช่น primary key, timestamps)
-          const fieldsToCheck = assetAttributes.filter(
-        (attr) =>
-          ![
-            "id",
-            //"model",
-            //"category",
-            //"subcategory",
-            //"ram",
-            //"cpu",
-            //"storage",
-            //"device_id",
-            //"ip_address",
-            //"wifi_registered",
-            //"mac_address_lan",
-            //"mac_address_wifi",
-            //"serial_number",
-            //"brand",
-            //"start_date",
-            //"location",
-            //"fin_asset_ref",
-            //"user_id",
-            //"user_name",
-            //"department",
-            //"status",
-            "createdAt",
-            "updatedAt",
-            "windows_version",
-            "windows_key",
-            "office_version",
-            "office_key",
-            "antivirus"
-          ].includes(attr)
-      );
-
-      const assetAttributesWithTypes = Asset.rawAttributes;
-
+      const attrsWithTypes = Asset.rawAttributes;
       const orConditions = fieldsToCheck.reduce((acc, field) => {
-        const attributeType = assetAttributesWithTypes[field].type.constructor.name;
+        const type = attrsWithTypes[field].type.constructor.name;
         acc.push({ [field]: { [Op.eq]: null } });
-        if (attributeType === 'STRING' || attributeType === 'TEXT') { acc.push({ [field]: { [Op.eq]: '' } }); }
+        if (type === 'STRING' || type === 'TEXT') acc.push({ [field]: { [Op.eq]: '' } });
         return acc;
       }, []);
-
       whereClause[Op.and].push({ [Op.or]: orConditions });
     }
 
-    if (whereClause[Op.and].length === 0) { delete whereClause[Op.and]; }
+    if (whereClause[Op.and].length === 0) delete whereClause[Op.and];
 
     const { count, rows } = await Asset.findAndCountAll({
       where: whereClause,
@@ -182,12 +186,7 @@ router.get('/', async (req, res) => {
       order: [['updatedAt', 'DESC']]
     });
 
-    res.json({
-      totalItems: count,
-      totalPages: Math.ceil(count / limit),
-      currentPage: parseInt(page),
-      assets: rows
-    });
+    res.json({ totalItems: count, totalPages: Math.ceil(count / limit), currentPage: parseInt(page), assets: rows });
   } catch (error) {
     console.error("Error fetching assets:", error);
     res.status(500).json({ error: 'Failed to fetch assets' });
@@ -196,19 +195,16 @@ router.get('/', async (req, res) => {
 
 /**
  * =========================
- * [R] Get asset by id (unchanged)
+ * [R] Get asset by id
  * =========================
  */
 router.get('/:id', async (req, res) => {
   try {
     const asset = await Asset.findByPk(req.params.id, {
-      include: [
-        { model: BitlockerKey, as: 'bitlockerKeys' },
-        { model: AssetSpecialProgram, as: 'specialPrograms' }
-      ]
+      include: [{ model: AssetSpecialProgram, as: 'specialPrograms' }]
     });
-    if (asset) { res.json(asset); }
-    else { res.status(404).json({ error: 'Asset not found' }); }
+    if (asset) res.json(asset);
+    else res.status(404).json({ error: 'Asset not found' });
   } catch (error) {
     console.error(`Error fetching asset with id ${req.params.id}:`, error);
     res.status(500).json({ error: 'Failed to fetch asset' });
@@ -217,21 +213,16 @@ router.get('/:id', async (req, res) => {
 
 /**
  * =========================================
- * [C] Create asset (+ license_key support)
+ * [C] Create asset
  * =========================================
  */
 router.post('/', async (req, res) => {
-  const { bitlockerKeys, specialPrograms, ...assetData } = req.body;
+  const { specialPrograms, ...assetData } = req.body;
   const transaction = await sequelize.transaction();
   try {
     const newAsset = await Asset.create(assetData, { transaction });
 
-    if (bitlockerKeys && bitlockerKeys.length > 0) {
-      const keysToCreate = bitlockerKeys.map(key => ({ ...key, assetId: newAsset.id }));
-      await BitlockerKey.bulkCreate(keysToCreate, { transaction });
-    }
-
-    if (specialPrograms && specialPrograms.length > 0) {
+    if (specialPrograms?.length > 0) {
       const programsToCreate = specialPrograms
         .filter(prog => prog.program_name)
         .map(prog => ({
@@ -239,9 +230,7 @@ router.post('/', async (req, res) => {
           license_key: prog.license_key || null,
           assetId: newAsset.id
         }));
-      if (programsToCreate.length > 0) {
-        await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
-      }
+      if (programsToCreate.length > 0) await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
     }
 
     await transaction.commit();
@@ -255,11 +244,11 @@ router.post('/', async (req, res) => {
 
 /**
  * =========================================
- * [U] Update asset (+ license_key support)
+ * [U] Update asset
  * =========================================
  */
 router.put('/:id', async (req, res) => {
-  const { bitlockerKeys, specialPrograms, ...assetData } = req.body;
+  const { specialPrograms, ...assetData } = req.body;
   const transaction = await sequelize.transaction();
   try {
     const asset = await Asset.findByPk(req.params.id);
@@ -270,16 +259,8 @@ router.put('/:id', async (req, res) => {
 
     await asset.update(assetData, { transaction });
 
-    // Replace Bitlocker keys
-    await BitlockerKey.destroy({ where: { assetId: req.params.id }, transaction });
-    if (bitlockerKeys && bitlockerKeys.length > 0) {
-      const keysToCreate = bitlockerKeys.map(key => ({ ...key, assetId: asset.id }));
-      await BitlockerKey.bulkCreate(keysToCreate, { transaction });
-    }
-
-    // Replace Special Programs
     await AssetSpecialProgram.destroy({ where: { assetId: req.params.id }, transaction });
-    if (specialPrograms && specialPrograms.length > 0) {
+    if (specialPrograms?.length > 0) {
       const programsToCreate = specialPrograms
         .filter(prog => prog.program_name)
         .map(prog => ({
@@ -287,9 +268,7 @@ router.put('/:id', async (req, res) => {
           license_key: prog.license_key || null,
           assetId: asset.id
         }));
-      if (programsToCreate.length > 0) {
-        await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
-      }
+      if (programsToCreate.length > 0) await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
     }
 
     await transaction.commit();
@@ -302,146 +281,77 @@ router.put('/:id', async (req, res) => {
 });
 
 /**
- * =========================================================
- * [UPDATED] Replace: CREATE new asset & MOVE fields from old
- *  - สร้าง asset ใหม่ด้วย newAssetCode
- *  - ย้าย (move) ฟิลด์ที่เลือกจากเครื่องเก่า -> เครื่องใหม่ แล้วล้างค่าที่เครื่องเก่า
- *  - ย้าย Special Programs โดยอัปเดต assetId (ไม่ก็อปปี้)
- *  - ตั้งสถานะ: เก่า = 'Replaced', ใหม่ = 'In Use'
- * POST /assets/:id/replace
- * Body: {
- *   newAssetCode: string (required),
- *   fieldsToCopy?: string[]  // default: [
- *     'ip_address','wifi_registered','antivirus',
- *     'user_name','user_id','department','location',
- *     'category','subcategory','office_version','office_key',
- *     'specialPrograms'
- *   ]
- * }
- * =========================================================
+ * =========================================
+ * Replace Asset (ไม่มี BitlockerKey แล้ว)
+ * =========================================
  */
 router.post('/:id/replace', async (req, res) => {
   const DEFAULT_FIELDS = [
-    'ip_address',
-    'wifi_registered',
-    'antivirus',
-    'user_name',
-    'user_id',
-    'department',
-    'location',
-    'category',
-    'subcategory',
-    'office_version',
-    'office_key',
-    'specialPrograms',
+    'ip_address','wifi_registered','antivirus',
+    'user_name','user_id','department','location',
+    'category','subcategory','office_version','office_key','specialPrograms'
   ];
 
   const { newAssetCode, fieldsToCopy } = req.body || {};
   const fields = Array.isArray(fieldsToCopy) && fieldsToCopy.length > 0 ? fieldsToCopy : DEFAULT_FIELDS;
 
-  // 1) validate code + normalize (ตัด space/ขีด และบังคับพิมพ์ใหญ่)
-  if (!newAssetCode || !String(newAssetCode).trim()) {
+  if (!newAssetCode || !String(newAssetCode).trim())
     return res.status(400).json({ message: 'newAssetCode is required.' });
-  }
+
   const normCode = String(newAssetCode).trim().toUpperCase().replace(/[\s-]+/g, '');
 
   const t = await sequelize.transaction();
   try {
-    // 2) หา asset เดิม
     const oldAsset = await Asset.findByPk(req.params.id, { transaction: t, lock: t.LOCK.UPDATE });
     if (!oldAsset) {
       await t.rollback();
       return res.status(404).json({ message: 'Old asset not found.' });
     }
 
-    // 3) กัน asset_code ซ้ำ
     const dbNormExpr = fn('REPLACE', fn('REPLACE', fn('UPPER', col('asset_code')), ' ', ''), '-', '');
-    const existed = await Asset.findOne({
-      where: where(dbNormExpr, normCode),
-      transaction: t,
-      lock: t.LOCK.UPDATE,
-    });
+    const existed = await Asset.findOne({ where: where(dbNormExpr, normCode), transaction: t, lock: t.LOCK.UPDATE });
     if (existed) {
       await t.rollback();
       return res.status(409).json({ message: 'newAssetCode already exists.' });
     }
 
-    // 4) เตรียม payload สำหรับสร้าง asset ใหม่ (ย้ายค่า scalar ไป)
     const ALLOWED_SCALAR = [
-      'ip_address',
-      'wifi_registered',
-      'antivirus',
-      'user_name',
-      'user_id',
-      'department',
-      'location',
-      'category',
-      'subcategory',
-      'office_version',
-      'office_key',
+      'ip_address','wifi_registered','antivirus',
+      'user_name','user_id','department','location',
+      'category','subcategory','office_version','office_key'
     ];
-    const createPayload = { asset_code: normCode, status: 'Enable' };
-    for (const k of fields) {
-      if (ALLOWED_SCALAR.includes(k)) {
-        createPayload[k] = oldAsset[k] ?? null;
-      }
-    }
 
-    // 5) สร้าง asset ใหม่
+    const createPayload = { asset_code: normCode, status: 'Enable' };
+    for (const k of fields) if (ALLOWED_SCALAR.includes(k)) createPayload[k] = oldAsset[k] ?? null;
+
     const newAsset = await Asset.create(createPayload, { transaction: t });
 
-    // 6) ย้าย Special Programs (ไม่ก็อปปี้)
     if (fields.includes('specialPrograms')) {
-      const list = await AssetSpecialProgram.findAll({
-        where: { assetId: oldAsset.id },
-        transaction: t,
-        lock: t.LOCK.UPDATE,
-      });
-      for (const row of list) {
-        await row.update({ assetId: newAsset.id }, { transaction: t });
-      }
+      const list = await AssetSpecialProgram.findAll({ where: { assetId: oldAsset.id }, transaction: t, lock: t.LOCK.UPDATE });
+      for (const row of list) await row.update({ assetId: newAsset.id }, { transaction: t });
     }
 
-    // (ออปชั่น) ถ้าต้องการย้าย BitLocker ด้วย ให้ปลดคอมเมนต์บล็อกนี้:
-    // const keys = await BitlockerKey.findAll({
-    //   where: { assetId: oldAsset.id },
-    //   transaction: t,
-    //   lock: t.LOCK.UPDATE,
-    // });
-    // for (const key of keys) {
-    //   await key.update({ assetId: newAsset.id }, { transaction: t });
-    // }
-
-    // 7) ล้างค่าฟิลด์ที่ถูกย้ายออกจากเครื่องเก่า + ตั้งสถานะ 'Replaced'
     const clearPayload = {};
-    for (const k of fields) {
-      if (ALLOWED_SCALAR.includes(k)) {
-        clearPayload[k] = null; // หรือ '' ถ้าต้อง string ว่าง
-      }
-    }
+    for (const k of fields) if (ALLOWED_SCALAR.includes(k)) clearPayload[k] = null;
     clearPayload.status = 'Replaced';
     await oldAsset.update(clearPayload, { transaction: t });
 
     await t.commit();
-
-    // 8) ส่งผลลัพธ์ (รวม relations)
     const refreshed = await Asset.findByPk(newAsset.id, {
-      include: [
-        { model: BitlockerKey, as: 'bitlockerKeys' },
-        { model: AssetSpecialProgram, as: 'specialPrograms' },
-      ],
+      include: [{ model: AssetSpecialProgram, as: 'specialPrograms' }]
     });
+
     return res.status(201).json({ message: 'Asset created and MOVED successfully.', newAsset: refreshed });
   } catch (err) {
     console.error('Replace (move) error:', err);
-    try { await t.rollback(); } catch (_) { }
+    try { await t.rollback(); } catch (_) {}
     return res.status(500).json({ message: 'Failed to move asset data.' });
   }
 });
 
 /**
  * =========================
- * [D] Delete asset (unchanged)
+ * [D] Delete asset
  * =========================
  */
 router.delete('/:id', async (req, res) => {

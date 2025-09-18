@@ -552,7 +552,8 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
 
 /* --- ไฟ LED แสดงสถานะ (ใช้ ::before pseudo-element) --- */
 .port-slot.status-up::before,
-.port-slot.status-uplink::before {
+.port-slot.status-uplink::before,
+.port-slot.status-down::before {
   content: '';
   position: absolute;
   top: 4px;         /* CHANGED: ปรับตำแหน่ง */
@@ -573,10 +574,15 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   box-shadow: 0 0 5px var(--color-primary);
 }
 
+.port-slot.status-down::before {
+  background-color: var(--color-error);
+  box-shadow: 0 0 5px var(--color-error);
+}
+
 /* --- สไตล์ของ Port ตามสถานะต่างๆ --- */
 .port-slot.status-up { border-color: var(--color-success); }
 .port-slot.status-uplink { border-color: var(--color-primary); }
-.port-slot.status-down { background-color: #4a5568; }
+.port-slot.status-down { border-color: var(--color-error) }
 .port-slot.status-disabled {
   background-color: #2d3748;
   border-style: dashed;
@@ -602,13 +608,13 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
 /* --- ไอคอน Note --- */
 .port-slot-note-icon {
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 1px;
+  left: 1px;
   color: #63b3ed;
 }
 .port-slot-note-icon svg {
-  width: 12px;       /* CHANGED: ลดขนาดไอคอน */
-  height: 12px;      /* CHANGED: ลดขนาดไอคอน */
+  width: 10px;       /* CHANGED: ลดขนาดไอคอน */
+  height: 10px;      /* CHANGED: ลดขนาดไอคอน */
 }
 
 
@@ -663,4 +669,252 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
 }
 .ghost-button-vibrant:hover {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+
+
+/* [REDESIGN] =================================================================== */
+/* # ดีไซน์ใหม่สำหรับหน้า Switch Infrastructure Dashboard                       */
+/* ========================================================================= */
+
+/* --- Page Header Stats --- */
+.stat-item {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+.stat-item.issues .stat-value {
+  color: var(--color-error);
+}
+
+/* --- New Location Header --- */
+.location-header-new {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  border-bottom: 2px solid var(--color-divider);
+  cursor: pointer;
+}
+.location-header-new .section-toggle-icon {
+  transition: transform 0.2s ease-in-out;
+}
+.location-header-new .section-toggle-icon.collapsed {
+  transform: rotate(-90deg);
+}
+.location-summary-badge {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+.location-summary-badge .issue {
+  color: var(--color-error);
+  font-weight: 500;
+}
+
+/* --- Reimagined Rack Card --- */
+.rack-card-new {
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  border: 1px solid var(--color-divider);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.rack-card-new:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--elevation-4);
+}
+.rack-card-new.unassigned {
+  border-style: dashed;
+}
+.rack-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-divider);
+}
+.rack-status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.rack-status-indicator.ok { background-color: var(--color-success); }
+.rack-status-indicator.issue { background-color: var(--color-error); }
+.rack-switch-count {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background-color: var(--color-background);
+  padding: 0.25rem 0.5rem;
+  border-radius: 99px;
+}
+.rack-card-body {
+  padding: 0.5rem;
+  flex-grow: 1;
+}
+.show-more-btn {
+  width: 100%;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-primary);
+  font-weight: 500;
+  padding: 0.5rem;
+  border-radius: 5px;
+  margin-top: 0.25rem;
+  transition: background-color 0.2s ease;
+}
+.show-more-btn:hover {
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+
+/* --- New Switch Item (inside card) --- */
+.switch-item-new {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.5rem;
+  border-radius: 5px;
+  position: relative;
+}
+.switch-item-new:hover {
+  background-color: var(--color-background);
+}
+.switch-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: var(--color-text-disabled);
+}
+.switch-status-dot.up { background-color: var(--color-success); }
+.switch-status-dot.down { background-color: var(--color-error); }
+
+.switch-actions-trigger {
+  color: var(--color-text-secondary);
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.switch-actions-trigger:hover {
+  background-color: var(--color-divider);
+  color: var(--color-text-primary);
+}
+.switch-actions-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: 6px;
+  box-shadow: var(--elevation-6);
+  z-index: 10;
+  width: 120px;
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+}
+.switch-actions-menu button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+.switch-actions-menu button:hover {
+  background-color: var(--color-background);
+}
+.switch-actions-menu button.delete:hover {
+  background-color: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error);
+}
+
+
+/* ==========================================================================
+   # BitLocker File Attachment (ดีไซน์ใหม่)
+   ========================================================================== */
+/* ================= BitLocker (Refined) ================ */
+.bitlocker-section{
+  /* กล่องเรียบเหมือน Detail อื่น ๆ */
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-divider);
+  border-radius: 6px;
+  background: transparent;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.bitlocker-section:hover{
+  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+  box-shadow: var(--elevation-2);
+}
+
+/* ลิงก์ดาวน์โหลด */
+.bitlocker-link{
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: underline;
+}
+.bitlocker-link:hover{ color: var(--color-primary-dark); }
+
+/* อินพุตเลือกไฟล์ให้หน้าตาเข้ากับ input อื่น ๆ */
+.bitlocker-input{
+  border: 1px solid var(--color-divider);
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: #fff;
+  font-size: .875rem;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.bitlocker-input:hover{ border-color: var(--color-primary); }
+.bitlocker-input:focus{
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+  outline: none;
+}
+
+/* (ออปชัน) ปุ่มลบสไตล์ Danger แบบเรียบ */
+.btn-danger-outline{
+  background: transparent;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  padding: .4rem .75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: .85rem;
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+.btn-danger-outline:hover{
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error);
+  border-color: color-mix(in srgb, var(--color-error) 85%, black);
+}
+.bitlocker-input {
+  border: 1px solid #d1d5db;
+  padding: 4px;
+  border-radius: 6px;
+}
+.bitlocker-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }

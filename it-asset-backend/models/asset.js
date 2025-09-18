@@ -51,6 +51,9 @@ const Asset = sequelize.define(
     office_version: { type: DataTypes.STRING, allowNull: true }, // Microsoft Office
     office_key: { type: DataTypes.STRING, allowNull: true },     // Office Product Key
     antivirus: { type: DataTypes.STRING, allowNull: true },
+
+    // 🆕 เพิ่มฟิลด์สำหรับเก็บไฟล์ CSV ของ BitLocker
+    bitlocker_file_url: { type: DataTypes.STRING, allowNull: true },
   },
   {
     tableName: "assets",

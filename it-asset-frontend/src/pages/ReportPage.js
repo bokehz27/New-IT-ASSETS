@@ -20,7 +20,7 @@ const ReportPage = () => {
         { key: 'office_key', label: 'Office Key' }, { key: 'antivirus', label: 'Antivirus' },
         // --- ADD: New checkboxes for exporting additional sheets ---
         { key: 'export_special_programs', label: 'Special Programs' },
-        { key: 'export_bitlocker_keys', label: 'BitLocker Keys' },
+        
     ];
 
     const [selectedFields, setSelectedFields] = useState({});
@@ -127,7 +127,7 @@ const ReportPage = () => {
                 params: { 
                     fields: mainFieldsToExport.join(','),
                     export_special_programs: exportSpecial,
-                    export_bitlocker_keys: exportBitlocker,
+                    
                 },
                 responseType: 'blob',
             });
