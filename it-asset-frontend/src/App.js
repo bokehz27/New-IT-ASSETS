@@ -28,6 +28,7 @@ import SwitchDetailPage from "./pages/SwitchDetailPage";
 import ReportPage from "./pages/ReportPage";
 import PublicTicketListPage from "./pages/PublicTicketListPage";
 
+
 // Protected Route
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
@@ -50,6 +51,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<AdminManagementPage />} />
             <Route path="/public/tickets" element={<PublicTicketListPage />} />
+            
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
@@ -68,6 +70,7 @@ function App() {
               <Route path="/tickets" element={<TicketListPage />} />
               <Route path="/switches" element={<SwitchListPage />} />
               <Route path="/switches/:switchId" element={<SwitchDetailPage />} />
+              
 
               {/* --- ส่วนของ Settings --- */}
               <Route path="/settings" element={<SettingsLayout />}>

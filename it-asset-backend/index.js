@@ -34,18 +34,22 @@ const allowedOrigins = [
 ];
 
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // อนุญาตถ้า origin อยู่ในลิสต์ หรือเป็น request ที่ไม่มี origin (เช่น จาก Postman)
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'x-auth-token'],
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-auth-token", "Accept"],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  })
+);
 
 // Middlewares
 app.use(express.json());
@@ -75,11 +79,13 @@ app.use('/api/ports', authMiddleware, portRoutes);
 app.use('/api/switches', authMiddleware, switchRoutes);
 app.use('/api/racks', authMiddleware, rackRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/api/public', publicRoutes);
+
 const HOST = '0.0.0.0'; // ทำให้รับการเชื่อมต่อจากทุก IP Address
 
 app.listen(PORT, HOST, () => {
   console.log(`Server is running on http://${HOST}:${PORT}`);
   console.log(`Ready to accept connections from your network.`);
 });
+
+
 

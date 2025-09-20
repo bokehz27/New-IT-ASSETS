@@ -61,15 +61,38 @@ function AddAssetPage() {
   }, []);
 
   // รับ 'data' มาจาก React Hook Form โดยตรง
-  const handleSubmit = async (data) => {
-      try {
-        await api.post('/assets', data);
-        alert("New asset added successfully!");
-        navigate('/');
-      } catch (error) {
-        console.error("Error creating asset:", error);
-        alert("Unable to add the asset.");
+  const handleSubmit = async ({ data, file }) => {
+    try {
+      // 1. สร้าง Asset ใหม่ก่อน
+      const response = await api.post('/assets', data);
+      const newAssetId = response.data.id; // ดึง ID จาก response
+
+      // 2. ถ้ามีไฟล์แนบมา ให้ทำการอัปโหลด
+      if (file && newAssetId) {
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", file);
+
+        // อย่าลืมใส่ header ให้ถูกต้อง (ถ้า api.js ไม่ได้จัดการให้)
+        await api.post(
+          `/assets/${newAssetId}/upload-bitlocker`,
+          formDataUpload,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
       }
+      
+      alert("New asset added successfully!");
+      navigate('/');
+
+    } catch (error) {
+      console.error("Error creating asset:", error);
+      // แยก error message เพื่อให้ผู้ใช้เข้าใจง่ายขึ้น
+      const errorMessage = error.response?.data?.message || "Unable to add the asset.";
+      alert(errorMessage);
+    }
   };
 
   if (loading || !masterData) {

@@ -33,24 +33,15 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
   const fileInputRef = useRef(null);
 
   const handleFormSubmit = async (data) => {
-    await onSubmit(data);
+    // ส่งทั้งข้อมูลฟอร์มและไฟล์กลับไปให้ Page จัดการ
+    // ไม่ต้องทำการอัปโหลดในนี้แล้ว
+    await onSubmit({ data, file: bitlockerFile }); 
 
-    // ถ้ากดลบไฟล์
+    // ** หมายเหตุ: ตรรกะการลบไฟล์ในหน้า Edit ยังคงใช้ได้ แต่การอัปโหลดจะถูกย้ายไป **
     if (removeFile && isEditing) {
       await axios.put(
         `${process.env.REACT_APP_API_URL}/assets/${formData.id}`,
         { bitlocker_file_url: null },
-        { headers: { "x-auth-token": localStorage.getItem("token") } }
-      );
-    }
-
-    // ถ้าเลือกไฟล์ใหม่
-    if (bitlockerFile && isEditing) {
-      const formDataUpload = new FormData();
-      formDataUpload.append("file", bitlockerFile);
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/assets/${formData.id}/upload-bitlocker`,
-        formDataUpload,
         { headers: { "x-auth-token": localStorage.getItem("token") } }
       );
     }

@@ -1,13 +1,30 @@
 - การปรับหน้า Add Asset ให้เป็น "ฟอร์มแบบไดนามิก
 
-- การจัดการ License Software
+- การจัดการ License Software 
 
-- การกำหนดสิทธิ์การเข้าถึงตามบทบาท
+- Log การเปลี่ยนแปลงข้อมูลต่างๆของ Asset
 
 - ระบบแจ้งเตือน (Notification System)
-
-- การทำ Audit Trail
 
 - Log remark ของ port lan
 
 - Backup database
+
+- FAQ
+
+  	แนวทางทำ FAQ + วิดีโอของคุณเอง
+
+	1. ใช้ Layout แบบ Accordion
+	(คลิกแล้วขยายคำตอบ) เพื่อให้หน้าเว็บดูสะอาด เช่นใน React/HTML ใช้ <details> <summary> หรือ UI Library (เช่น shadcn/ui, 	Material UI)
+
+	2. ฝังวิดีโอ YouTube หรือไฟล์ MP4
+
+	ถ้าคุณทำวิดีโอสอนเอง อัปโหลดขึ้น YouTube (แบบ Unlisted ก็ได้)
+
+	แล้วฝัง <iframe> ในคำตอบของ FAQ ได้เลย
+
+	3. ทำให้ค้นหาได้ง่าย
+	ใส่ช่อง Search ด้านบน FAQ เพื่อให้ผู้ใช้หาคำถามที่ต้องการได้ไว
+
+	4. ทำหมวดหมู่ (Category)
+	เช่น: Restore file, เชื่อมต่ออินเทอร์เน็ตไมได้, ใช้งาน Excel ไม่ได้
