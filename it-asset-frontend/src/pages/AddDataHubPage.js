@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+// --- Icons (ฉบับเต็มที่ถูกต้อง) ---
 const BriefcaseIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -12,7 +13,6 @@ const CogIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
   </svg>
 );
-
 const DocumentAddIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -33,6 +33,16 @@ const ChevronRightIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
   </svg>
 );
+const FaqIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+const SupportIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
 
 function AddDataHubPage() {
   return (
@@ -45,8 +55,7 @@ function AddDataHubPage() {
         </p>
       </div>
 
-      {/* Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 
         {/* Group 1: Asset Management */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -54,7 +63,6 @@ function AddDataHubPage() {
             <BriefcaseIcon />
             <h2 className="text-xl font-bold text-white">Asset Management</h2>
           </div>
-
           <div className="divide-y divide-gray-200">
             <Link to="/add" className="flex items-center justify-between p-5 hover:bg-gray-100 transition duration-150">
               <div className="flex items-center gap-4">
@@ -66,7 +74,6 @@ function AddDataHubPage() {
               </div>
               <ChevronRightIcon />
             </Link>
-
             <Link to="/import" className="flex items-center justify-between p-5 hover:bg-gray-100 transition duration-150">
               <div className="flex items-center gap-4">
                 <UploadIcon />
@@ -86,7 +93,6 @@ function AddDataHubPage() {
             <CogIcon />
             <h2 className="text-xl font-bold text-white">System Settings</h2>
           </div>
-
           <div className="divide-y divide-gray-200">
             <Link to="/settings/category" className="flex items-center justify-between p-5 hover:bg-gray-100 transition duration-150">
               <div className="flex items-center gap-4">
@@ -100,6 +106,27 @@ function AddDataHubPage() {
             </Link>
           </div>
         </div>
+
+        {/* Group 3: Help & Support (New Card) */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="p-5 bg-teal-600 flex items-center gap-4">
+            <SupportIcon />
+            <h2 className="text-xl font-bold text-white">Help & Support</h2>
+          </div>
+          <div className="divide-y divide-gray-200">
+            <Link to="/manage-faq" className="flex items-center justify-between p-5 hover:bg-gray-100 transition duration-150">
+              <div className="flex items-center gap-4">
+                <FaqIcon />
+                <div>
+                  <h3 className="font-semibold text-gray-800">Manage FAQ</h3>
+                  <p className="text-sm text-gray-500">Create, edit, and delete frequently asked questions.</p>
+                </div>
+              </div>
+              <ChevronRightIcon />
+            </Link>
+          </div>
+        </div>
+
       </div>
     </div>
   );

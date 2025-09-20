@@ -9,6 +9,7 @@ const multer = require('multer');
 const Ticket = require('../models/ticket');
 const Asset = require('../models/asset'); 
 const Employee = require('../models/Employee');
+const Faq = require('../models/faq');
 
 const router = express.Router();
 
@@ -155,6 +156,19 @@ router.get('/assets-list', async (_req, res) => {
   } catch (e) {
     console.error('GET /api/public/assets-list error:', e);
     res.status(500).json({ error: 'Failed to load assets list' });
+  }
+});
+
+// GET: /api/public/faqs - ดึงข้อมูล FAQ ทั้งหมด
+router.get('/faqs', async (req, res) => {
+  try {
+    const faqs = await Faq.findAll({
+      order: [['category', 'ASC'], ['question', 'ASC']],
+    });
+    res.json(faqs);
+  } catch (err) {
+    console.error('Error fetching public FAQs:', err);
+    res.status(500).json({ error: 'Could not fetch FAQs' });
   }
 });
 

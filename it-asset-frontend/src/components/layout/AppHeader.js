@@ -4,62 +4,22 @@ import { useAuth } from "../../context/AuthContext";
 
 // --- SVG Icons ---
 const UserIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-6 w-6"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-    />
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
   </svg>
 );
 const MenuIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-6 w-6"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M4 6h16M4 12h16M4 18h16"
-    />
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
   </svg>
 );
 const CloseIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-6 w-6"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M6 18L18 6M6 6l12 12"
-    />
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 const ChevronDownIcon = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className={`h-4 w-4 ${className}`}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
+  <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${className}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
   </svg>
 );
@@ -70,7 +30,8 @@ const AppHeader = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isMiniProgramOpen, setIsMiniProgramOpen] = useState(false);
-
+  
+  // ⭐ 1. ลบ State และ Ref ของ Settings Dropdown ออก
   const miniProgramMenuRef = useRef(null);
   const profileMenuRef = useRef(null);
 
@@ -82,16 +43,10 @@ const AppHeader = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target)
-      ) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
         setIsProfileMenuOpen(false);
       }
-      if (
-        miniProgramMenuRef.current &&
-        !miniProgramMenuRef.current.contains(event.target)
-      ) {
+      if (miniProgramMenuRef.current && !miniProgramMenuRef.current.contains(event.target)) {
         setIsMiniProgramOpen(false);
       }
     };
@@ -109,61 +64,44 @@ const AppHeader = () => {
     }
   }, [isMobileMenuOpen]);
 
+  // ⭐ 2. เพิ่ม "Manage Data" และ "Manage FAQ" เข้าไปใน navLinks หลักโดยตรง
   const navLinks = [
     { to: "/", text: "Dashboard" },
     { to: "/assets", text: "Asset List" },
     { to: "/tickets", text: "Manage Tickets" },
-    { to: "/add-data", text: "Manage Data" },
     { to: "/report", text: "Report" },
+    { to: "/add-data", text: "Manage Data" },
   ];
 
   return (
     <>
-      <header className="header-vibrant sticky top-0 z-50"> {/* CHANGED: remove shadow as it's in the class */}
+      <header className="header-vibrant sticky top-0 z-50">
         <nav className="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
           {/* --- Brand & Desktop Nav --- */}
           <div className="flex items-center space-x-6">
-            <Link to="/" className="text-2xl font-bold"> {/* CHANGED: Remove text-Black */}
+            <Link to="/" className="text-2xl font-bold">
               IT COMMAND
             </Link>
 
             {token && (
               <div className="hidden md:flex items-center space-x-2">
+                {/* การ map navLinks จะสร้างเมนูทั้งหมดโดยอัตโนมัติ */}
                 {navLinks.map((link) => (
-                  <NavLink
-                    key={link.to}
-                    to={link.to}
-                    className={({ isActive }) =>
-                      `nav-link-vibrant ${isActive ? "active" : ""}`
-                    }
-                  >
+                  <NavLink key={link.to} to={link.to} className={({ isActive }) => `nav-link-vibrant ${isActive ? "active" : ""}`}>
                     {link.text}
                   </NavLink>
                 ))}
 
+                {/* ⭐ 3. ลบ Dropdown ของ Settings ออก */}
+
                 <div className="relative" ref={miniProgramMenuRef}>
-                  <button
-                    onClick={() => setIsMiniProgramOpen(!isMiniProgramOpen)}
-                    className="nav-link-vibrant flex items-center gap-1"
-                  >
+                  <button onClick={() => setIsMiniProgramOpen(!isMiniProgramOpen)} className="nav-link-vibrant flex items-center gap-1">
                     <span>Mini Program</span>
-                    <ChevronDownIcon
-                      className={`transition-transform duration-200 ${
-                        isMiniProgramOpen ? "rotate-180" : ""
-                      }`}
-                    />
+                    <ChevronDownIcon className={`transition-transform duration-200 ${isMiniProgramOpen ? "rotate-180" : ""}`} />
                   </button>
                   {isMiniProgramOpen && (
                     <div className="nav-dropdown-vibrant absolute top-full left-0 mt-2 w-48 rounded-md shadow-lg py-1">
-                      <NavLink
-                        to="/switches"
-                        onClick={() => setIsMiniProgramOpen(false)}
-                        className={({ isActive }) =>
-                          `block w-full text-left px-4 py-2 text-sm ${
-                            isActive ? "active" : ""
-                          }`
-                        }
-                      >
+                      <NavLink to="/switches" onClick={() => setIsMiniProgramOpen(false)} className="block w-full text-left px-4 py-2 text-sm">
                         Manage Switch
                       </NavLink>
                     </div>
@@ -176,30 +114,16 @@ const AppHeader = () => {
           {/* --- Right side actions --- */}
           <div className="flex items-center">
             {token ? (
-              <div
-                className="hidden md:flex items-center relative"
-                ref={profileMenuRef}
-              >
-                <button
-                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                  className="p-2 profile-button-vibrant flex items-center" /* CHANGED */
-                >
+              <div className="hidden md:flex items-center relative" ref={profileMenuRef}>
+                <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="p-2 profile-button-vibrant flex items-center">
                   <UserIcon />
                 </button>
                 {isProfileMenuOpen && (
                   <div className="profile-dropdown-vibrant absolute top-full right-0 mt-2 w-48 rounded-md shadow-lg py-1">
-                    <Link
-                      to="/create-user"
-                      onClick={() => setIsProfileMenuOpen(false)}
-                      className="block w-full text-left px-4 py-2 text-sm"
-                    >
+                    <Link to="/create-user" onClick={() => setIsProfileMenuOpen(false)} className="block w-full text-left px-4 py-2 text-sm">
                       Create User
                     </Link>
-
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm"
-                    >
+                    <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm">
                       Logout
                     </button>
                   </div>
@@ -207,26 +131,20 @@ const AppHeader = () => {
               </div>
             ) : (
               <div className="hidden md:flex items-center space-x-2">
-                <Link
-                  to="/"
-                  className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold"
-                >
+                <Link to="/faq" className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold">
+                  FAQ
+                </Link>
+                <Link to="/" className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold">
                   แจ้งปัญหา
                 </Link>
-                <Link
-                  to="/login"
-                  className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold"
-                >
+                <Link to="/login" className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold">
                   Admin Login
                 </Link>
               </div>
             )}
 
             <div className="md:hidden">
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2" // No need for text-white, inherited from header
-              >
+              <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2">
                 {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
               </button>
             </div>
@@ -238,48 +156,31 @@ const AppHeader = () => {
       {isMobileMenuOpen && (
         <div className="mobile-menu-overlay-vibrant md:hidden">
           <div className="absolute top-5 right-5">
-            <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="p-2"
-            >
+            <button onClick={() => setIsMobileMenuOpen(false)} className="p-2">
               <CloseIcon />
             </button>
           </div>
           {token ? (
             <>
               <nav className="flex flex-col items-center space-y-6">
+                 {/* การ map navLinks จะสร้างเมนูทั้งหมดโดยอัตโนมัติ */}
                 {navLinks.map((link) => (
-                  <NavLink
-                    key={link.to}
-                    to={link.to}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={({ isActive }) =>
-                      `mobile-nav-link ${isActive ? "active" : ""}`
-                    }
-                  >
+                  <NavLink key={link.to} to={link.to} onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-nav-link ${isActive ? "active" : ""}`}>
                     {link.text}
                   </NavLink>
                 ))}
 
+                {/* ⭐ 4. ลบกลุ่มเมนู Settings ออกจาก Mobile */}
+                
                 <div className="text-center">
                   <div className="mobile-nav-group-title">Mini Program</div>
-                  <NavLink
-                    to="/switches"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={({ isActive }) =>
-                      `mobile-nav-link-sub ${isActive ? "active" : ""}`
-                    }
-                  >
+                  <NavLink to="/switches" onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-link-sub">
                     Manage Switch
                   </NavLink>
                 </div>
               </nav>
 
-              <NavLink
-                to="/create-user"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="mobile-nav-link"
-              >
+              <NavLink to="/create-user" onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-link">
                 Create User
               </NavLink>
 
@@ -289,18 +190,13 @@ const AppHeader = () => {
             </>
           ) : (
             <div className="flex flex-col items-center space-y-6">
-              <Link
-                to="/report-issue"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="mobile-nav-link"
-              >
+              <Link to="/faq" onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-link">
+                FAQ
+              </Link>
+              <Link to="/report-issue" onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-link">
                 แจ้งปัญหา
               </Link>
-              <Link
-                to="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="mobile-nav-link active"
-              >
+              <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-link active">
                 Admin Login
               </Link>
             </div>

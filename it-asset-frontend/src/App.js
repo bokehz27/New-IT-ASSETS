@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 
 // Layouts
@@ -27,7 +23,8 @@ import SwitchListPage from "./pages/SwitchListPage";
 import SwitchDetailPage from "./pages/SwitchDetailPage";
 import ReportPage from "./pages/ReportPage";
 import PublicTicketListPage from "./pages/PublicTicketListPage";
-
+import PublicFaqPage from "./pages/PublicFaqPage"; // 1. Import หน้า Public FAQ
+import FaqManagementPage from "./pages/FaqManagementPage"; // 2. Import หน้า Admin FAQ
 
 // Protected Route
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -46,12 +43,11 @@ function App() {
             {/* Public Routes */}
             <Route
               path="/"
-              element={user ? <DashboardPage /> : <PublicTicketListPage />}
-            />
+              element={user ? <DashboardPage /> : <PublicTicketListPage />} />
+            <Route path="/faq" element={<PublicFaqPage />} /> {/* 3. เพิ่ม Route สำหรับ Public */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<AdminManagementPage />} />
             <Route path="/public/tickets" element={<PublicTicketListPage />} />
-            
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
@@ -69,9 +65,12 @@ function App() {
               <Route path="/create-user" element={<AdminManagementPage />} />
               <Route path="/tickets" element={<TicketListPage />} />
               <Route path="/switches" element={<SwitchListPage />} />
-              <Route path="/switches/:switchId" element={<SwitchDetailPage />} />
+              <Route
+                path="/switches/:switchId"
+                element={<SwitchDetailPage />}
+              />
               
-
+              <Route path="/manage-faq" element={<FaqManagementPage />} />
               {/* --- ส่วนของ Settings --- */}
               <Route path="/settings" element={<SettingsLayout />}>
                 <Route
