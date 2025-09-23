@@ -64,23 +64,37 @@ function EditAssetPage() {
     fetchData();
   }, [assetId]);
 
-  // รับ 'data' มาจาก React Hook Form โดยตรง
-const handleSubmit = async (data) => {
-  if (!data) return;
-  const payload = { ...data };
-  if (!payload.start_date || String(payload.start_date).trim() === '') {
-    payload.start_date = null;
-  }
+  // ✅ ==== โค้ดที่แก้ไขแล้ว ==== ✅
+  // เปลี่ยนการรับพารามิเตอร์เป็นแบบ Destructuring { data, file }
+  const handleSubmit = async ({ data, file }) => {
+    if (!data) return;
 
-  try {
-    await api.put(`/assets/${assetId}`, payload);
-    alert("Asset updated successfully!");
-    navigate(`/asset/${assetId}`);
-  } catch (error) {
-    console.error("Error updating asset:", error);
-    alert(error?.response?.data?.message || "Unable to update asset.");
-  }
-};
+    // 'data' ในที่นี้คือข้อมูลจากฟอร์มโดยตรง
+    const payload = { ...data };
+    if (!payload.start_date || String(payload.start_date).trim() === '') {
+      payload.start_date = null;
+    }
+
+    try {
+      // 1. อัปเดตข้อมูล Asset หลัก
+      await api.put(`/assets/${assetId}`, payload);
+
+      // 2. ถ้ามีการอัปโหลดไฟล์ใหม่ ให้ส่งไฟล์นั้นไป
+      if (file) {
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", file);
+        await api.post(`/assets/${assetId}/upload-bitlocker`, formDataUpload, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      }
+
+      alert("Asset updated successfully!");
+      navigate(`/asset/${assetId}`);
+    } catch (error) {
+      console.error("Error updating asset:", error);
+      alert(error?.response?.data?.message || "Unable to update asset.");
+    }
+  };
 
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-600">{error}</div>;

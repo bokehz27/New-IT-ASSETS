@@ -31,7 +31,6 @@ const AppHeader = () => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isMiniProgramOpen, setIsMiniProgramOpen] = useState(false);
   
-  // ⭐ 1. ลบ State และ Ref ของ Settings Dropdown ออก
   const miniProgramMenuRef = useRef(null);
   const profileMenuRef = useRef(null);
 
@@ -64,7 +63,6 @@ const AppHeader = () => {
     }
   }, [isMobileMenuOpen]);
 
-  // ⭐ 2. เพิ่ม "Manage Data" และ "Manage FAQ" เข้าไปใน navLinks หลักโดยตรง
   const navLinks = [
     { to: "/", text: "Dashboard" },
     { to: "/assets", text: "Asset List" },
@@ -85,14 +83,11 @@ const AppHeader = () => {
 
             {token && (
               <div className="hidden md:flex items-center space-x-2">
-                {/* การ map navLinks จะสร้างเมนูทั้งหมดโดยอัตโนมัติ */}
                 {navLinks.map((link) => (
                   <NavLink key={link.to} to={link.to} className={({ isActive }) => `nav-link-vibrant ${isActive ? "active" : ""}`}>
                     {link.text}
                   </NavLink>
                 ))}
-
-                {/* ⭐ 3. ลบ Dropdown ของ Settings ออก */}
 
                 <div className="relative" ref={miniProgramMenuRef}>
                   <button onClick={() => setIsMiniProgramOpen(!isMiniProgramOpen)} className="nav-link-vibrant flex items-center gap-1">
@@ -130,17 +125,25 @@ const AppHeader = () => {
                 )}
               </div>
             ) : (
-              <div className="hidden md:flex items-center space-x-2">
-                <Link to="/faq" className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold">
-                  FAQ
-                </Link>
-                <Link to="/" className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold">
-                  แจ้งปัญหา
-                </Link>
-                <Link to="/login" className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold">
+              // ✨ --- MODIFICATION START (Desktop User Menu) --- ✨
+              <div className="hidden md:flex items-center space-x-4">
+                {/* User links group */}
+                <div className="flex items-center space-x-2">
+                   <Link to="/faq" className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold">
+                    FAQ
+                  </Link>
+                  <Link to="/" className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold">
+                    แจ้งปัญหา
+                  </Link>
+                </div>
+                {/* Separator */}
+                <div className="h-6 border-l border-gray-300/50"></div>
+                {/* Admin Login Button */}
+                <Link to="/login" className="primary-button-vibrant px-4 py-2 rounded-full text-sm font-semibold">
                   Admin Login
                 </Link>
               </div>
+              // ✨ --- MODIFICATION END (Desktop User Menu) --- ✨
             )}
 
             <div className="md:hidden">
@@ -163,14 +166,11 @@ const AppHeader = () => {
           {token ? (
             <>
               <nav className="flex flex-col items-center space-y-6">
-                 {/* การ map navLinks จะสร้างเมนูทั้งหมดโดยอัตโนมัติ */}
                 {navLinks.map((link) => (
                   <NavLink key={link.to} to={link.to} onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `mobile-nav-link ${isActive ? "active" : ""}`}>
                     {link.text}
                   </NavLink>
                 ))}
-
-                {/* ⭐ 4. ลบกลุ่มเมนู Settings ออกจาก Mobile */}
                 
                 <div className="text-center">
                   <div className="mobile-nav-group-title">Mini Program</div>
@@ -189,17 +189,27 @@ const AppHeader = () => {
               </button>
             </>
           ) : (
-            <div className="flex flex-col items-center space-y-6">
-              <Link to="/faq" onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-link">
-                FAQ
-              </Link>
-              <Link to="/report-issue" onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-link">
-                แจ้งปัญหา
-              </Link>
-              <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-link active">
-                Admin Login
-              </Link>
+            // ✨ --- MODIFICATION START (Mobile User Menu) --- ✨
+            <div className="flex flex-col items-center space-y-6 w-full px-8">
+                {/* User links group */}
+                <nav className="flex flex-col items-center space-y-6">
+                    <Link to="/faq" onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-link">
+                        FAQ
+                    </Link>
+                    <Link to="/report-issue" onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-link">
+                        แจ้งปัญหา
+                    </Link>
+                </nav>
+
+                {/* Separator */}
+                <hr className="w-full border-gray-300/30 my-4" />
+
+                {/* Admin Login Button */}
+                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="mobile-primary-button w-full text-center">
+                    Admin Login
+                </Link>
             </div>
+            // ✨ --- MODIFICATION END (Mobile User Menu) --- ✨
           )}
         </div>
       )}
