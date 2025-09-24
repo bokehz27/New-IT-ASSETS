@@ -31,7 +31,10 @@ function getFileNameFromUrl(u) {
 }
 
 export default function PublicTicketFormModal({ open, onClose, onSubmitted }) {
-  const [options, setOptions] = useState({ reporterOptions: [], assetOptions: [] });
+  const [options, setOptions] = useState({
+    reporterOptions: [],
+    assetOptions: [],
+  });
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
   const [successUrl, setSuccessUrl] = useState("");
@@ -53,7 +56,10 @@ export default function PublicTicketFormModal({ open, onClose, onSubmitted }) {
         publicApi.get(`/public/assets-list`),
       ]);
       setOptions({
-        reporterOptions: (reporterRes.data || []).map((n) => ({ value: n, label: n })),
+        reporterOptions: (reporterRes.data || []).map((n) => ({
+          value: n,
+          label: n,
+        })),
         assetOptions: (assetRes.data || []).map((a) => ({
           value: a.asset_code,
           label: `${a.asset_code}${a.model ? ` - ${a.model}` : ""}`,
@@ -68,7 +74,12 @@ export default function PublicTicketFormModal({ open, onClose, onSubmitted }) {
 
   useEffect(() => {
     if (open) {
-      setTicketData({ reporterName: "", assetCode: "", contactPhone: "", problemDescription: "" });
+      setTicketData({
+        reporterName: "",
+        assetCode: "",
+        contactPhone: "",
+        problemDescription: "",
+      });
       setFile(null);
       setSuccessUrl("");
       setMessage("");
@@ -118,7 +129,9 @@ export default function PublicTicketFormModal({ open, onClose, onSubmitted }) {
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative z-10 w-full max-w-2xl rounded-xl bg-white shadow-xl">
         <div className="flex items-center justify-between px-5 py-3 border-b">
-          <h3 className="text-lg font-semibold text-gray-800">แจ้งปัญหา (Repair Request)</h3>
+          <h3 className="text-lg font-semibold text-gray-800">
+            แจ้งปัญหา (Repair Request)
+          </h3>
           <button
             type="button"
             onClick={onClose}
@@ -145,7 +158,9 @@ export default function PublicTicketFormModal({ open, onClose, onSubmitted }) {
                 <SearchableDropdown
                   options={options.reporterOptions}
                   value={ticketData.reporterName}
-                  onChange={(val) => setTicketData((p) => ({ ...p, reporterName: val || "" }))}
+                  onChange={(val) =>
+                    setTicketData((p) => ({ ...p, reporterName: val || "" }))
+                  }
                   placeholder="ค้นหาชื่อ..."
                   idPrefix="public-dd-reporter"
                   menuZIndex={2000}
@@ -159,7 +174,9 @@ export default function PublicTicketFormModal({ open, onClose, onSubmitted }) {
                 <SearchableDropdown
                   options={options.assetOptions}
                   value={ticketData.assetCode}
-                  onChange={(val) => setTicketData((p) => ({ ...p, assetCode: val || "" }))}
+                  onChange={(val) =>
+                    setTicketData((p) => ({ ...p, assetCode: val || "" }))
+                  }
                   placeholder="ค้นหารหัสอุปกรณ์..."
                   idPrefix="public-dd-asset"
                   menuZIndex={2000}
@@ -167,11 +184,18 @@ export default function PublicTicketFormModal({ open, onClose, onSubmitted }) {
               </div>
 
               <div>
-                <label className="block mb-1 text-sm font-medium text-gray-600">เบอร์ติดภายใน 4 หลัก</label>
+                <label className="block mb-1 text-sm font-medium text-gray-600">
+                  เบอร์ติดภายใน 4 หลัก
+                </label>
                 <input
                   className="w-full rounded border border-gray-300 px-3 py-2"
                   value={ticketData.contactPhone}
-                  onChange={(e) => setTicketData((p) => ({ ...p, contactPhone: e.target.value }))}
+                  onChange={(e) =>
+                    setTicketData((p) => ({
+                      ...p,
+                      contactPhone: e.target.value,
+                    }))
+                  }
                   placeholder="xxxx"
                 />
               </div>
@@ -184,14 +208,21 @@ export default function PublicTicketFormModal({ open, onClose, onSubmitted }) {
                   className="w-full rounded border border-gray-300 px-3 py-2"
                   rows={4}
                   value={ticketData.problemDescription}
-                  onChange={(e) => setTicketData((p) => ({ ...p, problemDescription: e.target.value }))}
+                  onChange={(e) =>
+                    setTicketData((p) => ({
+                      ...p,
+                      problemDescription: e.target.value,
+                    }))
+                  }
                   placeholder="อธิบายปัญหา..."
                 />
               </div>
 
               {/* Attachment (User) */}
               <div>
-                <label className="block mb-1 text-sm font-medium text-gray-600">ไฟล์แนบ</label>
+                <label className="block mb-1 text-sm font-medium text-gray-600">
+                  ไฟล์แนบ
+                </label>
                 <div className="flex items-center gap-3">
                   <label
                     htmlFor="public-user-upload"
@@ -205,8 +236,15 @@ export default function PublicTicketFormModal({ open, onClose, onSubmitted }) {
                     className="hidden"
                     onChange={(e) => setFile(e.target.files?.[0] || null)}
                   />
-                  <span className="text-sm text-gray-500">{file?.name || "ไม่มีไฟล์"}</span>
-                  {file && <ClearBtn title="Remove selected file" onClick={() => setFile(null)} />}
+                  <span className="text-sm text-gray-500">
+                    {file?.name || "ไม่มีไฟล์"}
+                  </span>
+                  {file && (
+                    <ClearBtn
+                      title="Remove selected file"
+                      onClick={() => setFile(null)}
+                    />
+                  )}
 
                   {successUrl && (
                     <>
@@ -218,14 +256,21 @@ export default function PublicTicketFormModal({ open, onClose, onSubmitted }) {
                       >
                         View last uploaded ({getFileNameFromUrl(successUrl)})
                       </a>
-                      <ClearBtn title="Clear last uploaded link (local only)" onClick={() => setSuccessUrl("")} />
+                      <ClearBtn
+                        title="Clear last uploaded link (local only)"
+                        onClick={() => setSuccessUrl("")}
+                      />
                     </>
                   )}
                 </div>
               </div>
 
               <div className="mt-6 flex items-center justify-between">
-                <div>{message && <p className="text-red-600 font-semibold">{message}</p>}</div>
+                <div>
+                  {message && (
+                    <p className="text-red-600 font-semibold">{message}</p>
+                  )}
+                </div>
                 <div className="flex gap-3">
                   <button
                     type="button"

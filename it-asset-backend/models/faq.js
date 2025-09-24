@@ -1,9 +1,9 @@
 // models/faq.js
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/database");
 
 const Faq = sequelize.define(
-  'Faq',
+  "Faq",
   {
     question: {
       type: DataTypes.STRING(255),
@@ -27,7 +27,7 @@ const Faq = sequelize.define(
     },
   },
   {
-    tableName: 'faqs',
+    tableName: "faqs",
     timestamps: true,
   }
 );

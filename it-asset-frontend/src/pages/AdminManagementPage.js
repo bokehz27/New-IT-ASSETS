@@ -1,39 +1,39 @@
 // frontend/src/pages/AdminManagementPage.js
-import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
-import AdminUserModal from '../components/AdminUserModal'; // ปรับ path ตามโปรเจกต์ของคุณ
+import React, { useEffect, useState, useCallback } from "react";
+import axios from "axios";
+import AdminUserModal from "../components/AdminUserModal"; // ปรับ path ตามโปรเจกต์ของคุณ
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",
 });
 
 // แนบ token ทุกครั้ง
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers['x-auth-token'] = token;
+  const token = localStorage.getItem("token");
+  if (token) config.headers["x-auth-token"] = token;
   return config;
 });
 
 export default function AdminManagementPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [errMsg, setErrMsg] = useState('');
+  const [errMsg, setErrMsg] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
-    setErrMsg('');
+    setErrMsg("");
     try {
-      const res = await api.get('/users'); // ต้องส่ง id, username, role มาด้วย (แก้ backend ด้านล่าง)
+      const res = await api.get("/users"); // ต้องส่ง id, username, role มาด้วย (แก้ backend ด้านล่าง)
       setUsers(res.data || []);
     } catch (err) {
       const msg =
         err?.response?.data?.msg ||
         err?.response?.data?.error ||
         err?.message ||
-        'Failed to fetch users.';
+        "Failed to fetch users.";
       setErrMsg(msg);
     } finally {
       setLoading(false);
@@ -62,7 +62,7 @@ export default function AdminManagementPage() {
       if (id) {
         await api.put(`/users/${id}`, formData);
       } else {
-        await api.post('/users', formData);
+        await api.post("/users", formData);
       }
       closeModal();
       await fetchUsers();
@@ -71,7 +71,7 @@ export default function AdminManagementPage() {
         err?.response?.data?.msg ||
         err?.response?.data?.error ||
         err?.message ||
-        'Save failed.';
+        "Save failed.";
       alert(msg); // ใช้ alert เฉพาะแจ้ง error สั้นๆ
     }
   };
@@ -86,7 +86,7 @@ export default function AdminManagementPage() {
         err?.response?.data?.msg ||
         err?.response?.data?.error ||
         err?.message ||
-        'Delete failed.';
+        "Delete failed.";
       alert(msg);
     }
   };
@@ -106,7 +106,9 @@ export default function AdminManagementPage() {
       {loading && <p>Loading...</p>}
 
       {!loading && errMsg && (
-        <p className="text-red-600 mb-4">{errMsg} You might not have permission.</p>
+        <p className="text-red-600 mb-4">
+          {errMsg} You might not have permission.
+        </p>
       )}
 
       {!loading && !errMsg && (

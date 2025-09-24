@@ -19,11 +19,11 @@ const Rack = sequelize.define(
     timestamps: true,
     // เพิ่มส่วนนี้เข้าไปเพื่อบอก Sequelize เกี่ยวกับ Unique Key ใหม่
     indexes: [
-        {
-            unique: true,
-            fields: ['name', 'location']
-        }
-    ]
+      {
+        unique: true,
+        fields: ["name", "location"],
+      },
+    ],
   }
 );
 

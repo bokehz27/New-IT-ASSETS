@@ -12,12 +12,9 @@ const SwitchPort = sequelize.define(
     lanCableId: {
       type: DataTypes.STRING,
     },
-    // connectedTo: {  <-- ลบบรรทัดนี้
-    //   type: DataTypes.STRING,
-    // },
     status: {
       type: DataTypes.STRING,
-      defaultValue: 'Disabled'
+      defaultValue: "Disabled",
     },
     vlan: {
       type: DataTypes.STRING,
@@ -28,7 +25,7 @@ const SwitchPort = sequelize.define(
     switchId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-    }
+    },
   },
   {
     tableName: "switchports",

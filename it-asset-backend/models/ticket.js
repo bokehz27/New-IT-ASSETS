@@ -1,9 +1,9 @@
 // it-asset-backend/models/ticket.js
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/database");
 
 const Ticket = sequelize.define(
-  'Ticket',
+  "Ticket",
   {
     // PK (Sequelize จะสร้าง id: INTEGER, autoIncrement ให้โดยอัตโนมัติ)
     report_date: {
@@ -40,7 +40,7 @@ const Ticket = sequelize.define(
     attachment_url: {
       type: DataTypes.STRING(255),
       allowNull: true,
-      comment: 'ใช้เป็นช่องเดิม/สำรอง กรณีโปรเจ็กต์เก่าเก็บไฟล์แค่ช่องเดียว',
+      comment: "ใช้เป็นช่องเดิม/สำรอง กรณีโปรเจ็กต์เก่าเก็บไฟล์แค่ช่องเดียว",
     },
 
     // ส่วนของงานซ่อม
@@ -59,11 +59,11 @@ const Ticket = sequelize.define(
     status: {
       type: DataTypes.STRING(50),
       allowNull: false,
-      defaultValue: 'Request', // คงค่าเริ่มต้นเดิม
+      defaultValue: "Request", // คงค่าเริ่มต้นเดิม
     },
   },
   {
-    tableName: 'tickets',
+    tableName: "tickets",
     timestamps: true, // มี createdAt / updatedAt ตามที่ DB แสดง
   }
 );

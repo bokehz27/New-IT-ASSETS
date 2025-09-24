@@ -1,31 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import api from '../api'; // Adjust path as needed
-import EditUserModal from './EditUserModal';
+import React, { useState, useEffect } from "react";
+import api from "../api"; // Adjust path as needed
+import EditUserModal from "./EditUserModal";
 
 function UserManagementPage() {
   const [employees, setEmployees] = useState([]);
   const [departmentOptions, setDepartmentOptions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   // ... (ส่วน fetchData และ useEffects เหมือนเดิม) ...
   const fetchData = async () => {
     try {
       setLoading(true);
       const [employeesRes, departmentsRes] = await Promise.all([
-        api.get('/employees'),
-        api.get('/master-data/department')
+        api.get("/employees"),
+        api.get("/master-data/department"),
       ]);
       setEmployees(employeesRes.data);
-      setDepartmentOptions(departmentsRes.data.map(item => item.value));
-      setError('');
+      setDepartmentOptions(departmentsRes.data.map((item) => item.value));
+      setError("");
     } catch (err) {
-      setError('Failed to load initial page data.');
+      setError("Failed to load initial page data.");
     } finally {
       setLoading(false);
     }
@@ -35,14 +35,18 @@ function UserManagementPage() {
     fetchData();
   }, []);
 
-  const filteredEmployees = employees.filter(emp =>
-    emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (emp.email && emp.email.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredEmployees = employees.filter(
+    (emp) =>
+      emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (emp.email && emp.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
-  
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredEmployees.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredEmployees.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
   const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
 
   useEffect(() => {
@@ -55,11 +59,11 @@ function UserManagementPage() {
     setIsEditModalOpen(false);
     setEditingEmployee(null);
   };
-  
+
   // ... (ส่วน handleSave, handleAddClick, handleEditClick, handleDelete เหมือนเดิม) ...
   const handleSave = async (dataFromModal) => {
     if (!dataFromModal.fullName.trim()) {
-      alert('Please enter the full name.');
+      alert("Please enter the full name.");
       return;
     }
 
@@ -67,12 +71,16 @@ function UserManagementPage() {
       if (editingEmployee) {
         await api.put(`/employees/${editingEmployee.id}`, dataFromModal);
       } else {
-        await api.post('/employees', dataFromModal);
+        await api.post("/employees", dataFromModal);
       }
       handleCloseModal();
       fetchData();
     } catch (err) {
-      setError(editingEmployee ? 'Failed to update employee.' : 'Failed to add employee.');
+      setError(
+        editingEmployee
+          ? "Failed to update employee."
+          : "Failed to add employee."
+      );
     }
   };
 
@@ -87,12 +95,12 @@ function UserManagementPage() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (window.confirm("Are you sure you want to delete this user?")) {
       try {
         await api.delete(`/employees/${id}`);
         fetchData();
       } catch (err) {
-        setError('Failed to delete employee.');
+        setError("Failed to delete employee.");
       }
     }
   };
@@ -120,7 +128,7 @@ function UserManagementPage() {
         />
         {searchTerm && (
           <button
-            onClick={() => setSearchTerm('')}
+            onClick={() => setSearchTerm("")}
             className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-red-500 transition"
             aria-label="Clear search"
           >
@@ -143,31 +151,36 @@ function UserManagementPage() {
       </div>
       {/* ▲▲▲ สิ้นสุดส่วนที่แก้ไข ▲▲▲ */}
 
-
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
       {/* ... (ส่วนของ Table และ Pagination เหมือนเดิม) ... */}
       <div className="overflow-x-auto bg-white rounded-lg shadow-md">
         <table className="w-full text-left text-sm">
-           <thead className="bg-blue-600">
+          <thead className="bg-blue-600">
             <tr>
               <th className="p-3 font-semibold text-white">Full Name</th>
               <th className="p-3 font-semibold text-white">Position</th>
               <th className="p-3 font-semibold text-white">E-Mail</th>
               <th className="p-3 font-semibold text-white">Contact Number</th>
               <th className="p-3 font-semibold text-white">Department</th>
-              <th className="p-3 font-semibold text-white text-center">Actions</th>
+              <th className="p-3 font-semibold text-white text-center">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan="6" className="p-4 text-center text-gray-500">Loading...</td>
+                <td colSpan="6" className="p-4 text-center text-gray-500">
+                  Loading...
+                </td>
               </tr>
             ) : (
-              currentItems.map(emp => (
+              currentItems.map((emp) => (
                 <tr key={emp.id} className="hover:bg-gray-50">
-                  <td className="p-3 font-medium text-gray-800">{emp.fullName}</td>
+                  <td className="p-3 font-medium text-gray-800">
+                    {emp.fullName}
+                  </td>
                   <td className="p-3 text-gray-700">{emp.position}</td>
                   <td className="p-3 text-gray-700">{emp.email}</td>
                   <td className="p-3 text-gray-700">{emp.contactNumber}</td>
@@ -179,8 +192,19 @@ function UserManagementPage() {
                         className="p-1.5 text-gray-500 hover:text-yellow-600 hover:bg-yellow-100 rounded-full transition-colors"
                         title="Edit User"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002 2v-5m-1.414-9.586a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002 2v-5m-1.414-9.586a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
                         </svg>
                       </button>
                       <button
@@ -188,8 +212,19 @@ function UserManagementPage() {
                         className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-100 rounded-full transition-colors"
                         title="Delete User"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -207,11 +242,13 @@ function UserManagementPage() {
           </tbody>
         </table>
       </div>
-      
+
       {totalPages > 1 && (
         <div className="flex justify-between items-center mt-4">
           <span className="text-sm text-gray-700">
-            Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredEmployees.length)} of {filteredEmployees.length} entries
+            Showing {indexOfFirstItem + 1} to{" "}
+            {Math.min(indexOfLastItem, filteredEmployees.length)} of{" "}
+            {filteredEmployees.length} entries
           </span>
           <div className="flex">
             <button

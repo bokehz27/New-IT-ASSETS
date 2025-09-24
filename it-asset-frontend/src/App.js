@@ -43,12 +43,13 @@ function App() {
             {/* Public Routes */}
             <Route
               path="/"
-              element={user ? <DashboardPage /> : <PublicTicketListPage />} />
-            <Route path="/faq" element={<PublicFaqPage />} /> {/* 3. เพิ่ม Route สำหรับ Public */}
+              element={user ? <DashboardPage /> : <PublicTicketListPage />}
+            />
+            <Route path="/faq" element={<PublicFaqPage />} />{" "}
+            {/* 3. เพิ่ม Route สำหรับ Public */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<AdminManagementPage />} />
             <Route path="/public/tickets" element={<PublicTicketListPage />} />
-
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/assets" element={<AssetListPage />} />
@@ -69,7 +70,7 @@ function App() {
                 path="/switches/:switchId"
                 element={<SwitchDetailPage />}
               />
-              
+
               <Route path="/manage-faq" element={<FaqManagementPage />} />
               {/* --- ส่วนของ Settings --- */}
               <Route path="/settings" element={<SettingsLayout />}>

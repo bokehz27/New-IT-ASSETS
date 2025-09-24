@@ -206,30 +206,30 @@ function AssetDetailPage() {
           </InfoCard>
 
           {/* --- BitLocker --- */}
-<InfoCard title="BitLocker Recovery Keys">
-  {asset.bitlocker_file_url ? (
-    <div className="bitlocker-section">
-      <p className="text-sm text-gray-700">
-        <span className="font-medium">Attachment :</span>{" "}
-        <a
-          href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${asset.bitlocker_file_url}`}
-          target="_blank"
-          rel="noreferrer"
-          className="bitlocker-link"
-        >
-          Download BitLocker CSV
-        </a>
-      </p>
-    </div>
-  ) : (
-    <div className="bitlocker-section text-gray-500">
-      No BitLocker file uploaded for this asset.
-    </div>
-  )}
-</InfoCard>
-
-
-
+          <InfoCard title="BitLocker Recovery Keys">
+            {asset.bitlocker_file_url ? (
+              <div className="bitlocker-section">
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">Attachment :</span>{" "}
+                  <a
+                    href={`${process.env.REACT_APP_API_URL.replace(
+                      "/api",
+                      ""
+                    )}${asset.bitlocker_file_url}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bitlocker-link"
+                  >
+                    Download BitLocker CSV
+                  </a>
+                </p>
+              </div>
+            ) : (
+              <div className="bitlocker-section text-gray-500">
+                No BitLocker file uploaded for this asset.
+              </div>
+            )}
+          </InfoCard>
         </div>
 
         <div className="lg:col-span-1 space-y-6">

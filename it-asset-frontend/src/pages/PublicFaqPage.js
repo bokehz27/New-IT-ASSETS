@@ -2,7 +2,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import Modal from "react-modal";
-import { FaSearch, FaChevronDown, FaYoutube, FaFilePdf, FaBookOpen } from "react-icons/fa";
+import {
+  FaSearch,
+  FaChevronDown,
+  FaYoutube,
+  FaFilePdf,
+  FaBookOpen,
+} from "react-icons/fa";
 
 Modal.setAppElement("#root");
 
@@ -61,16 +67,21 @@ function PublicFaqPage() {
 
   // สร้างรายการ Category ที่ไม่ซ้ำกัน + 'All'
   const categories = useMemo(() => {
-    const uniqueCategories = [...new Set(allFaqs.map(faq => faq.category || "General"))];
+    const uniqueCategories = [
+      ...new Set(allFaqs.map((faq) => faq.category || "General")),
+    ];
     return ["All", ...uniqueCategories.sort()];
   }, [allFaqs]);
 
   // กรอง FAQ ตาม Category ที่เลือกและคำค้นหา
   const filteredFaqs = useMemo(() => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
-    return allFaqs.filter(faq => {
-      const inCategory = activeCategory === "All" || (faq.category || "General") === activeCategory;
-      const inSearch = !searchTerm ||
+    return allFaqs.filter((faq) => {
+      const inCategory =
+        activeCategory === "All" ||
+        (faq.category || "General") === activeCategory;
+      const inSearch =
+        !searchTerm ||
         faq.question.toLowerCase().includes(lowerCaseSearchTerm) ||
         faq.answer.toLowerCase().includes(lowerCaseSearchTerm);
       return inCategory && inSearch;
@@ -93,8 +104,12 @@ function PublicFaqPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-8 text-center">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">FAQ & Help Center</h1>
-        <p className="mt-4 text-lg text-gray-600">Find the answers to your most common questions below.</p>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">
+          FAQ & Help Center
+        </h1>
+        <p className="mt-4 text-lg text-gray-600">
+          Find the answers to your most common questions below.
+        </p>
       </div>
 
       <div className="faq-v2-container">
@@ -103,11 +118,13 @@ function PublicFaqPage() {
           <div className="faq-v2-sidebar-inner">
             <h2 className="faq-v2-sidebar-title">Categories</h2>
             <nav className="flex flex-col gap-1">
-              {categories.map(category => (
+              {categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => setActiveCategory(category)}
-                  className={`faq-v2-category-link ${activeCategory === category ? 'active' : ''}`}
+                  className={`faq-v2-category-link ${
+                    activeCategory === category ? "active" : ""
+                  }`}
                 >
                   <FaBookOpen />
                   <span>{category}</span>
@@ -133,12 +150,12 @@ function PublicFaqPage() {
           {error && <p className="text-red-500">{error}</p>}
 
           {!loading && filteredFaqs.length === 0 && (
-             <p className="text-center text-gray-500 mt-8">No FAQs found.</p>
+            <p className="text-center text-gray-500 mt-8">No FAQs found.</p>
           )}
 
           {!loading && filteredFaqs.length > 0 && (
             <div className="space-y-4">
-              {filteredFaqs.map(faq => {
+              {filteredFaqs.map((faq) => {
                 const embedUrl = convertYoutubeUrlToEmbed(faq.video_url);
                 return (
                   <details key={faq.id} className="faq-v2-item">
@@ -150,12 +167,20 @@ function PublicFaqPage() {
                       <p>{faq.answer}</p>
                       <div className="faq-v2-media-section">
                         {embedUrl && (
-                          <button onClick={() => openVideoModal(faq.video_url)} className="faq-v2-media-btn video">
+                          <button
+                            onClick={() => openVideoModal(faq.video_url)}
+                            className="faq-v2-media-btn video"
+                          >
                             <FaYoutube /> Watch Video
                           </button>
                         )}
                         {faq.pdf_url && (
-                          <a href={toAbsoluteFileURL(faq.pdf_url)} target="_blank" rel="noopener noreferrer" className="faq-v2-media-btn pdf">
+                          <a
+                            href={toAbsoluteFileURL(faq.pdf_url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="faq-v2-media-btn pdf"
+                          >
                             <FaFilePdf /> View PDF
                           </a>
                         )}
@@ -177,8 +202,15 @@ function PublicFaqPage() {
         className="video-modal" // ⭐ 1. ใช้ class ใหม่สำหรับ Modal
         overlayClassName="ReactModal__Overlay"
       >
-        <div className="video-modal-wrapper"> {/* ⭐ 2. เพิ่ม wrapper สำหรับ aspect ratio */}
-          <button onClick={closeVideoModal} className="video-modal-close-button">&times;</button>
+        <div className="video-modal-wrapper">
+          {" "}
+          {/* ⭐ 2. เพิ่ม wrapper สำหรับ aspect ratio */}
+          <button
+            onClick={closeVideoModal}
+            className="video-modal-close-button"
+          >
+            &times;
+          </button>
           {currentVideoEmbedUrl && (
             <iframe
               src={currentVideoEmbedUrl}

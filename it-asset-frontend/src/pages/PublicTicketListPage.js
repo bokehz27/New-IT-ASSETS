@@ -15,21 +15,31 @@ const publicApi = axios.create({ baseURL: API_URL });
 
 const StatusIcon = ({ status }) => {
   switch (status) {
-    case "In Progress": return <FaSpinner className="animate-spin text-blue-500" />;
-    case "Success":     return <FaCheckCircle className="text-green-500" />;
-    case "Wait":        return <FaClock className="text-yellow-500" />;
-    case "Cancel":      return <FaTimesCircle className="text-red-500" />;
-    default:            return <FaExclamationTriangle className="text-gray-500" />;
+    case "In Progress":
+      return <FaSpinner className="animate-spin text-blue-500" />;
+    case "Success":
+      return <FaCheckCircle className="text-green-500" />;
+    case "Wait":
+      return <FaClock className="text-yellow-500" />;
+    case "Cancel":
+      return <FaTimesCircle className="text-red-500" />;
+    default:
+      return <FaExclamationTriangle className="text-gray-500" />;
   }
 };
 
 const getStatusColor = (status) => {
   switch (status) {
-    case "In Progress": return "status-badge-in-progress";
-    case "Success":     return "status-badge-success";
-    case "Wait":        return "status-badge-wait";
-    case "Cancel":      return "status-badge-cancel";
-    default:            return "bg-gray-200 text-gray-600";
+    case "In Progress":
+      return "status-badge-in-progress";
+    case "Success":
+      return "status-badge-success";
+    case "Wait":
+      return "status-badge-wait";
+    case "Cancel":
+      return "status-badge-cancel";
+    default:
+      return "bg-gray-200 text-gray-600";
   }
 };
 
@@ -60,7 +70,7 @@ export default function PublicTicketListPage() {
       setError("");
 
       const params = { page, limit };
-      if (q?.trim()) params.q = q.trim();        // ✅ ส่งพารามิเตอร์เดียวชื่อ q
+      if (q?.trim()) params.q = q.trim(); // ✅ ส่งพารามิเตอร์เดียวชื่อ q
 
       const res = await publicApi.get(`/public/tickets`, { params });
       setTickets(res.data?.tickets || []);
@@ -77,7 +87,9 @@ export default function PublicTicketListPage() {
     }
   }, [page, limit, q]);
 
-  useEffect(() => { fetchTickets(); }, [fetchTickets]);
+  useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
 
   const onChangeSearch = (e) => {
     const value = e.target.value;
@@ -94,7 +106,8 @@ export default function PublicTicketListPage() {
   };
 
   return (
-    <div className="my-8 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">{/* ✅ กว้างขึ้น */}
+    <div className="my-8 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
+      {/* ✅ กว้างขึ้น */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-3xl font-bold text-gray-900">รายการแจ้งซ่อม</h2>
 
@@ -111,7 +124,6 @@ export default function PublicTicketListPage() {
       <div className="mb-6 p-4 border rounded-lg bg-gray-50">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
           <div className="flex-1">
-            
             <div className="flex items-center gap-2">
               <input
                 type="text"
@@ -133,10 +145,12 @@ export default function PublicTicketListPage() {
           </div>
 
           <div className="md:ml-auto">
-            
             <select
               value={limit}
-              onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setPage(1);
+              }}
               className="rounded border border-gray-300 px-2 py-2"
             >
               <option value={10}>10</option>
@@ -149,7 +163,9 @@ export default function PublicTicketListPage() {
       </div>
 
       {loading ? (
-        <div className="text-center p-16 text-gray-500 text-xl">Loading data...</div>
+        <div className="text-center p-16 text-gray-500 text-xl">
+          Loading data...
+        </div>
       ) : error ? (
         <div className="text-center p-16 text-red-600">{error}</div>
       ) : tickets.length === 0 ? (
@@ -161,14 +177,17 @@ export default function PublicTicketListPage() {
         <>
           {/* ✅ ตารางกว้างขึ้น และเรียงคอลัมน์แบบหน้าแอดมิน */}
           <div className="overflow-x-auto bg-white rounded-lg shadow-md">
-            <table className="min-w-[1100px] w-full text-sm text-left">{/* ✅ min width */}
+            <table className="min-w-[1100px] w-full text-sm text-left">
+              {/* ✅ min width */}
               <thead className="bg-blue-600">
                 <tr>
                   <th className="p-3 font-semibold text-white">วันที่แจ้ง</th>
                   <th className="p-3 font-semibold text-white">รหัสอุปกรณ์</th>
                   <th className="p-3 font-semibold text-white">ชื่อผู้แจ้ง</th>
                   <th className="p-3 font-semibold text-white w-1/4">ปัญหา</th>
-                  <th className="p-3 font-semibold text-white w-1/4">สาเหตุ / วิธีแก้ไข</th>
+                  <th className="p-3 font-semibold text-white w-1/4">
+                    สาเหตุ / วิธีแก้ไข
+                  </th>
                   <th className="p-3 font-semibold text-white">ผู้ดำเนินการ</th>
                   <th className="p-3 font-semibold text-white">สถานะ</th>
                 </tr>
@@ -177,19 +196,37 @@ export default function PublicTicketListPage() {
                 {tickets.map((ticket) => (
                   <tr key={ticket.id} className="hover:bg-gray-50">
                     <td className="p-3 align-middle text-gray-800">
-                      {new Date(ticket.report_date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                      {new Date(ticket.report_date).toLocaleDateString(
+                        "en-GB",
+                        { day: "2-digit", month: "2-digit", year: "numeric" }
+                      )}
                       <br />
-                      {new Date(ticket.report_date).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(ticket.report_date).toLocaleTimeString(
+                        "en-GB",
+                        { hour: "2-digit", minute: "2-digit" }
+                      )}
                     </td>
-                    <td className="p-3 align-middle text-gray-800">{ticket.asset_code}</td>
-                    <td className="p-3 align-middle text-gray-800">{ticket.reporter_name}</td>
+                    <td className="p-3 align-middle text-gray-800">
+                      {ticket.asset_code}
+                    </td>
+                    <td className="p-3 align-middle text-gray-800">
+                      {ticket.reporter_name}
+                    </td>
                     <td className="p-3 align-middle font-medium text-gray-900 break-words">
                       {ticket.problem_description}
                     </td>
-                    <td className="p-3 align-middle text-gray-800 break-words">{ticket.solution || ""}</td>
-                    <td className="p-3 align-middle text-gray-800">{ticket.handler_name || ""}</td>
+                    <td className="p-3 align-middle text-gray-800 break-words">
+                      {ticket.solution || ""}
+                    </td>
+                    <td className="p-3 align-middle text-gray-800">
+                      {ticket.handler_name || ""}
+                    </td>
                     <td className="p-3 align-middle">
-                      <span className={`inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}>
+                      <span
+                        className={`inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                          ticket.status
+                        )}`}
+                      >
                         <StatusIcon status={ticket.status} />
                         {ticket.status}
                       </span>
@@ -206,12 +243,18 @@ export default function PublicTicketListPage() {
               Page {page} of {totalPages} ({totalItems} items)
             </span>
             <div className="flex gap-2">
-              <button onClick={() => setPage((p) => Math.max(p - 1, 1))} disabled={page === 1}
-                className="bg-gray-200 text-gray-700 px-3 py-1 rounded disabled:opacity-50">
+              <button
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                disabled={page === 1}
+                className="bg-gray-200 text-gray-700 px-3 py-1 rounded disabled:opacity-50"
+              >
                 Previous
               </button>
-              <button onClick={() => setPage((p) => Math.min(p + 1, totalPages))} disabled={page === totalPages}
-                className="bg-gray-200 text-gray-700 px-3 py-1 rounded disabled:opacity-50">
+              <button
+                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                disabled={page === totalPages}
+                className="bg-gray-200 text-gray-700 px-3 py-1 rounded disabled:opacity-50"
+              >
                 Next
               </button>
             </div>
@@ -223,7 +266,10 @@ export default function PublicTicketListPage() {
       <PublicTicketFormModal
         open={openForm}
         onClose={() => setOpenForm(false)}
-        onSubmitted={() => { setPage(1); fetchTickets(); }}
+        onSubmitted={() => {
+          setPage(1);
+          fetchTickets();
+        }}
       />
     </div>
   );

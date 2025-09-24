@@ -11,15 +11,15 @@ html {
    # พื้นฐานและตัวแปรหลัก (Root & Base Styles)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
 
 /* --- ตัวแปรสีและเงาหลักสำหรับธีม (Modern & Sharp) --- */
 :root {
   /* [STYLE UPDATE] ชุดสีหลัก (โทน Slate Blue / Gray) */
-  --color-primary: #1976D2;
+  --color-primary: #1976d2;
   --color-primary-light: #64b5f6;
-  --color-primary-dark: #0D47A1;
-  --color-secondary: #14b8a6;      /* สีเขียวอมฟ้า (Teal) */
+  --color-primary-dark: #0d47a1;
+  --color-secondary: #14b8a6; /* สีเขียวอมฟ้า (Teal) */
   --color-secondary-light: #2dd4bf;
   --color-secondary-dark: #0d9488;
 
@@ -43,15 +43,19 @@ html {
 
   /* [STYLE UPDATE] ลดระดับเงา เน้นความ Flat และใช้เส้นขอบแทน */
   --elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --elevation-2: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  --elevation-4: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --elevation-6: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  --elevation-8: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --elevation-2: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --elevation-4: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --elevation-6: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --elevation-8: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
   --elevation-16: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   background-color: var(--color-background);
   color: var(--color-text-primary);
 }
@@ -63,7 +67,6 @@ body {
   background: var(--color-primary); /* [STYLE UPDATE] ทำให้ Header เป็นสีฟ้า */
   color: #ffffff; /* ทำให้ตัวหนังสือหลักเป็นสีขาว */
   box-shadow: var(--elevation-2);
-  
 }
 .nav-link-vibrant {
   color: #ffffff; /* ทำให้ตัวหนังสือลิงก์เป็นสีขาว */
@@ -74,12 +77,22 @@ body {
 }
 
 .nav-link-vibrant:hover {
-  background-color: rgba(255, 255, 255, 0.15); /* เพิ่มไฮไลท์เล็กน้อยเมื่อเมาส์ชี้ */
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.15
+  ); /* เพิ่มไฮไลท์เล็กน้อยเมื่อเมาส์ชี้ */
   color: #ffffff;
 }
 
 .nav-link-vibrant.active {
-  background-color: rgba(255, 255, 255, 0.15); /* [STYLE UPDATE] พื้นหลังเมนูที่เลือกเป็นสีขาว */
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.15
+  ); /* [STYLE UPDATE] พื้นหลังเมนูที่เลือกเป็นสีขาว */
   color: #ffffff; /* [STYLE UPDATE] ตัวหนังสือเมนูที่เลือกเป็นสีฟ้า */
   font-weight: 500;
 }
@@ -105,8 +118,8 @@ body {
   background-color: var(--color-background);
 }
 .nav-dropdown-vibrant a.active {
-    background-color: var(--color-background);
-    font-weight: bold;
+  background-color: var(--color-background);
+  font-weight: bold;
 }
 
 /* --- ปุ่ม CTA --- */
@@ -124,16 +137,26 @@ body {
 
 /* --- เมนูสำหรับ Mobile --- */
 .mobile-menu-overlay-vibrant {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: var(--color-surface);
-  z-index: 40; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  overflow-y: auto; padding: 4rem 1rem;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 4rem 1rem;
 }
 .mobile-menu-overlay-vibrant .mobile-nav-link {
-  font-size: 1.5rem; font-weight: 500;
+  font-size: 1.5rem;
+  font-weight: 500;
   color: var(--color-text-secondary);
-  padding: 1rem; border-radius: 8px;
+  padding: 1rem;
+  border-radius: 8px;
   transition: all 0.2s ease;
 }
 .mobile-menu-overlay-vibrant .mobile-nav-link.active {
@@ -142,30 +165,33 @@ body {
   background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 .mobile-menu-overlay-vibrant .mobile-logout-button {
-  margin-top: 3rem; padding: 0.75rem 2rem;
+  margin-top: 3rem;
+  padding: 0.75rem 2rem;
   color: var(--color-error);
   border: 1px solid var(--color-error);
-  background-color: transparent; border-radius: 8px;
+  background-color: transparent;
+  border-radius: 8px;
   transition: all 0.2s ease;
 }
 .mobile-menu-overlay-vibrant .mobile-logout-button:hover {
   background-color: color-mix(in srgb, var(--color-error) 10%, transparent);
 }
 
-
 /* ==========================================================================
    # องค์ประกอบทั่วไป (General Components)
    ========================================================================== */
 
 /* [STYLE UPDATE] Card จะไม่มีเงา แต่ใช้เส้นขอบแทน และมุมที่คมขึ้น */
-.card, .bg-white {
+.card,
+.bg-white {
   background-color: var(--color-surface);
   border-radius: 6px;
   border: 1px solid var(--color-divider);
   box-shadow: none;
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-.card:hover, .bg-white:hover {
+.card:hover,
+.bg-white:hover {
   border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
   box-shadow: var(--elevation-2); /* เพิ่มเงานิดหน่อยตอน hover */
 }
@@ -179,7 +205,9 @@ body {
   box-shadow: none;
   border: 1px solid transparent;
   display: inline-flex;
-  align-items: center; justify-content: center; gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 .btn:hover {
   filter: brightness(95%);
@@ -193,12 +221,17 @@ body {
   background-color: var(--color-primary-dark);
   border-color: var(--color-primary-dark);
 }
-.bg-blue-500, .bg-blue-600, .bg-indigo-600, .bg-green-600 {
+.bg-blue-500,
+.bg-blue-600,
+.bg-indigo-600,
+.bg-green-600 {
   background-color: var(--color-primary) !important;
   color: var(--color-text-on-primary) !important;
   box-shadow: none !important;
 }
-.hover\:bg-blue-700:hover, .hover\:bg-indigo-700:hover, .hover\:bg-green-700:hover {
+.hover\:bg-blue-700:hover,
+.hover\:bg-indigo-700:hover,
+.hover\:bg-green-700:hover {
   background-color: var(--color-primary-dark) !important;
 }
 .disabled\:bg-gray-400:disabled {
@@ -212,8 +245,12 @@ body {
    ========================================================================== */
 
 /* [STYLE UPDATE] ฟอร์มมุมคมขึ้น และ focus ring แบบใหม่ */
-.form-input, .form-textarea,
-input[type="text"], input[type="password"], textarea, select {
+.form-input,
+.form-textarea,
+input[type="text"],
+input[type="password"],
+textarea,
+select {
   background-color: #fff !important;
   border: 1px solid var(--color-divider) !important;
   color: var(--color-text-primary) !important;
@@ -222,10 +259,15 @@ input[type="text"], input[type="password"], textarea, select {
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   box-shadow: none !important;
 }
-.form-input:focus, .form-textarea:focus,
-input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:focus {
+.form-input:focus,
+.form-textarea:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
   outline: none !important;
 }
 
@@ -233,18 +275,21 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
 .react-select__control {
   background-color: #fff !important;
   border: 1px solid var(--color-divider) !important;
-  border-radius: 6px !important; min-height: 42px;
+  border-radius: 6px !important;
+  min-height: 42px;
   box-shadow: none !important;
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 .react-select__control--is-focused {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
 }
 .react-select__menu {
   background-color: var(--color-surface) !important;
   box-shadow: var(--elevation-8) !important;
-  border-radius: 6px !important; z-index: 20;
+  border-radius: 6px !important;
+  z-index: 20;
   border: 1px solid var(--color-divider);
 }
 
@@ -261,8 +306,10 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
 }
 .table-action-button {
   padding: 0.5rem 0.75rem !important;
-  font-size: 0.8rem !important; font-weight: 500 !important;
-  box-shadow: none !important; border-radius: 6px !important;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  border-radius: 6px !important;
 }
 
 /* ==========================================================================
@@ -333,7 +380,6 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   stroke: var(--color-text-on-primary);
 }
 
-
 /* ==========================================================================
    # Modal (หน้าต่าง Pop-up)
    ========================================================================== */
@@ -394,7 +440,6 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   transform: scale(1.1);
 }
 
-
 /* ==========================================================================
    # Animation
    ========================================================================== */
@@ -411,8 +456,6 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
 .animate-fade-in-slide-down {
   animation: fadeInSlideDown 0.5s ease-out forwards;
 }
-
-
 
 /* ==========================================================================
    # สไตล์สำหรับหน้า Switch List Page
@@ -433,7 +476,9 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   align-items: center;
   padding: 0.75rem 1rem;
   background-color: var(--color-primary); /* ⭐ เปลี่ยนให้ใช้สีเดียวกับปุ่ม */
-  color: var(--color-text-on-primary); /* ⭐ ใช้สีตัวอักษรจาก Theme เพื่อความสอดคล้อง */
+  color: var(
+    --color-text-on-primary
+  ); /* ⭐ ใช้สีตัวอักษรจาก Theme เพื่อความสอดคล้อง */
 }
 
 .switch-list-header .icon {
@@ -473,7 +518,7 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   gap: 0.5rem; /* 8px */
   position: absolute;
   right: 0.75rem; /* 12px */
-  
+
   /* ซ่อนปุ่มในสถานะปกติ */
   opacity: 0;
   transform: translateX(5px);
@@ -502,8 +547,6 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   background-color: color-mix(in srgb, var(--color-error) 15%, transparent);
 }
 
-
-
 /* ==========================================================================
    # สไตล์สำหรับหน้า Switch/Port Management (ดีไซน์ใหม่)
    ========================================================================== */
@@ -518,7 +561,7 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  align-items: flex-start; 
+  align-items: flex-start;
 }
 
 /* --- แถวของ Port --- */
@@ -531,8 +574,8 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
 /* --- ช่อง Port แต่ละช่อง (Slot) --- */
 .port-slot {
   position: relative;
-  width: 40px;      /* CHANGED: ลดความกว้าง */
-  height: 40px;     /* CHANGED: ลดความสูง */
+  width: 40px; /* CHANGED: ลดความกว้าง */
+  height: 40px; /* CHANGED: ลดความสูง */
   background-color: #4a5568;
   border-radius: 4px;
   border-top: 1px solid #718096;
@@ -557,12 +600,12 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
 .port-slot.status-up::before,
 .port-slot.status-uplink::before,
 .port-slot.status-down::before {
-  content: '';
+  content: "";
   position: absolute;
-  top: 4px;         /* CHANGED: ปรับตำแหน่ง */
-  right: 4px;        /* CHANGED: ปรับตำแหน่ง */
-  width: 6px;         /* CHANGED: ลดขนาด LED */
-  height: 6px;        /* CHANGED: ลดขนาด LED */
+  top: 4px; /* CHANGED: ปรับตำแหน่ง */
+  right: 4px; /* CHANGED: ปรับตำแหน่ง */
+  width: 6px; /* CHANGED: ลดขนาด LED */
+  height: 6px; /* CHANGED: ลดขนาด LED */
   border-radius: 50%;
   background-color: #ccc;
 }
@@ -583,9 +626,15 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
 }
 
 /* --- สไตล์ของ Port ตามสถานะต่างๆ --- */
-.port-slot.status-up { border-color: var(--color-success); }
-.port-slot.status-uplink { border-color: var(--color-primary); }
-.port-slot.status-down { border-color: var(--color-error) }
+.port-slot.status-up {
+  border-color: var(--color-success);
+}
+.port-slot.status-uplink {
+  border-color: var(--color-primary);
+}
+.port-slot.status-down {
+  border-color: var(--color-error);
+}
 .port-slot.status-disabled {
   background-color: #2d3748;
   border-style: dashed;
@@ -616,10 +665,9 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   color: #63b3ed;
 }
 .port-slot-note-icon svg {
-  width: 10px;       /* CHANGED: ลดขนาดไอคอน */
-  height: 10px;      /* CHANGED: ลดขนาดไอคอน */
+  width: 10px; /* CHANGED: ลดขนาดไอคอน */
+  height: 10px; /* CHANGED: ลดขนาดไอคอน */
 }
-
 
 /* ==========================================================================
    # สไตล์สำหรับหน้า Import Page
@@ -652,7 +700,6 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   border-color: color-mix(in srgb, var(--color-success) 90%, black);
 }
 
-
 /* --- (เพิ่มใหม่) ปุ่มสำหรับไอคอนโปรไฟล์ --- */
 .profile-button-vibrant {
   color: #ffffff;
@@ -673,8 +720,6 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
 .ghost-button-vibrant:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
-
-
 
 /* [REDESIGN] =================================================================== */
 /* # ดีไซน์ใหม่สำหรับหน้า Switch Infrastructure Dashboard                       */
@@ -758,8 +803,12 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   border-radius: 50%;
   flex-shrink: 0;
 }
-.rack-status-indicator.ok { background-color: var(--color-success); }
-.rack-status-indicator.issue { background-color: var(--color-error); }
+.rack-status-indicator.ok {
+  background-color: var(--color-success);
+}
+.rack-status-indicator.issue {
+  background-color: var(--color-error);
+}
 .rack-switch-count {
   font-size: 0.8rem;
   font-weight: 500;
@@ -787,7 +836,6 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
-
 /* --- New Switch Item (inside card) --- */
 .switch-item-new {
   display: flex;
@@ -807,8 +855,12 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   flex-shrink: 0;
   background-color: var(--color-text-disabled);
 }
-.switch-status-dot.up { background-color: var(--color-success); }
-.switch-status-dot.down { background-color: var(--color-error); }
+.switch-status-dot.up {
+  background-color: var(--color-success);
+}
+.switch-status-dot.down {
+  background-color: var(--color-error);
+}
 
 .switch-actions-trigger {
   color: var(--color-text-secondary);
@@ -853,60 +905,65 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   color: var(--color-error);
 }
 
-
 /* ==========================================================================
    # BitLocker File Attachment (ดีไซน์ใหม่)
    ========================================================================== */
 /* ================= BitLocker (Refined) ================ */
-.bitlocker-section{
+.bitlocker-section {
   /* กล่องเรียบเหมือน Detail อื่น ๆ */
   padding: 0.75rem 1rem;
   border: 1px solid var(--color-divider);
   border-radius: 6px;
   background: transparent;
-  transition: border-color .2s ease, box-shadow .2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.bitlocker-section:hover{
+.bitlocker-section:hover {
   border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
   box-shadow: var(--elevation-2);
 }
 
 /* ลิงก์ดาวน์โหลด */
-.bitlocker-link{
+.bitlocker-link {
   color: var(--color-primary);
   font-weight: 500;
   text-decoration: underline;
 }
-.bitlocker-link:hover{ color: var(--color-primary-dark); }
+.bitlocker-link:hover {
+  color: var(--color-primary-dark);
+}
 
 /* อินพุตเลือกไฟล์ให้หน้าตาเข้ากับ input อื่น ๆ */
-.bitlocker-input{
+.bitlocker-input {
   border: 1px solid var(--color-divider);
   border-radius: 6px;
   padding: 10px 12px;
   background: #fff;
-  font-size: .875rem;
-  transition: border-color .2s ease, box-shadow .2s ease;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.bitlocker-input:hover{ border-color: var(--color-primary); }
-.bitlocker-input:focus{
+.bitlocker-input:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+.bitlocker-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-primary) 20%, transparent);
   outline: none;
 }
 
 /* (ออปชัน) ปุ่มลบสไตล์ Danger แบบเรียบ */
-.btn-danger-outline{
+.btn-danger-outline {
   background: transparent;
   color: var(--color-error);
   border: 1px solid var(--color-error);
-  padding: .4rem .75rem;
+  padding: 0.4rem 0.75rem;
   border-radius: 6px;
   font-weight: 600;
-  font-size: .85rem;
-  transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+  font-size: 0.85rem;
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease;
 }
-.btn-danger-outline:hover{
+.btn-danger-outline:hover {
   background: color-mix(in srgb, var(--color-error) 10%, transparent);
   color: var(--color-error);
   border-color: color-mix(in srgb, var(--color-error) 85%, black);
@@ -921,7 +978,6 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:f
   border-color: #3b82f6;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
-
 
 /* =======================
    FAQ Page Redesign

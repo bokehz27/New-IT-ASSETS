@@ -1,23 +1,23 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import axios from "axios";
 
 const AuthContext = createContext(null);
 
 // --- กำหนด API URL จาก .env ---
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(localStorage.getItem("token"));
   const [loading, setLoading] = useState(true); // เริ่มต้นด้วยสถานะ loading
 
   // --- ฟังก์ชัน Logout ที่จะถูกเรียกใช้จากหลายที่ ---
-const logout = () => {
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['x-auth-token'];
+  const logout = () => {
+    localStorage.removeItem("token");
+    delete axios.defaults.headers.common["x-auth-token"];
     setToken(null);
     setUser(null);
-    window.location.href = '/login'; // <-- เพิ่มบรรทัดนี้
+    window.location.href = "/login"; // <-- เพิ่มบรรทัดนี้
   };
 
   useEffect(() => {
@@ -35,9 +35,9 @@ const logout = () => {
 
     // --- 2. ตรวจสอบ Token ที่ค้างอยู่ตอนเปิดแอปครั้งแรก ---
     const verifyToken = async () => {
-      const storedToken = localStorage.getItem('token');
+      const storedToken = localStorage.getItem("token");
       if (storedToken) {
-        axios.defaults.headers.common['x-auth-token'] = storedToken;
+        axios.defaults.headers.common["x-auth-token"] = storedToken;
         try {
           // ยิง API ไปให้ Backend ตรวจสอบว่า Token นี้ยังใช้ได้หรือไม่
           const res = await axios.get(`${API_URL}/auth/verify`);
@@ -66,34 +66,36 @@ const logout = () => {
         password,
       });
       const { token, user } = res.data;
-      localStorage.setItem('token', token);
-      axios.defaults.headers.common['x-auth-token'] = token;
+      localStorage.setItem("token", token);
+      axios.defaults.headers.common["x-auth-token"] = token;
       setToken(token);
       setUser(user);
       return res;
     } catch (err) {
-      console.error('Login failed:', err.response?.data);
+      console.error("Login failed:", err.response?.data);
       throw err;
     }
   };
 
   const register = async (username, password, role = "it_staff") => {
-  try {
-    const res = await axios.post(`${API_URL}/auth/register`, {
-      username,
-      password,
-      role,
-    });
-    return res.data; // { id, username, role }
-  } catch (err) {
-    console.error("Register failed:", err.response?.data);
-    throw err;
-  }
-};
+    try {
+      const res = await axios.post(`${API_URL}/auth/register`, {
+        username,
+        password,
+        role,
+      });
+      return res.data; // { id, username, role }
+    } catch (err) {
+      console.error("Register failed:", err.response?.data);
+      throw err;
+    }
+  };
 
   // ไม่ต้องส่ง loading แล้ว เพราะเราจะรอจนกว่าจะเช็ค Token เสร็จ
   return (
-    <AuthContext.Provider value={{ token, user, login, logout, register, loading }}>
+    <AuthContext.Provider
+      value={{ token, user, login, logout, register, loading }}
+    >
       {!loading && children}
     </AuthContext.Provider>
   );

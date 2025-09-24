@@ -35,7 +35,7 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
   const handleFormSubmit = async (data) => {
     // ส่งทั้งข้อมูลฟอร์มและไฟล์กลับไปให้ Page จัดการ
     // ไม่ต้องทำการอัปโหลดในนี้แล้ว
-    await onSubmit({ data, file: bitlockerFile }); 
+    await onSubmit({ data, file: bitlockerFile });
 
     // ** หมายเหตุ: ตรรกะการลบไฟล์ในหน้า Edit ยังคงใช้ได้ แต่การอัปโหลดจะถูกย้ายไป **
     if (removeFile && isEditing) {

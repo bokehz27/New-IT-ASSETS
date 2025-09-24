@@ -1,17 +1,17 @@
 // routes/portRoutes.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const SwitchPort = require('../models/SwitchPort');
+const SwitchPort = require("../models/SwitchPort");
 
 /**
  * @route   PUT /api/ports/:portId
  * @desc    อัปเดตข้อมูลของพอร์ตที่ระบุ
  * @access  Private
  */
-router.put('/:portId', async (req, res) => {
+router.put("/:portId", async (req, res) => {
   try {
     const { portId } = req.params;
-    
+
     // 1. ลบ connectedTo ออกจากการรับข้อมูล
     const { lanCableId, notes, status, vlan } = req.body;
 
@@ -30,10 +30,11 @@ router.put('/:portId', async (req, res) => {
     await port.save();
 
     res.json({ message: "Port updated successfully", port });
-
   } catch (error) {
     console.error("Error updating port:", error);
-    res.status(500).json({ message: "Error updating port", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error updating port", error: error.message });
   }
 });
 

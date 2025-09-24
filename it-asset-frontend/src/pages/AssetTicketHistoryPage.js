@@ -85,12 +85,15 @@ function AssetTicketHistoryPage() {
     fetchHistory();
   };
 
-  if (loading) return <div className="text-center p-10">Loading history...</div>;
+  if (loading)
+    return <div className="text-center p-10">Loading history...</div>;
 
   return (
     <div className="my-8 px-4 sm:px-6 lg:px-8">
       <div className="bg-white p-6 md:p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-2 text-gray-700">Repair History</h2>
+        <h2 className="text-2xl font-bold mb-2 text-gray-700">
+          Repair History
+        </h2>
         <p className="mb-6 text-gray-500">
           For IT Asset :{" "}
           <span className="font-semibold text-gray-800">{assetCode}</span>
@@ -101,32 +104,46 @@ function AssetTicketHistoryPage() {
             <table className="w-full text-sm text-left table-fixed">
               <thead className="bg-blue-600">
                 <tr>
-                  <th className="p-3 font-semibold text-white w-48">Reported Date</th>
-                  <th className="p-3 font-semibold text-white w-40">Reporter</th>
+                  <th className="p-3 font-semibold text-white w-48">
+                    Reported Date
+                  </th>
+                  <th className="p-3 font-semibold text-white w-40">
+                    Reporter
+                  </th>
                   <th className="p-3 font-semibold text-white">Issue</th>
                   <th className="p-3 font-semibold text-white">Solution</th>
                   <th className="p-3 font-semibold text-white w-32">Status</th>
                   <th className="p-3 font-semibold text-white w-40">Handler</th>
-                  <th className="p-3 font-semibold text-white text-center w-24">Actions</th>
+                  <th className="p-3 font-semibold text-white text-center w-24">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {tickets.map((ticket) => (
                   <tr key={ticket.id} className="hover:bg-gray-50">
                     <td className="p-3 align-middle whitespace-nowrap">
-                      {new Date(ticket.report_date).toLocaleDateString("en-US", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
+                      {new Date(ticket.report_date).toLocaleDateString(
+                        "en-US",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        }
+                      )}
                       <br />
-                      {new Date(ticket.report_date).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {new Date(ticket.report_date).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
                     </td>
                     <td className="p-3 align-middle">{ticket.reporter_name}</td>
-                    <td className="p-3 align-middle break-words">{ticket.problem_description}</td>
+                    <td className="p-3 align-middle break-words">
+                      {ticket.problem_description}
+                    </td>
                     <td className="p-3 align-middle break-words">
                       {ticket.solution || "N/A"}
                     </td>

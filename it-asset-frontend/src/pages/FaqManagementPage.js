@@ -35,7 +35,6 @@ const convertYoutubeUrlToEmbed = (url) => {
   return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : null;
 };
 
-
 function FaqManagementPage() {
   const [faqs, setFaqs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +43,7 @@ function FaqManagementPage() {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [selectedFaqId, setSelectedFaqId] = useState(null);
   const [modalMode, setModalMode] = useState("create");
-  
+
   // State สำหรับ Video Modal
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
@@ -122,7 +121,6 @@ function FaqManagementPage() {
       ) : (
         <div className="overflow-x-auto bg-white rounded-lg shadow-md">
           <table className="w-full text-sm text-left">
-            
             {/* ⭐ (สำคัญ) เพิ่ม Thead ที่หายไปกลับเข้ามา */}
             <thead className="bg-blue-600 text-white">
               <tr>
@@ -137,11 +135,18 @@ function FaqManagementPage() {
             <tbody className="divide-y divide-gray-200">
               {faqs.map((faq) => (
                 <tr key={faq.id} className="hover:bg-gray-50">
-                  <td className="p-3 align-middle text-gray-800">{faq.category || "-"}</td>
-                  <td className="p-3 align-middle font-medium text-gray-900">{faq.question}</td>
+                  <td className="p-3 align-middle text-gray-800">
+                    {faq.category || "-"}
+                  </td>
+                  <td className="p-3 align-middle font-medium text-gray-900">
+                    {faq.question}
+                  </td>
                   <td className="p-3 align-middle text-center">
                     {faq.video_url ? (
-                      <button onClick={() => openVideoModal(faq.video_url)} title="Watch Video">
+                      <button
+                        onClick={() => openVideoModal(faq.video_url)}
+                        title="Watch Video"
+                      >
                         <FaVideo className="text-green-500 mx-auto text-lg cursor-pointer hover:text-green-700" />
                       </button>
                     ) : (
@@ -150,7 +155,12 @@ function FaqManagementPage() {
                   </td>
                   <td className="p-3 align-middle text-center">
                     {faq.pdf_url ? (
-                      <a href={toAbsoluteFileURL(faq.pdf_url)} target="_blank" rel="noopener noreferrer" title="View PDF">
+                      <a
+                        href={toAbsoluteFileURL(faq.pdf_url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="View PDF"
+                      >
                         <FaFilePdf className="text-red-500 mx-auto text-lg cursor-pointer hover:text-red-700" />
                       </a>
                     ) : (
@@ -158,22 +168,22 @@ function FaqManagementPage() {
                     )}
                   </td>
                   <td className="p-3 align-middle whitespace-nowrap">
-                     <div className="flex justify-center items-center gap-2">
-                        <button
-                          onClick={() => openFormModal("update", faq.id)}
-                          className="bg-blue-500 hover:bg-blue-600 table-action-button"
-                          title="Update"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(faq.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white table-action-button"
-                          title="Delete"
-                        >
-                          <FaTrashAlt />
-                        </button>
-                      </div>
+                    <div className="flex justify-center items-center gap-2">
+                      <button
+                        onClick={() => openFormModal("update", faq.id)}
+                        className="bg-blue-500 hover:bg-blue-600 table-action-button"
+                        title="Update"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(faq.id)}
+                        className="bg-red-500 hover:bg-red-600 text-white table-action-button"
+                        title="Delete"
+                      >
+                        <FaTrashAlt />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -190,7 +200,9 @@ function FaqManagementPage() {
         className="ReactModal__Content form-modal-content"
         overlayClassName="ReactModal__Overlay"
       >
-        <button onClick={closeFormModal} className="modal-close-button">&times;</button>
+        <button onClick={closeFormModal} className="modal-close-button">
+          &times;
+        </button>
         <FaqFormModal
           mode={modalMode}
           faqId={selectedFaqId}
@@ -208,7 +220,12 @@ function FaqManagementPage() {
         overlayClassName="ReactModal__Overlay"
       >
         <div className="video-modal-wrapper">
-          <button onClick={closeVideoModal} className="video-modal-close-button">&times;</button>
+          <button
+            onClick={closeVideoModal}
+            className="video-modal-close-button"
+          >
+            &times;
+          </button>
           {currentVideoUrl && (
             <iframe
               src={currentVideoUrl}

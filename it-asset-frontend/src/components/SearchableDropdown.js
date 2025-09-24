@@ -275,7 +275,12 @@ export default function SearchableDropdown({
                       {opt.label}
                     </span>
                     {selected?.value === opt.value && (
-                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                      >
                         <path
                           d="M16 6l-7.5 8L4 9.5"
                           stroke="currentColor"

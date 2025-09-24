@@ -1,14 +1,14 @@
 // src/pages/EditAssetPage.js
 
-import React, { useState, useEffect } from 'react';
-import api from '../api';
-import { useNavigate, useParams } from 'react-router-dom';
-import AssetForm from '../components/AssetForm';
+import React, { useState, useEffect } from "react";
+import api from "../api";
+import { useNavigate, useParams } from "react-router-dom";
+import AssetForm from "../components/AssetForm";
 
 function EditAssetPage() {
   const navigate = useNavigate();
   const { assetId } = useParams();
-  
+
   const [formData, setFormData] = useState(null);
   const [masterData, setMasterData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,37 +20,52 @@ function EditAssetPage() {
         setLoading(true);
 
         const masterDataTypes = [
-          'category', 'subcategory', 'brand', 'ram', 'storage', 
-          'department', 'location', 'status',
-          'windows', 'office', 'antivirus',
-          'special_program'
+          "category",
+          "subcategory",
+          "brand",
+          "ram",
+          "storage",
+          "department",
+          "location",
+          "status",
+          "windows",
+          "office",
+          "antivirus",
+          "special_program",
         ];
 
-        const masterDataRequests = masterDataTypes.map(type => api.get(`/master-data/${type}`));
+        const masterDataRequests = masterDataTypes.map((type) =>
+          api.get(`/master-data/${type}`)
+        );
         const assetRequest = api.get(`/assets/${assetId}`);
         const employeesRequest = api.get(`/employees`);
 
-        const [assetResponse, employeesResponse, ...masterDataResponses] = await Promise.all([
-          assetRequest, 
-          employeesRequest, 
-          ...masterDataRequests
-        ]);
+        const [assetResponse, employeesResponse, ...masterDataResponses] =
+          await Promise.all([
+            assetRequest,
+            employeesRequest,
+            ...masterDataRequests,
+          ]);
 
         const fetchedMasterData = masterDataTypes.reduce((acc, type, index) => {
-          acc[type] = masterDataResponses[index].data.map(item => item.value);
+          acc[type] = masterDataResponses[index].data.map((item) => item.value);
           return acc;
         }, {});
-        
-        fetchedMasterData.user_name = employeesResponse.data.map(emp => emp.fullName);
+
+        fetchedMasterData.user_name = employeesResponse.data.map(
+          (emp) => emp.fullName
+        );
         setMasterData(fetchedMasterData);
 
         const asset = assetResponse.data;
 
         setFormData({
           ...asset,
-          start_date: asset.start_date ? new Date(asset.start_date).toISOString().split('T')[0] : '',
+          start_date: asset.start_date
+            ? new Date(asset.start_date).toISOString().split("T")[0]
+            : "",
           bitlockerKeys: asset.bitlockerKeys || [],
-          specialPrograms: asset.specialPrograms || []
+          specialPrograms: asset.specialPrograms || [],
         });
 
         setError(null);
@@ -71,7 +86,7 @@ function EditAssetPage() {
 
     // 'data' ในที่นี้คือข้อมูลจากฟอร์มโดยตรง
     const payload = { ...data };
-    if (!payload.start_date || String(payload.start_date).trim() === '') {
+    if (!payload.start_date || String(payload.start_date).trim() === "") {
       payload.start_date = null;
     }
 
@@ -84,7 +99,7 @@ function EditAssetPage() {
         const formDataUpload = new FormData();
         formDataUpload.append("file", file);
         await api.post(`/assets/${assetId}/upload-bitlocker`, formDataUpload, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+          headers: { "Content-Type": "multipart/form-data" },
         });
       }
 
@@ -98,7 +113,8 @@ function EditAssetPage() {
 
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-600">{error}</div>;
-  if (!formData || !masterData) return <div className="p-4">No data found for editing.</div>;
+  if (!formData || !masterData)
+    return <div className="p-4">No data found for editing.</div>;
 
   return (
     <AssetForm

@@ -14,60 +14,61 @@ router.get("/summary", async (req, res) => {
 
     // 2. กรอง field ที่ไม่ต้องการตรวจสอบออก (เช่น primary key, timestamps)
     const fieldsToCheck = assetAttributes.filter(
-        (attr) =>
-          ![
-            "id",
-            //"model",
-            //"category",
-            //"subcategory",
-            //"ram",
-            //"cpu",
-            //"storage",
-            //"device_id",
-            //"ip_address",
-            //"wifi_registered",
-            //"mac_address_lan",
-            //"mac_address_wifi",
-            //"serial_number",
-            //"brand",
-            //"start_date",
-            //"location",
-            //"fin_asset_ref",
-            //"user_id",
-            //"user_name",
-            //"department",
-            //"status",
-            "createdAt",
-            "updatedAt",
-            "windows_version",
-            "windows_key",
-            "office_version",
-            "office_key",
-            "antivirus",
-            "bitlocker_file_url"
-          ].includes(attr)
-      );
+      (attr) =>
+        ![
+          "id",
+          //"model",
+          //"category",
+          //"subcategory",
+          //"ram",
+          //"cpu",
+          //"storage",
+          //"device_id",
+          //"ip_address",
+          //"wifi_registered",
+          //"mac_address_lan",
+          //"mac_address_wifi",
+          //"serial_number",
+          //"brand",
+          //"start_date",
+          //"location",
+          //"fin_asset_ref",
+          //"user_id",
+          //"user_name",
+          //"department",
+          //"status",
+          "createdAt",
+          "updatedAt",
+          "windows_version",
+          "windows_key",
+          "office_version",
+          "office_key",
+          "antivirus",
+          "bitlocker_file_url",
+        ].includes(attr)
+    );
 
     // 3. สร้างเงื่อนไขสำหรับ Query โดยเช็ค NULL (ทุก field) และ '' (เฉพาะ field ที่เป็นตัวอักษร)
-const assetAttributesWithTypes = Asset.rawAttributes;
+    const assetAttributesWithTypes = Asset.rawAttributes;
 
-const orConditions = fieldsToCheck.reduce((acc, field) => {
-  const attributeType = assetAttributesWithTypes[field].type.constructor.name;
+    const orConditions = fieldsToCheck.reduce((acc, field) => {
+      const attributeType =
+        assetAttributesWithTypes[field].type.constructor.name;
 
-  // 1. ตรวจสอบ NULL สำหรับทุกประเภท Field
-  acc.push({ [field]: { [Op.eq]: null } });
+      // 1. ตรวจสอบ NULL สำหรับทุกประเภท Field
+      acc.push({ [field]: { [Op.eq]: null } });
 
-  // 2. ตรวจสอบ Empty String ('') เฉพาะ Field ที่เป็นประเภท STRING หรือ TEXT
-  if (attributeType === 'STRING' || attributeType === 'TEXT') {
-    acc.push({ [field]: { [Op.eq]: '' } });
-  }
-  
-  return acc;
-}, []);
+      // 2. ตรวจสอบ Empty String ('') เฉพาะ Field ที่เป็นประเภท STRING หรือ TEXT
+      if (attributeType === "STRING" || attributeType === "TEXT") {
+        acc.push({ [field]: { [Op.eq]: "" } });
+      }
 
-const incompleteAssetConditions = {
-  [Op.or]: orConditions
-};
+      return acc;
+    }, []);
+
+    const incompleteAssetConditions = {
+      [Op.or]: orConditions,
+    };
 
     const [
       assetCount,

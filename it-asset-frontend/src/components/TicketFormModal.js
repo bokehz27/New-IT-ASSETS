@@ -78,12 +78,13 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
       const token = localStorage.getItem("token");
       const headers = { headers: { "x-auth-token": token } };
 
-      const [assetRes, adminRes, repairTypeRes, reporterRes] = await Promise.all([
-        axios.get(`${API_URL}/public/assets-list`, headers),
-        axios.get(`${API_URL}/users`, headers),
-        axios.get(`${API_URL}/master-data/repair_type`, headers),
-        axios.get(`${API_URL}/public/asset-users`, headers),
-      ]);
+      const [assetRes, adminRes, repairTypeRes, reporterRes] =
+        await Promise.all([
+          axios.get(`${API_URL}/public/assets-list`, headers),
+          axios.get(`${API_URL}/users`, headers),
+          axios.get(`${API_URL}/master-data/repair_type`, headers),
+          axios.get(`${API_URL}/public/asset-users`, headers),
+        ]);
 
       setOptions({
         assetOptions: (assetRes.data || []).map((a) => ({
@@ -105,7 +106,10 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
       });
 
       if (mode === "update" && ticketId) {
-        const ticketRes = await axios.get(`${API_URL}/tickets/${ticketId}`, headers);
+        const ticketRes = await axios.get(
+          `${API_URL}/tickets/${ticketId}`,
+          headers
+        );
         const data = ticketRes.data || {};
 
         setTicketData({
@@ -143,7 +147,11 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!ticketData.reporterName || !ticketData.assetCode || !ticketData.problemDescription) {
+    if (
+      !ticketData.reporterName ||
+      !ticketData.assetCode ||
+      !ticketData.problemDescription
+    ) {
       setMessage("Please fill in all required fields.");
       return;
     }
@@ -195,7 +203,10 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
         fdCreate.append("problem_description", ticketData.problemDescription);
         if (userFile) fdCreate.append("attachment_user", userFile);
 
-        const createRes = await axios.post(`${API_URL}/public/tickets`, fdCreate);
+        const createRes = await axios.post(
+          `${API_URL}/public/tickets`,
+          fdCreate
+        );
         const newId = createRes?.data?.id;
         if (!newId) throw new Error("Ticket created but missing id.");
 
@@ -234,14 +245,18 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        {mode === "update" ? `Edit Repair Ticket #${ticketId}` : "Create New Repair Ticket"}
+        {mode === "update"
+          ? `Edit Repair Ticket #${ticketId}`
+          : "Create New Repair Ticket"}
       </h2>
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           {/* Left Column */}
           <div className="space-y-4 p-4 border rounded-lg bg-white">
-            <h3 className="font-semibold text-lg text-gray-700">Reporter &amp; Issue Details</h3>
+            <h3 className="font-semibold text-lg text-gray-700">
+              Reporter &amp; Issue Details
+            </h3>
 
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-600">
@@ -250,7 +265,9 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
               <SearchableDropdown
                 options={options.reporterOptions}
                 value={ticketData.reporterName}
-                onChange={(val) => setTicketData({ ...ticketData, reporterName: val || "" })}
+                onChange={(val) =>
+                  setTicketData({ ...ticketData, reporterName: val || "" })
+                }
                 placeholder="Search name..."
                 idPrefix="dd-reporter"
                 menuZIndex={10000}
@@ -264,7 +281,9 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
               <SearchableDropdown
                 options={options.assetOptions}
                 value={ticketData.assetCode}
-                onChange={(val) => setTicketData({ ...ticketData, assetCode: val || "" })}
+                onChange={(val) =>
+                  setTicketData({ ...ticketData, assetCode: val || "" })
+                }
                 placeholder="Search asset code..."
                 idPrefix="dd-asset"
                 menuZIndex={10000}
@@ -272,11 +291,15 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
             </div>
 
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-600">Contact Phone</label>
+              <label className="block mb-1 text-sm font-medium text-gray-600">
+                Contact Phone
+              </label>
               <input
                 type="text"
                 value={ticketData.contactPhone}
-                onChange={(e) => setTicketData({ ...ticketData, contactPhone: e.target.value })}
+                onChange={(e) =>
+                  setTicketData({ ...ticketData, contactPhone: e.target.value })
+                }
                 className="w-full rounded border border-gray-300 px-3 py-2"
                 placeholder="xxxx"
               />
@@ -289,7 +312,12 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
               <textarea
                 rows="4"
                 value={ticketData.problemDescription}
-                onChange={(e) => setTicketData({ ...ticketData, problemDescription: e.target.value })}
+                onChange={(e) =>
+                  setTicketData({
+                    ...ticketData,
+                    problemDescription: e.target.value,
+                  })
+                }
                 className="w-full rounded border border-gray-300 px-3 py-2"
                 placeholder="Describe the problem..."
               ></textarea>
@@ -297,7 +325,9 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
 
             {/* Attachment (User) */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-600">Attachment (User)</label>
+              <label className="block mb-1 text-sm font-medium text-gray-600">
+                Attachment (User)
+              </label>
               <div className="flex items-center gap-3">
                 <label
                   htmlFor="ticket-user-file"
@@ -350,14 +380,20 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
 
           {/* Right Column: Admin Section */}
           <div className="space-y-4 p-4 border rounded-lg bg-white">
-            <h3 className="font-semibold text-lg text-gray-700">Admin Section</h3>
+            <h3 className="font-semibold text-lg text-gray-700">
+              Admin Section
+            </h3>
 
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-600">Handler</label>
+              <label className="block mb-1 text-sm font-medium text-gray-600">
+                Handler
+              </label>
               <SearchableDropdown
                 options={options.adminOptions}
                 value={adminData.handlerName}
-                onChange={(val) => setAdminData({ ...adminData, handlerName: val || "" })}
+                onChange={(val) =>
+                  setAdminData({ ...adminData, handlerName: val || "" })
+                }
                 placeholder="-- Assign --"
                 idPrefix="dd-handler"
                 menuZIndex={10000}
@@ -365,11 +401,15 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
             </div>
 
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-600">Repair Type</label>
+              <label className="block mb-1 text-sm font-medium text-gray-600">
+                Repair Type
+              </label>
               <SearchableDropdown
                 options={options.repairTypeOptions}
                 value={adminData.repairType}
-                onChange={(val) => setAdminData({ ...adminData, repairType: val || "" })}
+                onChange={(val) =>
+                  setAdminData({ ...adminData, repairType: val || "" })
+                }
                 placeholder="-- Select Type --"
                 idPrefix="dd-repairtype"
                 menuZIndex={10000}
@@ -377,7 +417,9 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
             </div>
 
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-600">Status</label>
+              <label className="block mb-1 text-sm font-medium text-gray-600">
+                Status
+              </label>
               <SearchableDropdown
                 options={[
                   { value: "Request", label: "Request" },
@@ -387,7 +429,9 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
                   { value: "Cancel", label: "Cancel" },
                 ]}
                 value={adminData.status}
-                onChange={(val) => setAdminData({ ...adminData, status: val || "Wait" })}
+                onChange={(val) =>
+                  setAdminData({ ...adminData, status: val || "Wait" })
+                }
                 placeholder="-- Status --"
                 idPrefix="dd-status"
                 menuZIndex={10000}
@@ -395,11 +439,15 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
             </div>
 
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-600">Cause / Solution</label>
+              <label className="block mb-1 text-sm font-medium text-gray-600">
+                Cause / Solution
+              </label>
               <textarea
                 rows="4"
                 value={adminData.solution}
-                onChange={(e) => setAdminData({ ...adminData, solution: e.target.value })}
+                onChange={(e) =>
+                  setAdminData({ ...adminData, solution: e.target.value })
+                }
                 className="w-full rounded border border-gray-300 px-3 py-2"
                 placeholder="Root cause / Solution taken..."
               ></textarea>
@@ -407,7 +455,9 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
 
             {/* Attachment (Admin) */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-600">Attachment (Admin)</label>
+              <label className="block mb-1 text-sm font-medium text-gray-600">
+                Attachment (Admin)
+              </label>
               <div className="flex items-center gap-3">
                 <label
                   htmlFor="ticket-admin-file"
@@ -461,7 +511,9 @@ function TicketFormModal({ mode, ticketId, onSuccess, onCancel }) {
 
         {/* Footer */}
         <div className="mt-6 flex items-center justify-between">
-          <div>{message && <p className="text-red-600 font-semibold">{message}</p>}</div>
+          <div>
+            {message && <p className="text-red-600 font-semibold">{message}</p>}
+          </div>
           <div className="flex gap-4">
             <button
               type="button"

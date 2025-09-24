@@ -32,7 +32,8 @@ Modal.setAppElement("#root");
 // ActionButton component will now handle both links and buttons
 const ActionButton = ({ to, onClick, icon, title, subtitle }) => {
   const commonProps = {
-    className: "bg-white p-4 rounded-lg shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center space-x-4 group cursor-pointer"
+    className:
+      "bg-white p-4 rounded-lg shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center space-x-4 group cursor-pointer",
   };
 
   const content = (
@@ -50,12 +51,19 @@ const ActionButton = ({ to, onClick, icon, title, subtitle }) => {
   );
 
   if (to) {
-    return <Link to={to} {...commonProps}>{content}</Link>;
+    return (
+      <Link to={to} {...commonProps}>
+        {content}
+      </Link>
+    );
   }
 
-  return <div onClick={onClick} {...commonProps}>{content}</div>;
+  return (
+    <div onClick={onClick} {...commonProps}>
+      {content}
+    </div>
+  );
 };
-
 
 const StatCard = ({ title, value, color }) => (
   <div className={`p-4 rounded-lg shadow-sm ${color}`}>
@@ -72,7 +80,7 @@ function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   // --- 1. เพิ่ม state สำหรับโหมดของ Modal ---
-  const [modalMode, setModalMode] = useState('create'); 
+  const [modalMode, setModalMode] = useState("create");
 
   const fetchSummary = useCallback(async () => {
     try {
@@ -160,7 +168,7 @@ function DashboardPage() {
         />
         {/* --- 3. เปลี่ยน ActionButton ให้ใช้ onClick เพื่อเปิด Modal --- */}
         <ActionButton
-          onClick={() => openModal('create')}
+          onClick={() => openModal("create")}
           icon={<FiEdit className="w-6 h-6 text-green-500" />}
           title="Create Ticket"
           subtitle="Open a repair request for admin"
@@ -226,7 +234,7 @@ function DashboardPage() {
               {summary.recentTickets.map((ticket) => (
                 <li
                   key={ticket.id}
-                  onClick={() => openModal('update', ticket.id)}
+                  onClick={() => openModal("update", ticket.id)}
                   className="py-3 group cursor-pointer"
                 >
                   <p className="font-medium text-gray-800 group-hover:text-blue-600 transition-colors">
@@ -244,7 +252,9 @@ function DashboardPage() {
 
         {/* คอลัมน์ขวา: กราฟสรุปสถานะ */}
         <div className="bg-white p-6 rounded-lg shadow-md flex flex-col">
-          <h3 className="font-bold text-lg mb-4">Repair Request Status Summary</h3>
+          <h3 className="font-bold text-lg mb-4">
+            Repair Request Status Summary
+          </h3>
           <div className="flex-grow flex items-center justify-center">
             <Doughnut data={ticketsByStatusData} options={doughnutOptions} />
           </div>

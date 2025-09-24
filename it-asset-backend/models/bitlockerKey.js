@@ -1,7 +1,7 @@
 // it-asset-backend/models/bitlockerKey.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const Asset = require('./asset'); // Import Asset model เพื่อใช้อ้างอิง
+const Asset = require("./asset"); // Import Asset model เพื่อใช้อ้างอิง
 
 const BitlockerKey = sequelize.define(
   "BitlockerKey",
@@ -17,14 +17,15 @@ const BitlockerKey = sequelize.define(
       allowNull: false,
       comment: "รหัส Recovery Key 48 หลัก",
     },
-    assetId: { // Foreign Key ที่จะเชื่อมกับตาราง assets
+    assetId: {
+      // Foreign Key ที่จะเชื่อมกับตาราง assets
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'assets', // ชื่อตาราง assets
-        key: 'id'
-      }
-    }
+        model: "assets", // ชื่อตาราง assets
+        key: "id",
+      },
+    },
   },
   {
     tableName: "bitlocker_keys", // กำหนดชื่อตาราง

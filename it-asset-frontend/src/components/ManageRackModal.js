@@ -110,7 +110,9 @@ export default function ManageRackModal({ onClose }) {
       console.error(err);
       setMsg({
         type: "error",
-        text: `Failed to ${editing ? "update" : "add"} rack. Name might already exist.`,
+        text: `Failed to ${
+          editing ? "update" : "add"
+        } rack. Name might already exist.`,
       });
     } finally {
       setBusy(false);
@@ -164,7 +166,12 @@ export default function ManageRackModal({ onClose }) {
               {/* New -> reset form only */}
               <IconButton title="New" onClick={resetForm}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <path
+                    d="M12 5v14M5 12h14"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </IconButton>
             </div>
@@ -176,41 +183,86 @@ export default function ManageRackModal({ onClose }) {
                   onClick={() => toggleSort("name")}
                   title="Sort by Name"
                 >
-                  Name {sortBy.field === "name" ? (sortBy.dir === "asc" ? "↑" : "↓") : ""}
+                  Name{" "}
+                  {sortBy.field === "name"
+                    ? sortBy.dir === "asc"
+                      ? "↑"
+                      : "↓"
+                    : ""}
                 </button>
                 <button
                   className="col-span-5 text-left px-3 py-2 hover:bg-gray-100"
                   onClick={() => toggleSort("location")}
                   title="Sort by Location"
                 >
-                  Location {sortBy.field === "location" ? (sortBy.dir === "asc" ? "↑" : "↓") : ""}
+                  Location{" "}
+                  {sortBy.field === "location"
+                    ? sortBy.dir === "asc"
+                      ? "↑"
+                      : "↓"
+                    : ""}
                 </button>
                 <div className="col-span-2 px-3 py-2 text-center"> </div>
               </div>
 
               <div className="max-h-[340px] overflow-auto divide-y">
                 {loading ? (
-                  <div className="px-3 py-10 text-center text-gray-500">Loading racks...</div>
+                  <div className="px-3 py-10 text-center text-gray-500">
+                    Loading racks...
+                  </div>
                 ) : filteredSorted.length === 0 ? (
-                  <div className="px-3 py-10 text-center text-gray-500">No racks found.</div>
+                  <div className="px-3 py-10 text-center text-gray-500">
+                    No racks found.
+                  </div>
                 ) : (
                   filteredSorted.map((rack) => (
-                    <div key={rack.id} className="grid grid-cols-12 items-center px-3 py-2">
+                    <div
+                      key={rack.id}
+                      className="grid grid-cols-12 items-center px-3 py-2"
+                    >
                       <div className="col-span-5 truncate" title={rack.name}>
                         {rack.name}
                       </div>
-                      <div className="col-span-5 truncate text-gray-600" title={rack.location}>
+                      <div
+                        className="col-span-5 truncate text-gray-600"
+                        title={rack.location}
+                      >
                         {rack.location || "-"}
                       </div>
                       <div className="col-span-2 flex justify-center gap-1">
-                        <IconButton title="Edit" onClick={() => startEdit(rack)}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                            <path d="M4 21h4l11-11-4-4L4 17v4z" stroke="currentColor" strokeWidth="1.6"/>
+                        <IconButton
+                          title="Edit"
+                          onClick={() => startEdit(rack)}
+                        >
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <path
+                              d="M4 21h4l11-11-4-4L4 17v4z"
+                              stroke="currentColor"
+                              strokeWidth="1.6"
+                            />
                           </svg>
                         </IconButton>
-                        <IconButton title="Delete" onClick={() => handleDelete(rack.id)}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                            <path d="M6 7h12M9 7V5h6v2m-7 3v8m8-8v8M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                        <IconButton
+                          title="Delete"
+                          onClick={() => handleDelete(rack.id)}
+                        >
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <path
+                              d="M6 7h12M9 7V5h6v2m-7 3v8m8-8v8M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"
+                              stroke="currentColor"
+                              strokeWidth="1.6"
+                              strokeLinecap="round"
+                            />
                           </svg>
                         </IconButton>
                       </div>
@@ -231,7 +283,9 @@ export default function ManageRackModal({ onClose }) {
                 <input
                   name="name"
                   value={form.name}
-                  onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, name: e.target.value }))
+                  }
                   placeholder="Rack-01"
                   className="w-full rounded border border-gray-300 px-3 py-2"
                   required
@@ -244,7 +298,9 @@ export default function ManageRackModal({ onClose }) {
                 <input
                   name="location"
                   value={form.location}
-                  onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, location: e.target.value }))
+                  }
                   placeholder="Server Room A / 2F"
                   className="w-full rounded border border-gray-300 px-3 py-2"
                 />
@@ -283,7 +339,13 @@ export default function ManageRackModal({ onClose }) {
                       : "bg-blue-600 hover:bg-blue-700"
                   } ${busy ? "opacity-70 cursor-not-allowed" : ""}`}
                 >
-                  {busy ? (editing ? "Updating..." : "Adding...") : editing ? "Update" : "Add"}
+                  {busy
+                    ? editing
+                      ? "Updating..."
+                      : "Adding..."
+                    : editing
+                    ? "Update"
+                    : "Add"}
                 </button>
               </div>
             </form>

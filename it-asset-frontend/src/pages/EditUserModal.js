@@ -1,28 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-function EditUserModal({ isOpen, onClose, employee, onSave, departmentOptions }) {
+function EditUserModal({
+  isOpen,
+  onClose,
+  employee,
+  onSave,
+  departmentOptions,
+}) {
   const initialFormState = {
-    fullName: '',
-    position: '',
-    email: '',
-    contactNumber: '',
-    department: '',
+    fullName: "",
+    position: "",
+    email: "",
+    contactNumber: "",
+    department: "",
   };
-  
+
   const [formData, setFormData] = useState(initialFormState);
 
   // 1. สร้าง Array ของตัวเลือกสำหรับ Position
-  const positionOptions = ['A2', 'A1', 'M3', 'M2', 'M1', 'SM', 'DEM'];
+  const positionOptions = ["A2", "A1", "M3", "M2", "M1", "SM", "DEM"];
 
   useEffect(() => {
     if (isOpen) {
       if (employee) {
         setFormData({
-          fullName: employee.fullName || '',
-          position: employee.position || '',
-          email: employee.email || '',
-          contactNumber: employee.contactNumber || '',
-          department: employee.department || '',
+          fullName: employee.fullName || "",
+          position: employee.position || "",
+          email: employee.email || "",
+          contactNumber: employee.contactNumber || "",
+          department: employee.department || "",
         });
       } else {
         setFormData(initialFormState);
@@ -34,7 +40,7 @@ function EditUserModal({ isOpen, onClose, employee, onSave, departmentOptions })
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
@@ -46,12 +52,14 @@ function EditUserModal({ isOpen, onClose, employee, onSave, departmentOptions })
     <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg z-50">
         <h2 className="text-2xl font-bold mb-4">
-          {employee ? 'Edit User Information' : 'Add New User'}
+          {employee ? "Edit User Information" : "Add New User"}
         </h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Full Name*</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Full Name*
+              </label>
               <input
                 type="text"
                 name="fullName"
@@ -64,7 +72,9 @@ function EditUserModal({ isOpen, onClose, employee, onSave, departmentOptions })
 
             {/* ▼▼▼ 2. เปลี่ยนจาก <input> เป็น <select> ▼▼▼ */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Position</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Position
+              </label>
               <select
                 name="position"
                 value={formData.position}
@@ -72,15 +82,19 @@ function EditUserModal({ isOpen, onClose, employee, onSave, departmentOptions })
                 className="w-full mt-1"
               >
                 <option value="">-- Select Position --</option>
-                {positionOptions.map(pos => (
-                  <option key={pos} value={pos}>{pos}</option>
+                {positionOptions.map((pos) => (
+                  <option key={pos} value={pos}>
+                    {pos}
+                  </option>
                 ))}
               </select>
             </div>
             {/* ▲▲▲ สิ้นสุดส่วนที่แก้ไข ▲▲▲ */}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Department</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Department
+              </label>
               <select
                 name="department"
                 value={formData.department}
@@ -88,13 +102,17 @@ function EditUserModal({ isOpen, onClose, employee, onSave, departmentOptions })
                 className="w-full mt-1"
               >
                 <option value="">-- Select Department --</option>
-                {departmentOptions.map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
+                {departmentOptions.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">E-Mail</label>
+              <label className="block text-sm font-medium text-gray-700">
+                E-Mail
+              </label>
               <input
                 type="email"
                 name="email"
@@ -104,7 +122,9 @@ function EditUserModal({ isOpen, onClose, employee, onSave, departmentOptions })
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Contact Number</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Contact Number
+              </label>
               <input
                 type="text"
                 name="contactNumber"

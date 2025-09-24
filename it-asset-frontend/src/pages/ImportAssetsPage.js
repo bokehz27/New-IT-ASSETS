@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import api from '../api'; // Adjust path as needed
-import { useNavigate } from 'react-router-dom';
-import Papa from 'papaparse';
+import React, { useState } from "react";
+import api from "../api"; // Adjust path as needed
+import { useNavigate } from "react-router-dom";
+import Papa from "papaparse";
 
 function ImportAssetsPage() {
   const [file, setFile] = useState(null);
   const [previewData, setPreviewData] = useState([]);
   const [headers, setHeaders] = useState([]);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
 
@@ -16,8 +16,8 @@ function ImportAssetsPage() {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
-      setError('');
-      setMessage('');
+      setError("");
+      setMessage("");
 
       Papa.parse(selectedFile, {
         header: true,
@@ -33,24 +33,24 @@ function ImportAssetsPage() {
 
   const handleUpload = async () => {
     if (!file) {
-      setError('Please select a file to upload.');
+      setError("Please select a file to upload.");
       return;
     }
     setUploading(true);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     try {
-      const res = await api.post('/assets/upload', formData);
+      const res = await api.post("/assets/upload", formData);
       setMessage(res.data.message);
       setPreviewData([]);
       setFile(null);
-      setTimeout(() => navigate('/'), 2000);
+      setTimeout(() => navigate("/"), 2000);
     } catch (err) {
-      setError(err.response?.data?.error || 'An error occurred during upload.');
+      setError(err.response?.data?.error || "An error occurred during upload.");
       console.error(err);
     } finally {
       setUploading(false);
@@ -58,15 +58,17 @@ function ImportAssetsPage() {
   };
 
   const csvTemplateHeaders =
-    'asset_code,serial_number,brand,model,subcategory,ram,cpu,storage,device_id,ip_address,wifi_registered,mac_address_lan,mac_address_wifi,start_date,location,fin_asset_ref,user_id,user_name,department,category,status,windows_version,windows_key,office_version,office_key,antivirus';
+    "asset_code,serial_number,brand,model,subcategory,ram,cpu,storage,device_id,ip_address,wifi_registered,mac_address_lan,mac_address_wifi,start_date,location,fin_asset_ref,user_id,user_name,department,category,status,windows_version,windows_key,office_version,office_key,antivirus";
 
   const handleDownloadTemplate = () => {
-    const blob = new Blob([csvTemplateHeaders], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvTemplateHeaders], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'asset_template.csv');
-    link.style.visibility = 'hidden';
+    link.setAttribute("href", url);
+    link.setAttribute("download", "asset_template.csv");
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -74,7 +76,9 @@ function ImportAssetsPage() {
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-gray-900">Import Assets from CSV</h2>
+      <h2 className="text-2xl font-bold mb-4 text-gray-900">
+        Import Assets from CSV
+      </h2>
 
       <div className="bg-blue-50 border border-gray-200 text-blue-800 p-4 rounded-md mb-6 text-sm">
         <p className="font-semibold">Instructions:</p>
@@ -116,7 +120,7 @@ function ImportAssetsPage() {
             <span>Select File</span>
           </label>
           <span className="text-sm text-gray-500">
-            {file ? file.name : 'No file selected'}
+            {file ? file.name : "No file selected"}
           </span>
         </div>
         <input
@@ -166,17 +170,19 @@ function ImportAssetsPage() {
           disabled={!file || uploading}
           className="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition disabled:bg-gray-400"
         >
-          {uploading ? 'Importing...' : 'Confirm and Import Data'}
+          {uploading ? "Importing..." : "Confirm and Import Data"}
         </button>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate("/")}
           className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-md hover:bg-gray-300 transition"
         >
           Cancel
         </button>
       </div>
 
-      {message && <p className="mt-4 text-green-600 font-semibold">{message}</p>}
+      {message && (
+        <p className="mt-4 text-green-600 font-semibold">{message}</p>
+      )}
       {error && <p className="mt-4 text-red-600 font-semibold">{error}</p>}
     </div>
   );

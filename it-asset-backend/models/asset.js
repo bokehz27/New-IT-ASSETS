@@ -49,7 +49,7 @@ const Asset = sequelize.define(
     windows_version: { type: DataTypes.STRING, allowNull: true },
     windows_key: { type: DataTypes.STRING, allowNull: true },
     office_version: { type: DataTypes.STRING, allowNull: true }, // Microsoft Office
-    office_key: { type: DataTypes.STRING, allowNull: true },     // Office Product Key
+    office_key: { type: DataTypes.STRING, allowNull: true }, // Office Product Key
     antivirus: { type: DataTypes.STRING, allowNull: true },
 
     // 🆕 เพิ่มฟิลด์สำหรับเก็บไฟล์ CSV ของ BitLocker
