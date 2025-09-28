@@ -3,80 +3,100 @@ import { NavLink, Outlet } from 'react-router-dom';
 
 // Import icons from react-icons
 import {
-  FiServer as Archive,
-  FiBox as Box,
-  FiTag as Tag,
-  FiCpu as Cpu,
-  FiHardDrive as HardDrive,
-  FiTv as Tv,
-  FiShield as ShieldCheck,
-  FiTool as Wrench,
-  FiBriefcase as Building,
-  FiMapPin as MapPin,
-  FiUsers as Users,
-  FiKey as Key,
-  FiType as Type
+  FiServer,
+  FiBox,
+  FiTag,
+  FiCpu,
+  FiHardDrive,
+  FiTv,
+  FiShield,
+  FiFileText,
+  FiBriefcase,
+  FiMapPin,
+  FiUsers,
+  FiClipboard,
+  FiMail,
+  FiDatabase,
+  FiGitMerge
 } from 'react-icons/fi';
 
-// Define the menu structure
-const settingsMenu = [
+// Define the new menu structure for Master Data
+const masterDataMenu = [
   {
-    title: 'Asset Configuration',
+    title: 'Asset Information',
     items: [
-      { name: 'Asset Category', path: '/settings/category', icon: <Archive /> },
-      { name: 'Subcategory', path: '/settings/subcategory', icon: <Box /> },
-      { name: 'Brand', path: '/settings/brand', icon: <Tag /> },
-      { name: 'RAM', path: '/settings/ram', icon: <Cpu /> },
-      { name: 'Hard Disk', path: '/settings/storage', icon: <HardDrive /> },
-      { name: 'Windows', path: '/settings/windows', icon: <Tv /> },
-      { name: 'Microsoft Office', path: '/settings/office', icon: <Type /> },
-      { name: 'Antivirus', path: '/settings/antivirus', icon: <ShieldCheck /> },
-      { name: 'Special Program', path: '/settings/special_program', icon: <Key /> },
-      { name: 'Repair Type', path: '/settings/repair-type', icon: <Wrench /> },
+      { name: 'Categories', path: '/settings/category', icon: <FiServer /> },
+      { name: 'Subcategories', path: '/settings/subcategory', icon: <FiBox /> },
+      { name: 'Brands', path: '/settings/brand', icon: <FiTag /> },
+      { name: 'Models', path: '/settings/model', icon: <FiGitMerge /> },
+      { name: 'Asset Statuses', path: '/settings/asset_status', icon: <FiClipboard /> },
+    ]
+  },
+  {
+    title: 'Hardware Components',
+    items: [
+      { name: 'CPUs', path: '/settings/cpu', icon: <FiCpu /> },
+      { name: 'RAMs', path: '/settings/ram', icon: <FiDatabase /> },
+      { name: 'Storages', path: '/settings/storage', icon: <FiHardDrive /> },
+    ]
+  },
+  {
+    title: 'Software & Security',
+    items: [
+      { name: 'Windows Versions', path: '/settings/windows', icon: <FiTv /> },
+      { name: 'Office Versions', path: '/settings/office', icon: <FiFileText /> },
+      { name: 'Antivirus', path: '/settings/antivirus', icon: <FiShield /> },
     ]
   },
   {
     title: 'Organization',
     items: [
-      { name: 'Department', path: '/settings/department', icon: <Building /> },
-      { name: 'Location', path: '/settings/location', icon: <MapPin /> },
-      { name: 'User List', path: '/settings/users', icon: <Users /> },
+      { name: 'Departments', path: '/settings/department', icon: <FiBriefcase /> },
+      { name: 'Locations', path: '/settings/location', icon: <FiMapPin /> },
+      { name: 'Positions', path: '/settings/position', icon: <FiUsers /> },
+      { name: 'Employees', path: '/settings/employee', icon: <FiUsers /> },
+      { name: 'Emails', path: '/settings/email', icon: <FiMail /> },
     ]
   },
 ];
 
 function SettingsLayout() {
   return (
-    <div className="flex flex-col md:flex-row gap-6">
+    <div className="flex h-full">
       {/* Sidebar Navigation */}
-      <aside className="md:w-72 flex-shrink-0">
-        <nav className="settings-sidebar h-full">
-          {settingsMenu.map((group) => (
-            // Use React.Fragment to group elements without adding extra nodes to the DOM
-            <React.Fragment key={group.title}>
-              <h3 className="settings-menu-group-title">
+      <aside className="w-64 bg-white shadow-md flex-shrink-0">
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold text-gray-800">Settings</h2>
+        </div>
+        <nav className="flex-grow p-2">
+          {masterDataMenu.map((group) => (
+            <div key={group.title} className="mb-4">
+              <h3 className="px-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 {group.title}
               </h3>
               {group.items.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  className={({ isActive }) => `settings-sidebar-link ${isActive ? 'active' : ''}`}
+                  end
+                  className={({ isActive }) =>
+                    `flex items-center px-4 py-2 mt-1 text-sm text-gray-600 rounded-md hover:bg-gray-100 ${
+                      isActive ? 'bg-blue-100 text-blue-700 font-semibold' : ''
+                    }`
+                  }
                 >
-                  {item.icon}
+                  <span className="mr-3 text-base">{item.icon}</span>
                   <span>{item.name}</span>
                 </NavLink>
               ))}
-            </React.Fragment>
+            </div>
           ))}
         </nav>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1">
-        <div className="bg-white p-6 rounded-lg shadow-md min-h-full">
-          <Outlet />
-        </div>
+      <main className="flex-1 p-6 bg-gray-50">
+        <Outlet /> 
       </main>
     </div>
   );

@@ -1,4 +1,4 @@
-// src/pages/AddAssetPage.js
+// src/pages/AddAssetPage.js (แก้ไขแล้ว)
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -10,77 +10,91 @@ function AddAssetPage() {
   const [masterData, setMasterData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // formData ใช้สำหรับกำหนดค่าเริ่มต้นเท่านั้น
   const [formData] = useState({
-    asset_code: "",
+    asset_name: "",
+    user_id: "",
     serial_number: "",
+    device_id: "",
+    mac_address_lan: "",
+    mac_address_wifi: "",
+    wifi_status: "N/A",
+    windows_product_key: "",
+    office_product_key: "",
+    start_date: new Date().toISOString().split("T")[0],
+    end_date: null,
+    fin_asset_ref_no: "",
+    remark: "",
+    status: "Enable",
+    specialPrograms: [],
+    category: "",
+    subcategory: "",
     brand: "",
     model: "",
-    subcategory: "",
     ram: "",
     cpu: "",
     storage: "",
-    device_id: "",
-    ip_address: "",
-    wifi_registered: "Wifi not register",
-    mac_address_lan: "",
-    mac_address_wifi: "",
-    start_date: new Date().toISOString().split("T")[0], // ตั้งค่า default เป็นวันปัจจุบัน
-    location: "",
-    fin_asset_ref: "",
-    user_id: "",
+    windows_version: "",
+    office_version: "",
+    antivirus: "",
     user_name: "",
     department: "",
-    category: "",
-    status: "Enable", // ตั้งค่า default status
-    bitlockerKeys: [],
-    windows_version: "",
-    windows_key: "",
-    office_version: "",
-    office_key: "",
-    antivirus: "",
-    specialPrograms: [],
+    location: "",
   });
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         setLoading(true);
-        const masterDataTypes = [
-          "category",
-          "subcategory",
-          "brand",
-          "ram",
-          "storage",
-          "department",
-          "location",
-          "status",
-          "windows",
-          "office",
-          "antivirus",
-          "special_program",
-        ];
-        const masterDataRequests = masterDataTypes.map((type) =>
-          api.get(`/master-data/${type}`)
-        );
-        const employeesRequest = api.get("/employees");
 
-        const [employeesResponse, ...masterDataResponses] = await Promise.all([
-          employeesRequest,
-          ...masterDataRequests,
-        ]);
+        const requests = {
+          model: api.get("/models"),
+          cpu: api.get("/cpus"),
+          category: api.get("/categories"),
+          subcategory: api.get("/subcategories"),
+          brand: api.get("/brands"),
+          ram: api.get("/rams"),
+          storage: api.get("/storages"),
+          department: api.get("/departments"),
+          location: api.get("/locations"),
+          status: api.get("/asset_statuses"),
+          windows: api.get("/windows_versions"),
+          office: api.get("/office_versions"),
+          antivirus: api.get("/antivirus_programs"),
+          special_program: api.get("/asset_special_programs"),
+          employees: api.get("/employees"),
+        };
 
-        const fetchedMasterData = masterDataTypes.reduce((acc, type, index) => {
-          acc[type] = masterDataResponses[index].data.map((item) => item.value);
+        const responses = await Promise.all(Object.values(requests));
+        const responseData = Object.keys(requests).reduce((acc, key, index) => {
+          acc[key] = responses[index].data;
           return acc;
         }, {});
 
-        fetchedMasterData.user_name = employeesResponse.data.map(
-          (emp) => emp.fullName
-        );
+        // ✨ --- แก้ไขทั้งหมดตรงนี้ --- ✨
+        // เปลี่ยน .value ให้เป็น .name หรือ .size หรือ .fullName ตามที่ API ส่งกลับมา
+        const fetchedMasterData = {
+          model: responseData.model.map(item => item.name), // เพิ่ม model
+          cpu: responseData.cpu.map(item => item.name),     // เพิ่ม cpu
+          category: responseData.category.map(item => item.name),
+          subcategory: responseData.subcategory.map(item => item.name),
+          brand: responseData.brand.map(item => item.name),
+          ram: responseData.ram.map(item => item.size), // แก้ไข: ถ้ายังไม่ขึ้น อาจจะต้องเช็ค property name ที่ถูกต้อง
+          storage: responseData.storage.map(item => item.size),
+          department: responseData.department.map(item => item.name),
+          location: responseData.location.map(item => item.name),
+          status: responseData.status.map(item => item.name),
+          windows: responseData.windows.map(item => item.name),
+          office: responseData.office.map(item => item.name),
+          antivirus: responseData.antivirus.map(item => item.name),
+          special_program: responseData.special_program.map(item => item.program_name), // แก้ไข
+          user_name: responseData.employees.map(emp => emp.name),
+        };
+        
         setMasterData(fetchedMasterData);
+
       } catch (error) {
-        console.error("Failed to fetch initial data for the form", error);
+        console.error("Failed to fetch initial data for the form:", error);
+        alert("Error: Could not load data for the form. Please check the API connection and refresh the page.");
       } finally {
         setLoading(false);
       }
@@ -89,37 +103,24 @@ function AddAssetPage() {
     fetchInitialData();
   }, []);
 
-  // รับ 'data' มาจาก React Hook Form โดยตรง
   const handleSubmit = async ({ data, file }) => {
     try {
-      // 1. สร้าง Asset ใหม่ก่อน
       const response = await api.post("/assets", data);
-      const newAssetId = response.data.id; // ดึง ID จาก response
+      const newAssetId = response.data.id;
 
-      // 2. ถ้ามีไฟล์แนบมา ให้ทำการอัปโหลด
       if (file && newAssetId) {
         const formDataUpload = new FormData();
         formDataUpload.append("file", file);
-
-        // อย่าลืมใส่ header ให้ถูกต้อง (ถ้า api.js ไม่ได้จัดการให้)
-        await api.post(
-          `/assets/${newAssetId}/upload-bitlocker`,
-          formDataUpload,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        await api.post(`/assets/${newAssetId}/upload-bitlocker`, formDataUpload, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       }
 
       alert("New asset added successfully!");
-      navigate("/");
+      navigate("/assets");
     } catch (error) {
       console.error("Error creating asset:", error);
-      // แยก error message เพื่อให้ผู้ใช้เข้าใจง่ายขึ้น
-      const errorMessage =
-        error.response?.data?.message || "Unable to add the asset.";
+      const errorMessage = error.response?.data?.error || "Unable to add the asset.";
       alert(errorMessage);
     }
   };
@@ -133,7 +134,7 @@ function AddAssetPage() {
       isEditing={false}
       formData={formData}
       onSubmit={handleSubmit}
-      onCancel={() => navigate("/")}
+      onCancel={() => navigate("/assets")}
       masterData={masterData}
     />
   );

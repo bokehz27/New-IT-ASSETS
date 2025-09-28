@@ -23,13 +23,35 @@ import SwitchListPage from "./pages/SwitchListPage";
 import SwitchDetailPage from "./pages/SwitchDetailPage";
 import ReportPage from "./pages/ReportPage";
 import PublicTicketListPage from "./pages/PublicTicketListPage";
-import PublicFaqPage from "./pages/PublicFaqPage"; // 1. Import หน้า Public FAQ
-import FaqManagementPage from "./pages/FaqManagementPage"; // 2. Import หน้า Admin FAQ
+import PublicFaqPage from "./pages/PublicFaqPage";
+import FaqManagementPage from "./pages/FaqManagementPage";
+import SettingsIndexPage from './pages/SettingsIndexPage';
 
 // Protected Route
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 import AppHeader from "./components/layout/AppHeader";
+
+
+
+// ✨ 1. Import หน้า Master Data ใหม่ทั้งหมดเข้ามา ✨
+import ManageAssetStatusPage from './pages/ManageAssetStatusPage';
+import ManageEmployeesPage from './pages/ManageEmployeesPage';
+import ManageEmailsPage from './pages/ManageEmailsPage';
+import ManageDepartmentsPage from './pages/ManageDepartmentsPage';
+import ManageCpusPage from './pages/ManageCpusPage';
+import ManageRamsPage from './pages/ManageRamsPage';
+import ManageCategoriesPage from './pages/ManageCategoriesPage';
+import ManageSubCategoriesPage from './pages/ManageSubCategoriesPage';
+import ManageBrandsPage from './pages/ManageBrandsPage';
+import ManageAssetSpecialProgramsPage from './pages/ManageAssetSpecialProgramsPage';
+import ManageAntivirusPage from './pages/ManageAntivirusPage';
+import ManagePositionsPage from './pages/ManagePositionsPage';
+import ManageOfficeVersionsPage from './pages/ManageOfficeVersionsPage';
+import ManageModelsPage from './pages/ManageModelsPage';
+import ManageLocationsPage from './pages/ManageLocationsPage';
+import ManageStoragesPage from './pages/ManageStoragesPage';
+import ManageWindowsVersionsPage from './pages/ManageWindowsVersionsPage';
 
 function App() {
   const { user } = useAuth();
@@ -59,126 +81,41 @@ function App() {
               <Route path="/edit/:assetId" element={<EditAssetPage />} />
               <Route path="/asset/:assetId" element={<AssetDetailPage />} />
               <Route path="/report" element={<ReportPage />} />
-              <Route
-                path="/asset/history/:assetCode"
-                element={<AssetTicketHistoryPage />}
-              />
+              <Route path="/asset/history/:assetCode" element={<AssetTicketHistoryPage />} />
               <Route path="/create-user" element={<AdminManagementPage />} />
               <Route path="/tickets" element={<TicketListPage />} />
               <Route path="/switches" element={<SwitchListPage />} />
-              <Route
-                path="/switches/:switchId"
-                element={<SwitchDetailPage />}
-              />
-
+              <Route path="/switches/:switchId" element={<SwitchDetailPage />} />
               <Route path="/manage-faq" element={<FaqManagementPage />} />
-              {/* --- ส่วนของ Settings --- */}
-              <Route path="/settings" element={<SettingsLayout />}>
-                <Route
-                  path="category"
-                  element={
-                    <ManagementPage
-                      title="Manage Asset Categories"
-                      dataType="category"
-                    />
-                  }
-                />
-                <Route
-                  path="subcategory"
-                  element={
-                    <ManagementPage
-                      title="Manage Subcategories"
-                      dataType="subcategory"
-                    />
-                  }
-                />
-                <Route
-                  path="brand"
-                  element={
-                    <ManagementPage title="Manage Brands" dataType="brand" />
-                  }
-                />
-                <Route
-                  path="ram"
-                  element={<ManagementPage title="Manage RAM" dataType="ram" />}
-                />
-                <Route
-                  path="storage"
-                  element={
-                    <ManagementPage
-                      title="Manage Hard Disks"
-                      dataType="storage"
-                    />
-                  }
-                />
-                <Route
-                  path="department"
-                  element={
-                    <ManagementPage
-                      title="Manage Departments"
-                      dataType="department"
-                    />
-                  }
-                />
-                <Route
-                  path="location"
-                  element={
-                    <ManagementPage
-                      title="Manage Locations"
-                      dataType="location"
-                    />
-                  }
-                />
-                <Route path="users" element={<UserManagementPage />} />
-                <Route
-                  path="repair-type"
-                  element={
-                    <ManagementPage
-                      title="Manage Repair Types"
-                      dataType="repair_type"
-                    />
-                  }
-                />
-                {/* --- New Routes for Software Management --- */}
-                <Route
-                  path="windows"
-                  element={
-                    <ManagementPage
-                      title="Manage Windows Versions"
-                      dataType="windows"
-                    />
-                  }
-                />
-                <Route
-                  path="office"
-                  element={
-                    <ManagementPage
-                      title="Manage Office Versions"
-                      dataType="office"
-                    />
-                  }
-                />
-                <Route
-                  path="antivirus"
-                  element={
-                    <ManagementPage
-                      title="Manage Antivirus Programs"
-                      dataType="antivirus"
-                    />
-                  }
-                />
-                <Route
-                  path="special_program"
-                  element={
-                    <ManagementPage
-                      title="Manage Special Programs"
-                      dataType="special_program"
-                    />
-                  }
-                />
-                {/* ---------------------------------------------- */}
-              </Route>
             </Route>
+
+            {/* ✨ 2. อัปเดตเฉพาะ Route ภายใต้ /settings ✨ */}
+            <Route path="/settings" element={<ProtectedRoute><SettingsLayout /></ProtectedRoute>}>
+              <Route path="/settings" element={<ProtectedRoute><SettingsLayout /></ProtectedRoute>}>
+                <Route index element={<SettingsIndexPage />} />
+                <Route path="category" element={<ManageCategoriesPage />} />
+                <Route path="subcategory" element={<ManageSubCategoriesPage />} />
+                ...
+              </Route>
+              <Route path="category" element={<ManageCategoriesPage />} />
+              <Route path="subcategory" element={<ManageSubCategoriesPage />} />
+              <Route path="brand" element={<ManageBrandsPage />} />
+              <Route path="model" element={<ManageModelsPage />} />
+              <Route path="ram" element={<ManageRamsPage />} />
+              <Route path="storage" element={<ManageStoragesPage />} />
+              <Route path="cpu" element={<ManageCpusPage />} />
+              <Route path="asset_status" element={<ManageAssetStatusPage />} />
+              <Route path="windows" element={<ManageWindowsVersionsPage />} />
+              <Route path="office" element={<ManageOfficeVersionsPage />} />
+              <Route path="antivirus" element={<ManageAntivirusPage />} />
+              <Route path="special_program" element={<ManageAssetSpecialProgramsPage />} />
+              <Route path="department" element={<ManageDepartmentsPage />} />
+              <Route path="location" element={<ManageLocationsPage />} />
+              <Route path="position" element={<ManagePositionsPage />} />
+              <Route path="employee" element={<ManageEmployeesPage />} />
+              <Route path="email" element={<ManageEmailsPage />} />
+            </Route>
+
           </Routes>
         </main>
       </div>

@@ -1,12 +1,18 @@
+// models/AssetSpecialProgram.js (Final)
+
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const Asset = require("./Asset");
 
+// Model นี้ไม่จำเป็นต้องรู้จัก Asset อีกต่อไป เพราะเราจะจัดการความสัมพันธ์ที่ models/index.js
 const AssetSpecialProgram = sequelize.define("AssetSpecialProgram", {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true
+  },
+  asset_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true // สามารถเป็น NULL ได้ ถ้ามันคือ Master Data ของชื่อโปรแกรม
   },
   program_name: {
     type: DataTypes.STRING,
@@ -20,9 +26,5 @@ const AssetSpecialProgram = sequelize.define("AssetSpecialProgram", {
   tableName: "asset_special_programs",
   timestamps: false
 });
-
-// ความสัมพันธ์กับ Asset
-AssetSpecialProgram.belongsTo(Asset, { foreignKey: "asset_id" });
-Asset.hasMany(AssetSpecialProgram, { foreignKey: "asset_id" });
 
 module.exports = AssetSpecialProgram;

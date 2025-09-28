@@ -1,10 +1,11 @@
 const express = require("express");
 const cors = require("cors");
 const sequelize = require("./config/database");
-
+require('./models');
 
 const authRoutes = require("./routes/auth");
 const assetRoutes = require("./routes/assets");
+const assetStatusRoutes = require("./routes/asset_statuses");
 const brandRoutes = require("./routes/brands");
 const categoryRoutes = require("./routes/categories");
 const subcategoryRoutes = require("./routes/subcategories");
@@ -36,6 +37,7 @@ const SwitchPort = require("./models/SwitchPort");
 
 
 
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -45,6 +47,7 @@ app.use("/api/auth", authRoutes);
 
 // Protected Routes
 app.use("/api/assets", authMiddleware, assetRoutes);
+app.use("/api/asset_statuses", assetStatusRoutes);
 app.use("/api/brands", authMiddleware, brandRoutes);
 app.use("/api/categories", authMiddleware, categoryRoutes);
 app.use("/api/subcategories", authMiddleware, subcategoryRoutes);
@@ -72,6 +75,7 @@ app.use("/api/reports", authMiddleware, reportRoutes);
 app.use("/api/dashboard", authMiddleware, dashboardRoutes);
 app.use("/api/ports", authMiddleware, portRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 
 // Database connection
 sequelize

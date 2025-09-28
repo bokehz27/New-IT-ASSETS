@@ -1,16 +1,17 @@
 // src/pages/AssetDetailPage.js
+
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../api";
-import axios from "axios";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import ReplaceAssetModal from "../components/ReplaceAssetModal";
 
+// ✨ คอมโพเนนต์ย่อยที่ขาดไป ถูกเพิ่มกลับมาตรงนี้แล้ว ✨
 const StatusBadge = ({ status }) => {
   const statusStyles = {
     Enable: "bg-green-100 text-green-800",
     Disable: "bg-red-100 text-red-800",
     "In Stock": "bg-blue-100 text-blue-800",
-    Replaced: "bg-red-100 text-red-800",
+    Replaced: "bg-yellow-100 text-yellow-800",
   };
   return (
     <span
@@ -41,20 +42,20 @@ const DetailItem = ({ label, children, value }) => (
   </div>
 );
 
+
 function AssetDetailPage() {
   const { assetId } = useParams();
   const navigate = useNavigate();
   const [asset, setAsset] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [file, setFile] = useState(null);
-  const [uploadMsg, setUploadMsg] = useState("");
-
   const [isReplaceModalOpen, setReplaceModalOpen] = useState(false);
+
 
   const fetchAsset = useCallback(async () => {
     try {
       setLoading(true);
+      // API จะ return ข้อมูลที่ flatten แล้วจาก backend
       const response = await api.get(`/assets/${assetId}`);
       setAsset(response.data);
       setError(null);
@@ -73,50 +74,22 @@ function AssetDetailPage() {
   const handleReplaceSuccess = (newAsset) => {
     setReplaceModalOpen(false);
     alert(
-      `Asset ${asset.asset_code} replaced by ${newAsset.asset_code} successfully!`
+      `Asset ${asset.asset_name} replaced by ${newAsset.asset_name} successfully!`
     );
     navigate(`/asset/${newAsset.id}`);
-    window.location.reload();
   };
 
-  const handleUpload = async () => {
-    if (!file) return setUploadMsg("กรุณาเลือกไฟล์ CSV");
-    try {
-      setUploadMsg("กำลังอัปโหลด...");
-      const formData = new FormData();
-      formData.append("file", file);
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/assets/${asset.id}/upload-bitlocker`,
-        formData,
-        {
-          headers: {
-            "x-auth-token": token,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      setUploadMsg("✅ อัปโหลดสำเร็จ");
-      setFile(null);
-      fetchAsset();
-    } catch (err) {
-      setUploadMsg(
-        `❌ อัปโหลดล้มเหลว: ${err.response?.data?.error || err.message}`
-      );
-    }
-  };
 
   if (loading) return <div className="text-center p-10">Loading...</div>;
-  if (error)
-    return <div className="text-center p-10 text-red-600">{error}</div>;
-  if (!asset) return <div className="text-center p-10">No assets found.</div>;
+  if (error) return <div className="text-center p-10 text-red-600">{error}</div>;
+  if (!asset) return <div className="text-center p-10">No asset found.</div>;
 
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div className="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
-            IT ASSET : <span className="text-blue-600">{asset.asset_code}</span>
+            ASSET : <span className="text-blue-600">{asset.asset_name}</span>
           </h2>
           <div className="mt-2 flex items-center space-x-2">
             <p className="text-sm text-gray-500">Status :</p>
@@ -124,12 +97,12 @@ function AssetDetailPage() {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Link
+           <button
             onClick={() => setReplaceModalOpen(true)}
-            className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition"
+            className="bg-yellow-500 text-white font-bold py-2 px-4 rounded-md hover:bg-yellow-600 transition"
           >
             Replace
-          </Link>
+          </button>
           <Link
             to={`/edit/${asset.id}`}
             className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition"
@@ -141,55 +114,33 @@ function AssetDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          {/* --- Hardware --- */}
           <InfoCard title="Hardware specifications">
-            <DetailItem
-              label="Brand / Model"
-              value={`${asset.brand || ""} ${asset.model || ""}`.trim()}
-            />
+            <DetailItem label="Brand / Model" value={`${asset.brand || ""} ${asset.model || ""}`.trim()} />
             <DetailItem label="Serial Number" value={asset.serial_number} />
-            <DetailItem
-              label="Category"
-              value={`${asset.category || ""} / ${
-                asset.subcategory || ""
-              }`.trim()}
-            />
+            <DetailItem label="Category" value={`${asset.category || ""} / ${asset.subcategory || ""}`.trim()} />
             <DetailItem label="CPU" value={asset.cpu} />
             <DetailItem label="Memory (RAM)" value={asset.ram} />
             <DetailItem label="Hard Disk" value={asset.storage} />
           </InfoCard>
 
-          {/* --- Network --- */}
           <InfoCard title="Network information">
             <DetailItem label="Device ID" value={asset.device_id} />
-            <DetailItem label="IP Address" value={asset.ip_address} />
-            <DetailItem
-              label="Mac Address - LAN"
-              value={asset.mac_address_lan}
-            />
-            <DetailItem
-              label="Mac Address - WiFi"
-              value={asset.mac_address_wifi}
-            />
-            <DetailItem label="Wifi Register" value={asset.wifi_registered} />
+            <DetailItem label="Mac Address - LAN" value={asset.mac_address_lan} />
+            <DetailItem label="Mac Address - WiFi" value={asset.mac_address_wifi} />
+            <DetailItem label="Wifi Status" value={asset.wifi_status} />
           </InfoCard>
 
-          {/* --- Software --- */}
           <InfoCard title="Software Information">
             <DetailItem label="Windows" value={asset.windows_version} />
-            <DetailItem label="Windows Product Key" value={asset.windows_key} />
+            <DetailItem label="Windows Product Key" value={asset.windows_product_key} />
             <DetailItem label="Microsoft Office" value={asset.office_version} />
-            <DetailItem label="Office Product Key" value={asset.office_key} />
+            <DetailItem label="Office Product Key" value={asset.office_product_key} />
             <DetailItem label="Antivirus" value={asset.antivirus} />
-
             <DetailItem label="Special Programs">
               {asset.specialPrograms && asset.specialPrograms.length > 0 ? (
                 <div className="flex flex-col space-y-2">
                   {asset.specialPrograms.map((prog) => (
-                    <div
-                      key={prog.id}
-                      className="self-start inline-flex items-center bg-gray-100 rounded-full pr-3 py-1 text-sm font-medium text-gray-800"
-                    >
+                    <div key={prog.id} className="self-start inline-flex items-center bg-gray-100 rounded-full pr-3 py-1 text-sm font-medium text-gray-800">
                       <span className="px-3">{prog.program_name}</span>
                       {prog.license_key && (
                         <span className="ml-1 text-gray-600 font-mono bg-gray-50 px-2 py-0.5 rounded-full text-xs">
@@ -199,35 +150,18 @@ function AssetDetailPage() {
                     </div>
                   ))}
                 </div>
-              ) : (
-                "N/A"
-              )}
+              ) : "N/A"}
             </DetailItem>
           </InfoCard>
 
-          {/* --- BitLocker --- */}
           <InfoCard title="BitLocker Recovery Keys">
-            {asset.bitlocker_file_url ? (
-              <div className="bitlocker-section">
-                <p className="text-sm text-gray-700">
-                  <span className="font-medium">Attachment :</span>{" "}
-                  <a
-                    href={`${process.env.REACT_APP_API_URL.replace(
-                      "/api",
-                      ""
-                    )}${asset.bitlocker_file_url}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="bitlocker-link"
-                  >
-                    Download BitLocker CSV
-                  </a>
-                </p>
-              </div>
+            {asset.bitlocker_csv_file ? (
+              <a href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${asset.bitlocker_csv_file}`}
+                 target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                Download BitLocker CSV
+              </a>
             ) : (
-              <div className="bitlocker-section text-gray-500">
-                No BitLocker file uploaded for this asset.
-              </div>
+              <p className="text-gray-500 px-4 py-3">No BitLocker file uploaded for this asset.</p>
             )}
           </InfoCard>
         </div>
@@ -236,30 +170,14 @@ function AssetDetailPage() {
           <InfoCard title="Configuration and location">
             <DetailItem label="User" value={asset.user_name} />
             <DetailItem label="User ID" value={asset.user_id} />
-            <DetailItem
-              label="Department / Division"
-              value={asset.department}
-            />
+            <DetailItem label="Department / Division" value={asset.department} />
             <DetailItem label="Location" value={asset.location} />
           </InfoCard>
 
           <InfoCard title="Management details">
-            <DetailItem
-              label="Start Date"
-              value={
-                asset.start_date
-                  ? new Date(asset.start_date).toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })
-                  : "N/A"
-              }
-            />
-            <DetailItem
-              label="Ref. FIN Asset No."
-              value={asset.fin_asset_ref}
-            />
+            <DetailItem label="Start Date" value={ asset.start_date ? new Date(asset.start_date).toLocaleDateString("en-GB") : "N/A" } />
+            <DetailItem label="Ref. FIN Asset No." value={asset.fin_asset_ref_no} />
+            <DetailItem label="Remark" value={asset.remark} />
           </InfoCard>
         </div>
       </div>
