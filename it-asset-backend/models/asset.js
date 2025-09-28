@@ -1,99 +1,56 @@
-// it-asset-backend/models/asset.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const BitlockerKey = require("./bitlockerKey");
-const AssetSpecialProgram = require("./assetSpecialProgram");
 
-// หมายเหตุ:
-// - เก็บชนิดเดิมของบางฟิลด์ตามสคีมาปัจจุบัน (เช่น wifi_registered = STRING)
-// - เพิ่ม unique + hook normalize ให้ asset_code
-// - ระบุ allowNull ให้ชัดเจน
+// import master models
+const Category = require("./Category");
+const Subcategory = require("./Subcategory");
+const Brand = require("./Brand");
+const Model = require("./Model");
+const Ram = require("./Ram");
+const Cpu = require("./Cpu");
+const Storage = require("./Storage");
+const WindowsVersion = require("./WindowsVersion");
+const OfficeVersion = require("./OfficeVersion");
+const AntivirusProgram = require("./AntivirusProgram");
+const Department = require("./Department");
+const Location = require("./Location");
+const Employee = require("./Employee");
+const AssetStatus = require("./AssetStatus");
 
-const Asset = sequelize.define(
-  "Asset",
-  {
-    asset_code: { type: DataTypes.STRING, allowNull: false, unique: true },
-    serial_number: { type: DataTypes.STRING, allowNull: true },
-    brand: { type: DataTypes.STRING, allowNull: true },
-    model: { type: DataTypes.STRING, allowNull: true },
-
-    // หมวดหมู่ (ใช้ใน Replace)
-    category: { type: DataTypes.STRING, allowNull: true },
-    subcategory: { type: DataTypes.STRING, allowNull: true },
-
-    // สเปกฮาร์ดแวร์
-    ram: { type: DataTypes.STRING, allowNull: true },
-    cpu: { type: DataTypes.STRING, allowNull: true },
-    storage: { type: DataTypes.STRING, allowNull: true },
-    device_id: { type: DataTypes.STRING, allowNull: true },
-
-    // เครือข่าย (ใช้ใน Replace)
-    ip_address: { type: DataTypes.STRING, allowNull: true },
-    wifi_registered: { type: DataTypes.STRING, allowNull: true }, // คงชนิดเดิมเพื่อหลีกเลี่ยง migration
-
-    mac_address_lan: { type: DataTypes.STRING, allowNull: true },
-    mac_address_wifi: { type: DataTypes.STRING, allowNull: true },
-
-    // ข้อมูลการใช้งาน (ใช้ใน Replace)
-    start_date: { type: DataTypes.DATEONLY, allowNull: true },
-    location: { type: DataTypes.STRING, allowNull: true },
-    fin_asset_ref: { type: DataTypes.STRING, allowNull: true },
-    user_id: { type: DataTypes.STRING, allowNull: true },
-    user_name: { type: DataTypes.STRING, allowNull: true },
-    department: { type: DataTypes.STRING, allowNull: true },
-
-    // สถานะ
-    status: { type: DataTypes.STRING, allowNull: true, defaultValue: "Enable" },
-
-    // License/Software (ใช้ใน Replace)
-    windows_version: { type: DataTypes.STRING, allowNull: true },
-    windows_key: { type: DataTypes.STRING, allowNull: true },
-    office_version: { type: DataTypes.STRING, allowNull: true }, // Microsoft Office
-    office_key: { type: DataTypes.STRING, allowNull: true }, // Office Product Key
-    antivirus: { type: DataTypes.STRING, allowNull: true },
-
-    // 🆕 เพิ่มฟิลด์สำหรับเก็บไฟล์ CSV ของ BitLocker
-    bitlocker_file_url: { type: DataTypes.STRING, allowNull: true },
-  },
-  {
-    tableName: "assets",
-    hooks: {
-      beforeValidate(instance) {
-        if (instance.asset_code) {
-          instance.asset_code = String(instance.asset_code)
-            .trim()
-            .toUpperCase()
-            .replace(/[\s-]+/g, "");
-        }
-      },
-    },
-    indexes: [
-      // เร่งความเร็วการค้นหาตาม code และกันซ้ำระดับ DB
-      { unique: true, fields: ["asset_code"] },
-    ],
-  }
-);
-
-// ความสัมพันธ์ BitLocker
-Asset.hasMany(BitlockerKey, {
-  foreignKey: "assetId",
-  as: "bitlockerKeys",
-  onDelete: "CASCADE",
-});
-BitlockerKey.belongsTo(Asset, {
-  foreignKey: "assetId",
-  as: "asset",
+const Asset = sequelize.define("Asset", {
+  id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  asset_name: { type: DataTypes.STRING, allowNull: true },
+  serial_number: { type: DataTypes.STRING, allowNull: true },
+  device_id: { type: DataTypes.STRING, allowNull: true },
+  mac_address_lan: { type: DataTypes.STRING, allowNull: true },
+  mac_address_wifi: { type: DataTypes.STRING, allowNull: true },
+  wifi_status: { type: DataTypes.STRING, allowNull: true },
+  windows_product_key: { type: DataTypes.STRING, allowNull: true },
+  office_product_key: { type: DataTypes.STRING, allowNull: true },
+  bitlocker_csv_file: { type: DataTypes.STRING, allowNull: true },
+  start_date: { type: DataTypes.DATEONLY, allowNull: true },
+  end_date: { type: DataTypes.DATEONLY, allowNull: true },
+  fin_asset_ref_no: { type: DataTypes.STRING, allowNull: true },
+  remark: { type: DataTypes.TEXT, allowNull: true }
+}, {
+  tableName: "assets",
+  timestamps: false
 });
 
-// ความสัมพันธ์ Special Programs
-Asset.hasMany(AssetSpecialProgram, {
-  foreignKey: "assetId",
-  as: "specialPrograms",
-  onDelete: "CASCADE",
-});
-AssetSpecialProgram.belongsTo(Asset, {
-  foreignKey: "assetId",
-  as: "asset",
-});
+// Associations
+Asset.belongsTo(Category, { foreignKey: "category_id" });
+Asset.belongsTo(Subcategory, { foreignKey: "subcategory_id" });
+Asset.belongsTo(Brand, { foreignKey: "brand_id" });
+Asset.belongsTo(Model, { foreignKey: "model_id" });
+Asset.belongsTo(Ram, { foreignKey: "ram_id" });
+Asset.belongsTo(Cpu, { foreignKey: "cpu_id" });
+Asset.belongsTo(Storage, { foreignKey: "storage_id" });
+Asset.belongsTo(WindowsVersion, { foreignKey: "windows_version_id" });
+Asset.belongsTo(OfficeVersion, { foreignKey: "office_version_id" });
+Asset.belongsTo(AntivirusProgram, { foreignKey: "antivirus_id" });
+Asset.belongsTo(Employee, { foreignKey: "user_id" });
+Asset.belongsTo(Department, { foreignKey: "department_id" });
+Asset.belongsTo(Location, { foreignKey: "location_id" });
+Asset.belongsTo(AssetStatus, { foreignKey: "status_id" });
 
 module.exports = Asset;

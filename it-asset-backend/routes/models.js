@@ -1,26 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const Employee = require("../models/Employee");
-const Department = require("../models/Department");
-const Position = require("../models/Position");
-const Email = require("../models/Email");
+const Model = require("../models/Model");
+const Brand = require("../models/Brand");
 
 router.get("/", async (req, res) => {
   try {
-    const data = await Employee.findAll({
-      include: [Department, Position, Email]
-    });
+    const data = await Model.findAll({ include: Brand });
     res.json(data);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.post("/", async (req, res) => {
   try {
-    const item = await Employee.create({
+    const item = await Model.create({
       name: req.body.name,
-      department_id: req.body.department_id,
-      position_id: req.body.position_id,
-      email_id: req.body.email_id
+      brand_id: req.body.brand_id
     });
     res.json(item);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -28,11 +22,9 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   try {
-    await Employee.update({
+    await Model.update({
       name: req.body.name,
-      department_id: req.body.department_id,
-      position_id: req.body.position_id,
-      email_id: req.body.email_id
+      brand_id: req.body.brand_id
     }, { where: { id: req.params.id } });
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -40,7 +32,7 @@ router.put("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    await Employee.destroy({ where: { id: req.params.id } });
+    await Model.destroy({ where: { id: req.params.id } });
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });

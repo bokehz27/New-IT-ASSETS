@@ -3,7 +3,7 @@ const router = express.Router();
 const ExcelJS = require("exceljs");
 
 const Asset = require("../models/asset");
-const AssetSpecialProgram = require("../models/assetSpecialProgram");
+const AssetSpecialProgram = require("../models/AssetSpecialProgram");
 
 // Reusable function to apply header styling
 const applyHeaderStyles = (worksheet) => {

@@ -6,7 +6,7 @@ const path = require("path");
 const fs = require("fs");
 
 const Asset = require("../models/asset");
-const AssetSpecialProgram = require("../models/assetSpecialProgram");
+const AssetSpecialProgram = require("../models/AssetSpecialProgram");
 const sequelize = require("../config/database");
 
 const router = express.Router();
