@@ -1,4 +1,4 @@
-// src/pages/AddAssetPage.js (แก้ไขแล้ว)
+// src/pages/AddAssetPage.js
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +26,7 @@ function AddAssetPage() {
     remark: "",
     status: "Enable",
     specialPrograms: [],
+    ip_ids: [],
     category: "",
     subcategory: "",
     brand: "",
@@ -60,7 +61,8 @@ function AddAssetPage() {
           windows: api.get("/windows_versions"),
           office: api.get("/office_versions"),
           antivirus: api.get("/antivirus_programs"),
-          special_program: api.get("/asset_special_programs"),
+          // ✨ FIX: เปลี่ยน Endpoint เป็น /special-programs
+          special_program: api.get("/special-programs"),
           employees: api.get("/employees"),
         };
 
@@ -69,16 +71,14 @@ function AddAssetPage() {
           acc[key] = responses[index].data;
           return acc;
         }, {});
-
-        // ✨ --- แก้ไขทั้งหมดตรงนี้ --- ✨
-        // เปลี่ยน .value ให้เป็น .name หรือ .size หรือ .fullName ตามที่ API ส่งกลับมา
+        
         const fetchedMasterData = {
-          model: responseData.model.map(item => item.name), // เพิ่ม model
-          cpu: responseData.cpu.map(item => item.name),     // เพิ่ม cpu
+          model: responseData.model.map(item => item.name),
+          cpu: responseData.cpu.map(item => item.name),
           category: responseData.category.map(item => item.name),
           subcategory: responseData.subcategory.map(item => item.name),
           brand: responseData.brand.map(item => item.name),
-          ram: responseData.ram.map(item => item.size), // แก้ไข: ถ้ายังไม่ขึ้น อาจจะต้องเช็ค property name ที่ถูกต้อง
+          ram: responseData.ram.map(item => item.size),
           storage: responseData.storage.map(item => item.size),
           department: responseData.department.map(item => item.name),
           location: responseData.location.map(item => item.name),
@@ -86,7 +86,8 @@ function AddAssetPage() {
           windows: responseData.windows.map(item => item.name),
           office: responseData.office.map(item => item.name),
           antivirus: responseData.antivirus.map(item => item.name),
-          special_program: responseData.special_program.map(item => item.program_name), // แก้ไข
+          // ✨ FIX: เก็บข้อมูลทั้ง object เพื่อให้ฟอร์มใช้ id และ name ได้
+          special_program: responseData.special_program,
           user_name: responseData.employees.map(emp => emp.name),
         };
         

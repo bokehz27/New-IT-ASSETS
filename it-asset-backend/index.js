@@ -34,6 +34,9 @@ const path = require("path");
 const dashboardRoutes = require("./routes/dashboard");
 const userRoutes = require("./routes/users");
 const SwitchPort = require("./models/SwitchPort");
+const vlanRoutes = require('./routes/vlans');
+const ipRoutes = require('./routes/ips');
+const specialProgramRoutes = require('./routes/special_programs');
 
 
 
@@ -75,6 +78,9 @@ app.use("/api/reports", authMiddleware, reportRoutes);
 app.use("/api/dashboard", authMiddleware, dashboardRoutes);
 app.use("/api/ports", authMiddleware, portRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use('/api/vlans', vlanRoutes);
+app.use('/api/ips', ipRoutes);
+app.use('/api/special-programs', specialProgramRoutes);
 
 
 // Database connection

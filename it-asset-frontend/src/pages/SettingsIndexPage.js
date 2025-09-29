@@ -31,7 +31,7 @@ const categories = [
   { name: "Windows Versions", path: "/settings/windows", icon: <FiTv /> },
   { name: "Office Versions", path: "/settings/office", icon: <FiFileText /> },
   { name: "Antivirus", path: "/settings/antivirus", icon: <FiShield /> },
-  { name: "Special Programs", path: "/settings/special_program", icon: <FiStar /> },
+  { name: "Special Programs", path: "/settings/special-programs", icon: <FiStar /> },
   { name: "Departments", path: "/settings/department", icon: <FiBriefcase /> },
   { name: "Locations", path: "/settings/location", icon: <FiMapPin /> },
   { name: "Positions", path: "/settings/position", icon: <FiUsers /> },

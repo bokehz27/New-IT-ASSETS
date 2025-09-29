@@ -19,53 +19,62 @@ function EditAssetPage() {
       try {
         setLoading(true);
 
-        const masterDataTypes = [
-          "category",
-          "subcategory",
-          "brand",
-          "ram",
-          "storage",
-          "department",
-          "location",
-          "status",
-          "windows",
-          "office",
-          "antivirus",
-          "special_program",
-        ];
+        const requests = {
+          asset: api.get(`/assets/${assetId}`),
+          model: api.get("/models"),
+          cpu: api.get("/cpus"),
+          category: api.get("/categories"),
+          subcategory: api.get("/subcategories"),
+          brand: api.get("/brands"),
+          ram: api.get("/rams"),
+          storage: api.get("/storages"),
+          department: api.get("/departments"),
+          location: api.get("/locations"),
+          status: api.get("/asset_statuses"),
+          windows: api.get("/windows_versions"),
+          office: api.get("/office_versions"),
+          antivirus: api.get("/antivirus_programs"),
+          // ✨ FIX: เปลี่ยน Endpoint เป็น /special-programs
+          special_program: api.get("/special-programs"),
+          employees: api.get("/employees"),
+        };
 
-        const masterDataRequests = masterDataTypes.map((type) =>
-          api.get(`/master-data/${type}`)
-        );
-        const assetRequest = api.get(`/assets/${assetId}`);
-        const employeesRequest = api.get(`/employees`);
-
-        const [assetResponse, employeesResponse, ...masterDataResponses] =
-          await Promise.all([
-            assetRequest,
-            employeesRequest,
-            ...masterDataRequests,
-          ]);
-
-        const fetchedMasterData = masterDataTypes.reduce((acc, type, index) => {
-          acc[type] = masterDataResponses[index].data.map((item) => item.value);
+        const responses = await Promise.all(Object.values(requests));
+        const responseData = Object.keys(requests).reduce((acc, key, index) => {
+          acc[key] = responses[index].data;
           return acc;
         }, {});
 
-        fetchedMasterData.user_name = employeesResponse.data.map(
-          (emp) => emp.fullName
-        );
+        const fetchedMasterData = {
+          model: responseData.model.map((item) => item.name),
+          cpu: responseData.cpu.map((item) => item.name),
+          category: responseData.category.map((item) => item.name),
+          subcategory: responseData.subcategory.map((item) => item.name),
+          brand: responseData.brand.map((item) => item.name),
+          ram: responseData.ram.map((item) => item.size),
+          storage: responseData.storage.map((item) => item.size),
+          department: responseData.department.map((item) => item.name),
+          location: responseData.location.map((item) => item.name),
+          status: responseData.status.map((item) => item.name),
+          windows: responseData.windows.map((item) => item.name),
+          office: responseData.office.map((item) => item.name),
+          antivirus: responseData.antivirus.map((item) => item.name),
+          // ✨ FIX: เก็บข้อมูลทั้ง object เพื่อให้ฟอร์มใช้ id และ name ได้
+          special_program: responseData.special_program,
+          user_name: responseData.employees.map((emp) => emp.name),
+        };
         setMasterData(fetchedMasterData);
 
-        const asset = assetResponse.data;
+        const asset = responseData.asset;
 
         setFormData({
           ...asset,
           start_date: asset.start_date
             ? new Date(asset.start_date).toISOString().split("T")[0]
             : "",
-          bitlockerKeys: asset.bitlockerKeys || [],
-          specialPrograms: asset.specialPrograms || [],
+          // Ensure these arrays exist even if the asset has none
+          specialPrograms: asset.specialPrograms || [], 
+          assignedIps: asset.assignedIps || [],
         });
 
         setError(null);
@@ -79,22 +88,17 @@ function EditAssetPage() {
     fetchData();
   }, [assetId]);
 
-  // ✅ ==== โค้ดที่แก้ไขแล้ว ==== ✅
-  // เปลี่ยนการรับพารามิเตอร์เป็นแบบ Destructuring { data, file }
   const handleSubmit = async ({ data, file }) => {
     if (!data) return;
 
-    // 'data' ในที่นี้คือข้อมูลจากฟอร์มโดยตรง
     const payload = { ...data };
     if (!payload.start_date || String(payload.start_date).trim() === "") {
       payload.start_date = null;
     }
 
     try {
-      // 1. อัปเดตข้อมูล Asset หลัก
       await api.put(`/assets/${assetId}`, payload);
 
-      // 2. ถ้ามีการอัปโหลดไฟล์ใหม่ ให้ส่งไฟล์นั้นไป
       if (file) {
         const formDataUpload = new FormData();
         formDataUpload.append("file", file);

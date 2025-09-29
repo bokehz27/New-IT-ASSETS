@@ -42,7 +42,6 @@ const DetailItem = ({ label, children, value }) => (
   </div>
 );
 
-
 function AssetDetailPage() {
   const { assetId } = useParams();
   const navigate = useNavigate();
@@ -50,7 +49,6 @@ function AssetDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isReplaceModalOpen, setReplaceModalOpen] = useState(false);
-
 
   const fetchAsset = useCallback(async () => {
     try {
@@ -79,9 +77,9 @@ function AssetDetailPage() {
     navigate(`/asset/${newAsset.id}`);
   };
 
-
   if (loading) return <div className="text-center p-10">Loading...</div>;
-  if (error) return <div className="text-center p-10 text-red-600">{error}</div>;
+  if (error)
+    return <div className="text-center p-10 text-red-600">{error}</div>;
   if (!asset) return <div className="text-center p-10">No asset found.</div>;
 
   return (
@@ -97,7 +95,7 @@ function AssetDetailPage() {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-           <button
+          <button
             onClick={() => setReplaceModalOpen(true)}
             className="bg-yellow-500 text-white font-bold py-2 px-4 rounded-md hover:bg-yellow-600 transition"
           >
@@ -115,9 +113,17 @@ function AssetDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <InfoCard title="Hardware specifications">
-            <DetailItem label="Brand / Model" value={`${asset.brand || ""} ${asset.model || ""}`.trim()} />
+            <DetailItem
+              label="Brand / Model"
+              value={`${asset.brand || ""} ${asset.model || ""}`.trim()}
+            />
             <DetailItem label="Serial Number" value={asset.serial_number} />
-            <DetailItem label="Category" value={`${asset.category || ""} / ${asset.subcategory || ""}`.trim()} />
+            <DetailItem
+              label="Category"
+              value={`${asset.category || ""} / ${
+                asset.subcategory || ""
+              }`.trim()}
+            />
             <DetailItem label="CPU" value={asset.cpu} />
             <DetailItem label="Memory (RAM)" value={asset.ram} />
             <DetailItem label="Hard Disk" value={asset.storage} />
@@ -125,43 +131,74 @@ function AssetDetailPage() {
 
           <InfoCard title="Network information">
             <DetailItem label="Device ID" value={asset.device_id} />
-            <DetailItem label="Mac Address - LAN" value={asset.mac_address_lan} />
-            <DetailItem label="Mac Address - WiFi" value={asset.mac_address_wifi} />
+            <DetailItem
+              label="Mac Address - LAN"
+              value={asset.mac_address_lan}
+            />
+            <DetailItem
+              label="Mac Address - WiFi"
+              value={asset.mac_address_wifi}
+            />
             <DetailItem label="Wifi Status" value={asset.wifi_status} />
+
+            <DetailItem label="Assigned IPs">
+    {asset.assignedIps && asset.assignedIps.length > 0 ? (
+        <ul className="list-disc list-inside">
+            {/* ✨ แก้ไขให้ดึง ip.ip_address มาแสดง และใช้ ip.id เป็น key ✨ */}
+            {asset.assignedIps.map(ip => <li key={ip.id}>{ip.ip_address}</li>)}
+        </ul>
+    ) : "N/A"}
+</DetailItem>
           </InfoCard>
 
           <InfoCard title="Software Information">
             <DetailItem label="Windows" value={asset.windows_version} />
-            <DetailItem label="Windows Product Key" value={asset.windows_product_key} />
+            <DetailItem
+              label="Windows Product Key"
+              value={asset.windows_product_key}
+            />
             <DetailItem label="Microsoft Office" value={asset.office_version} />
-            <DetailItem label="Office Product Key" value={asset.office_product_key} />
+            <DetailItem
+              label="Office Product Key"
+              value={asset.office_product_key}
+            />
             <DetailItem label="Antivirus" value={asset.antivirus} />
             <DetailItem label="Special Programs">
               {asset.specialPrograms && asset.specialPrograms.length > 0 ? (
-                <div className="flex flex-col space-y-2">
+                <ul className="list-disc list-inside">
                   {asset.specialPrograms.map((prog) => (
-                    <div key={prog.id} className="self-start inline-flex items-center bg-gray-100 rounded-full pr-3 py-1 text-sm font-medium text-gray-800">
-                      <span className="px-3">{prog.program_name}</span>
+                    <li key={prog.id}>
+                      {prog.program_name}
                       {prog.license_key && (
-                        <span className="ml-1 text-gray-600 font-mono bg-gray-50 px-2 py-0.5 rounded-full text-xs">
-                          Key: {prog.license_key}
+                        <span className="text-gray-500 ml-2">
+                          (Key: {prog.license_key})
                         </span>
                       )}
-                    </div>
+                    </li>
                   ))}
-                </div>
-              ) : "N/A"}
+                </ul>
+              ) : (
+                "N/A"
+              )}
             </DetailItem>
           </InfoCard>
 
           <InfoCard title="BitLocker Recovery Keys">
             {asset.bitlocker_csv_file ? (
-              <a href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${asset.bitlocker_csv_file}`}
-                 target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+              <a
+                href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${
+                  asset.bitlocker_csv_file
+                }`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue-600 hover:underline"
+              >
                 Download BitLocker CSV
               </a>
             ) : (
-              <p className="text-gray-500 px-4 py-3">No BitLocker file uploaded for this asset.</p>
+              <p className="text-gray-500 px-4 py-3">
+                No BitLocker file uploaded for this asset.
+              </p>
             )}
           </InfoCard>
         </div>
@@ -170,13 +207,26 @@ function AssetDetailPage() {
           <InfoCard title="Configuration and location">
             <DetailItem label="User" value={asset.user_name} />
             <DetailItem label="User ID" value={asset.user_id} />
-            <DetailItem label="Department / Division" value={asset.department} />
+            <DetailItem
+              label="Department / Division"
+              value={asset.department}
+            />
             <DetailItem label="Location" value={asset.location} />
           </InfoCard>
 
           <InfoCard title="Management details">
-            <DetailItem label="Start Date" value={ asset.start_date ? new Date(asset.start_date).toLocaleDateString("en-GB") : "N/A" } />
-            <DetailItem label="Ref. FIN Asset No." value={asset.fin_asset_ref_no} />
+            <DetailItem
+              label="Start Date"
+              value={
+                asset.start_date
+                  ? new Date(asset.start_date).toLocaleDateString("en-GB")
+                  : "N/A"
+              }
+            />
+            <DetailItem
+              label="Ref. FIN Asset No."
+              value={asset.fin_asset_ref_no}
+            />
             <DetailItem label="Remark" value={asset.remark} />
           </InfoCard>
         </div>

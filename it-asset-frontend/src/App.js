@@ -44,7 +44,7 @@ import ManageRamsPage from './pages/ManageRamsPage';
 import ManageCategoriesPage from './pages/ManageCategoriesPage';
 import ManageSubCategoriesPage from './pages/ManageSubCategoriesPage';
 import ManageBrandsPage from './pages/ManageBrandsPage';
-import ManageAssetSpecialProgramsPage from './pages/ManageAssetSpecialProgramsPage';
+import ManageSpecialProgramsPage from './pages/ManageSpecialProgramsPage';
 import ManageAntivirusPage from './pages/ManageAntivirusPage';
 import ManagePositionsPage from './pages/ManagePositionsPage';
 import ManageOfficeVersionsPage from './pages/ManageOfficeVersionsPage';
@@ -108,7 +108,7 @@ function App() {
               <Route path="windows" element={<ManageWindowsVersionsPage />} />
               <Route path="office" element={<ManageOfficeVersionsPage />} />
               <Route path="antivirus" element={<ManageAntivirusPage />} />
-              <Route path="special_program" element={<ManageAssetSpecialProgramsPage />} />
+              <Route path="special-programs" element={<ManageSpecialProgramsPage />} />
               <Route path="department" element={<ManageDepartmentsPage />} />
               <Route path="location" element={<ManageLocationsPage />} />
               <Route path="position" element={<ManagePositionsPage />} />

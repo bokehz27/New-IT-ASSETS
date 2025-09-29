@@ -1,67 +1,72 @@
-// models/index.js (สร้างไฟล์ใหม่)
+// models/index.js (ฉบับสมบูรณ์)
 
 const sequelize = require('../config/database');
+const Sequelize = require('sequelize');
 
-// Import Model ทุกตัวเข้ามา
-const Asset = require('./asset');
-const AssetSpecialProgram = require('./AssetSpecialProgram');
-const Category = require('./Category');
-const Subcategory = require('./Subcategory');
-const Brand = require('./Brand');
-const Model = require('./Model');
-const Ram = require('./Ram');
-const Cpu = require('./Cpu');
-const Storage = require('./Storage');
-const WindowsVersion = require('./WindowsVersion');
-const OfficeVersion = require('./OfficeVersion');
-const AntivirusProgram = require('./AntivirusProgram');
-const Employee = require('./Employee');
-const Department = require('./Department');
-const Location = require('./Location');
-const AssetStatus = require('./AssetStatus');
+const db = {};
 
-// --- สร้างความสัมพันธ์ (Associations) ทั้งหมดที่นี่ ---
+// --- ✨ FIX: Import Model ทั้งหมดให้ครบถ้วน ---
+db.Asset = require('./asset');
+db.Category = require('./Category');
+db.Subcategory = require('./Subcategory');
+db.Brand = require('./Brand');
+db.Model = require('./Model');
+db.Ram = require('./Ram');
+db.Cpu = require('./Cpu');
+db.Storage = require('./Storage');
+db.WindowsVersion = require('./WindowsVersion');
+db.OfficeVersion = require('./OfficeVersion');
+db.AntivirusProgram = require('./AntivirusProgram');
+db.Employee = require('./Employee');
+db.Department = require('./Department');
+db.Location = require('./Location');
+db.AssetStatus = require('./AssetStatus');
+db.Vlan = require('./Vlan');
+db.IpPool = require('./IpPool');
+db.AssetIpAssignment = require('./AssetIpAssignment');
+db.SpecialProgram = require('./SpecialProgram');
+db.AssetSpecialProgram = require('./AssetSpecialProgram');
 
-// Asset <-> AssetSpecialProgram (One-to-Many)
-Asset.hasMany(AssetSpecialProgram, { as: 'specialPrograms', foreignKey: 'asset_id' });
-AssetSpecialProgram.belongsTo(Asset, { foreignKey: 'asset_id' });
 
-// Asset <-> Master Data (Many-to-One)
-Asset.belongsTo(Category, { foreignKey: 'category_id' });
-Asset.belongsTo(Subcategory, { foreignKey: 'subcategory_id' });
-Asset.belongsTo(Brand, { foreignKey: 'brand_id' });
-Asset.belongsTo(Model, { foreignKey: 'model_id' });
-Asset.belongsTo(Ram, { foreignKey: 'ram_id' });
-Asset.belongsTo(Cpu, { foreignKey: 'cpu_id' });
-Asset.belongsTo(Storage, { foreignKey: 'storage_id' });
-Asset.belongsTo(WindowsVersion, { foreignKey: 'windows_version_id' });
-Asset.belongsTo(OfficeVersion, { foreignKey: 'office_version_id' });
-Asset.belongsTo(AntivirusProgram, { foreignKey: 'antivirus_id' });
-Asset.belongsTo(Employee, { foreignKey: 'user_id' });
-Asset.belongsTo(Department, { foreignKey: 'department_id' });
-Asset.belongsTo(Location, { foreignKey: 'location_id' });
-Asset.belongsTo(AssetStatus, { foreignKey: 'status_id' });
+// --- ✨ ประกาศความสัมพันธ์ทั้งหมดที่นี่ที่เดียว ✨ ---
 
-// ----------------------------------------------------
+// --- ความสัมพันธ์ของ Master Data พื้นฐาน ---
+db.Asset.belongsTo(db.Category, { foreignKey: 'category_id' });
+db.Asset.belongsTo(db.Subcategory, { foreignKey: 'subcategory_id' });
+db.Asset.belongsTo(db.Brand, { foreignKey: 'brand_id' });
+db.Asset.belongsTo(db.Model, { foreignKey: 'model_id' });
+db.Asset.belongsTo(db.Ram, { foreignKey: 'ram_id' });
+db.Asset.belongsTo(db.Cpu, { foreignKey: 'cpu_id' });
+db.Asset.belongsTo(db.Storage, { foreignKey: 'storage_id' });
+db.Asset.belongsTo(db.WindowsVersion, { foreignKey: 'windows_version_id' });
+db.Asset.belongsTo(db.OfficeVersion, { foreignKey: 'office_version_id' });
+db.Asset.belongsTo(db.AntivirusProgram, { foreignKey: 'antivirus_id' });
+db.Asset.belongsTo(db.Department, { foreignKey: 'department_id' });
+db.Asset.belongsTo(db.Location, { foreignKey: 'location_id' });
+db.Asset.belongsTo(db.AssetStatus, { foreignKey: 'status_id' });
 
-const models = {
-  sequelize,
-  Asset,
-  AssetSpecialProgram,
-  Category,
-  Subcategory,
-  Brand,
-  Model,
-  Ram,
-  Cpu,
-  Storage,
-  WindowsVersion,
-  OfficeVersion,
-  AntivirusProgram,
-  Employee,
-  Department,
-  Location,
-  AssetStatus
-};
+// --- ✨ FIX: แก้ไขความสัมพันธ์ของ Employee ให้ใช้ employee_id ---
+db.Asset.belongsTo(db.Employee, { foreignKey: 'employee_id' });
+db.Employee.hasMany(db.Asset, { foreignKey: 'employee_id' });
 
-module.exports = models;
+// --- ✨ ADD: เพิ่มความสัมพันธ์ของ IP Address ---
+db.Asset.hasMany(db.AssetIpAssignment, { foreignKey: 'asset_id', as: 'ipAssignments' });
+db.AssetIpAssignment.belongsTo(db.Asset, { foreignKey: 'asset_id' });
+db.AssetIpAssignment.belongsTo(db.IpPool, { foreignKey: 'ip_id' });
+db.IpPool.hasMany(db.AssetIpAssignment, { foreignKey: 'ip_id' });
+db.IpPool.belongsTo(db.Vlan, { foreignKey: 'vlan_id' });
+db.Vlan.hasMany(db.IpPool, { foreignKey: 'vlan_id' });
+
+
+// --- ✨ ADD: เพิ่ม/แก้ไขความสัมพันธ์ของ Special Programs ---
+db.Asset.hasMany(db.AssetSpecialProgram, { foreignKey: 'asset_id', as: 'specialPrograms' });
+db.AssetSpecialProgram.belongsTo(db.Asset, { foreignKey: 'asset_id' });
+db.AssetSpecialProgram.belongsTo(db.SpecialProgram, { foreignKey: 'program_id' });
+db.SpecialProgram.hasMany(db.AssetSpecialProgram, { foreignKey: 'program_id' });
+
+// --- จบส่วนประกาศความสัมพันธ์ ---
+
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
+
+module.exports = db;

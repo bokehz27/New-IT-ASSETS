@@ -8,7 +8,6 @@ const sequelize = require("../config/database");
 
 // Import all necessary models
 const Asset = require("../models/asset");
-const AssetSpecialProgram = require("../models/AssetSpecialProgram");
 const Category = require("../models/Category");
 const Subcategory = require("../models/Subcategory");
 const Brand = require("../models/Brand");
@@ -23,9 +22,13 @@ const Employee = require("../models/Employee");
 const Department = require("../models/Department");
 const Location = require("../models/Location");
 const AssetStatus = require("../models/AssetStatus");
+const AssetIpAssignment = require("../models/AssetIpAssignment");
+const IpPool = require("../models/IpPool");
+const SpecialProgram = require("../models/SpecialProgram");
+const AssetSpecialProgram = require("../models/AssetSpecialProgram");
 
-Asset.belongsTo(Employee, { foreignKey: 'employee_id' });
-Employee.hasMany(Asset, { foreignKey: 'employee_id' });
+Asset.belongsTo(Employee, { foreignKey: "employee_id" });
+Employee.hasMany(Asset, { foreignKey: "employee_id" });
 
 const router = express.Router();
 
@@ -46,7 +49,17 @@ const getAssetAssociations = () => [
   { model: Department, attributes: ["name"] },
   { model: Location, attributes: ["name"] },
   { model: AssetStatus, attributes: ["name"] },
-  { model: AssetSpecialProgram, as: "specialPrograms" },
+
+  {
+    model: AssetIpAssignment,
+    as: "ipAssignments",
+    include: [{ model: IpPool, attributes: ["id", "ip_address", "vlan_id"] }],
+  },
+  {
+    model: AssetSpecialProgram,
+    as: "specialPrograms",
+    include: [{ model: SpecialProgram, attributes: ["name"] }],
+  },
 ];
 
 // Helper to flatten the asset object for frontend
@@ -66,10 +79,26 @@ const flattenAsset = (asset) => {
     antivirus: flat.AntivirusProgram?.name || null,
     user_name: flat.Employee?.name || null,
     // Frontend is using user_id from the asset table directly, which is correct
-    // user_id: flat.Employee?.employeeId || null, 
+    // user_id: flat.Employee?.employeeId || null,
     department: flat.Department?.name || null,
     location: flat.Location?.name || null,
     status: flat.AssetStatus?.name || null,
+    assignedIps:
+      flat.ipAssignments
+        ?.map((a) => ({
+          id: a.IpPool?.id,
+          ip_address: a.IpPool?.ip_address,
+          vlan_id: a.IpPool?.vlan_id,
+        }))
+        .filter((ip) => ip.id && ip.ip_address) || [],
+
+    specialPrograms:
+      flat.specialPrograms?.map((p) => ({
+        id: p.id,
+        program_name: p.SpecialProgram?.name,
+        program_id: p.program_id,
+        license_key: p.license_key,
+      })) || [],
   };
 
   // Remove nested objects to keep payload clean
@@ -87,45 +116,54 @@ const flattenAsset = (asset) => {
   delete flattened.Department;
   delete flattened.Location;
   delete flattened.AssetStatus;
+  delete flattened.ipAssignments;
+  delete flattened.IpPool;
 
   return flattened;
 };
 
 // ... (File upload logic for BitLocker remains the same)
 const bitlockerDir = path.join(__dirname, "../uploads/bitlocker");
-if (!fs.existsSync(bitlockerDir)) fs.mkdirSync(bitlockerDir, { recursive: true });
+if (!fs.existsSync(bitlockerDir))
+  fs.mkdirSync(bitlockerDir, { recursive: true });
 const upload = multer({ dest: bitlockerDir });
 
 router.post(
   "/:assetId/upload-bitlocker",
-  upload.single('file'),
+  upload.single("file"),
   async (req, res) => {
     try {
-        const asset = await Asset.findByPk(req.params.assetId);
-        if (!asset) {
-            return res.status(404).json({ error: "Asset not found" });
+      const asset = await Asset.findByPk(req.params.assetId);
+      if (!asset) {
+        return res.status(404).json({ error: "Asset not found" });
+      }
+      if (req.file) {
+        // If there's an old file, delete it
+        if (asset.bitlocker_csv_file) {
+          const oldFilePath = path.join(
+            __dirname,
+            "..",
+            asset.bitlocker_csv_file
+          );
+          if (fs.existsSync(oldFilePath)) {
+            fs.unlinkSync(oldFilePath);
+          }
         }
-        if (req.file) {
-            // If there's an old file, delete it
-            if (asset.bitlocker_csv_file) {
-                const oldFilePath = path.join(__dirname, '..', asset.bitlocker_csv_file);
-                if (fs.existsSync(oldFilePath)) {
-                    fs.unlinkSync(oldFilePath);
-                }
-            }
-            asset.bitlocker_csv_file = `/uploads/bitlocker/${req.file.filename}`;
-            await asset.save();
-            res.json({ message: "File uploaded successfully", filePath: asset.bitlocker_csv_file });
-        } else {
-            res.status(400).json({ error: "No file uploaded" });
-        }
+        asset.bitlocker_csv_file = `/uploads/bitlocker/${req.file.filename}`;
+        await asset.save();
+        res.json({
+          message: "File uploaded successfully",
+          filePath: asset.bitlocker_csv_file,
+        });
+      } else {
+        res.status(400).json({ error: "No file uploaded" });
+      }
     } catch (error) {
-        console.error("Error uploading BitLocker file:", error);
-        res.status(500).json({ error: "Failed to upload file" });
+      console.error("Error uploading BitLocker file:", error);
+      res.status(500).json({ error: "Failed to upload file" });
     }
   }
 );
-
 
 /**
  * =========================
@@ -195,24 +233,61 @@ router.get("/:id", async (req, res) => {
 
 // Helper function to resolve names to foreign keys
 const resolveFks = async (data) => {
-    const fkPayload = {};
-    if (data.category) fkPayload.category_id = (await Category.findOne({ where: { name: data.category } }))?.id;
-    if (data.subcategory) fkPayload.subcategory_id = (await Subcategory.findOne({ where: { name: data.subcategory } }))?.id;
-    if (data.brand) fkPayload.brand_id = (await Brand.findOne({ where: { name: data.brand } }))?.id;
-    if (data.model) fkPayload.model_id = (await Model.findOne({ where: { name: data.model } }))?.id;
-    if (data.ram) fkPayload.ram_id = (await Ram.findOne({ where: { size: data.ram } }))?.id;
-    if (data.cpu) fkPayload.cpu_id = (await Cpu.findOne({ where: { name: data.cpu } }))?.id;
-    if (data.storage) fkPayload.storage_id = (await Storage.findOne({ where: { size: data.storage } }))?.id;
-    if (data.windows_version) fkPayload.windows_version_id = (await WindowsVersion.findOne({ where: { name: data.windows_version } }))?.id;
-    if (data.office_version) fkPayload.office_version_id = (await OfficeVersion.findOne({ where: { name: data.office_version } }))?.id;
-    if (data.antivirus) fkPayload.antivirus_id = (await AntivirusProgram.findOne({ where: { name: data.antivirus } }))?.id;
-    if (data.user_name) fkPayload.employee_id = (await Employee.findOne({ where: { name: data.user_name } }))?.id;
-    if (data.department) fkPayload.department_id = (await Department.findOne({ where: { name: data.department } }))?.id;
-    if (data.location) fkPayload.location_id = (await Location.findOne({ where: { name: data.location } }))?.id;
-    if (data.status) fkPayload.status_id = (await AssetStatus.findOne({ where: { name: data.status } }))?.id;
-    return fkPayload;
-}
-
+  const fkPayload = {};
+  if (data.category)
+    fkPayload.category_id = (
+      await Category.findOne({ where: { name: data.category } })
+    )?.id;
+  if (data.subcategory)
+    fkPayload.subcategory_id = (
+      await Subcategory.findOne({ where: { name: data.subcategory } })
+    )?.id;
+  if (data.brand)
+    fkPayload.brand_id = (
+      await Brand.findOne({ where: { name: data.brand } })
+    )?.id;
+  if (data.model)
+    fkPayload.model_id = (
+      await Model.findOne({ where: { name: data.model } })
+    )?.id;
+  if (data.ram)
+    fkPayload.ram_id = (await Ram.findOne({ where: { size: data.ram } }))?.id;
+  if (data.cpu)
+    fkPayload.cpu_id = (await Cpu.findOne({ where: { name: data.cpu } }))?.id;
+  if (data.storage)
+    fkPayload.storage_id = (
+      await Storage.findOne({ where: { size: data.storage } })
+    )?.id;
+  if (data.windows_version)
+    fkPayload.windows_version_id = (
+      await WindowsVersion.findOne({ where: { name: data.windows_version } })
+    )?.id;
+  if (data.office_version)
+    fkPayload.office_version_id = (
+      await OfficeVersion.findOne({ where: { name: data.office_version } })
+    )?.id;
+  if (data.antivirus)
+    fkPayload.antivirus_id = (
+      await AntivirusProgram.findOne({ where: { name: data.antivirus } })
+    )?.id;
+  if (data.user_name)
+    fkPayload.employee_id = (
+      await Employee.findOne({ where: { name: data.user_name } })
+    )?.id;
+  if (data.department)
+    fkPayload.department_id = (
+      await Department.findOne({ where: { name: data.department } })
+    )?.id;
+  if (data.location)
+    fkPayload.location_id = (
+      await Location.findOne({ where: { name: data.location } })
+    )?.id;
+  if (data.status)
+    fkPayload.status_id = (
+      await AssetStatus.findOne({ where: { name: data.status } })
+    )?.id;
+  return fkPayload;
+};
 
 /**
  * =========================================
@@ -220,22 +295,33 @@ const resolveFks = async (data) => {
  * =========================================
  */
 router.post("/", async (req, res) => {
-  const { specialPrograms, ...assetData } = req.body;
+  const { specialPrograms, ip_ids, ...assetData } = req.body;
   const transaction = await sequelize.transaction();
   try {
     const fkIds = await resolveFks(assetData);
-    const newAsset = await Asset.create({ ...assetData, ...fkIds }, { transaction });
+    const newAsset = await Asset.create(
+      { ...assetData, ...fkIds },
+      { transaction }
+    );
 
     if (specialPrograms && specialPrograms.length > 0) {
       const programsToCreate = specialPrograms
-        .filter(p => p.program_name)
-        .map(p => ({
+        .filter((p) => p.program_id)
+        .map((p) => ({
           ...p,
-          asset_id: newAsset.id
+          asset_id: newAsset.id,
         }));
       if (programsToCreate.length > 0) {
         await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
       }
+    }
+
+    if (ip_ids && ip_ids.length > 0) {
+      const assignments = ip_ids.map((ipId) => ({
+        asset_id: newAsset.id,
+        ip_id: ipId,
+      }));
+      await AssetIpAssignment.bulkCreate(assignments, { transaction });
     }
 
     await transaction.commit();
@@ -245,7 +331,7 @@ router.post("/", async (req, res) => {
     console.error("CRITICAL ERROR ON CREATE ASSET:", error);
     res.status(400).json({
       error: "Failed to create asset. See details.",
-      details: error.errors || [{ message: error.message }]
+      details: error.errors || [{ message: error.message }],
     });
   }
 });
@@ -256,7 +342,7 @@ router.post("/", async (req, res) => {
  * =========================================
  */
 router.put("/:id", async (req, res) => {
-  const { specialPrograms, ...assetData } = req.body;
+  const { specialPrograms, ip_ids, ...assetData } = req.body;
   const transaction = await sequelize.transaction();
   try {
     const asset = await Asset.findByPk(req.params.id);
@@ -269,26 +355,49 @@ router.put("/:id", async (req, res) => {
     await asset.update({ ...assetData, ...fkIds }, { transaction });
 
     // Handle special programs update
-    await AssetSpecialProgram.destroy({ where: { asset_id: req.params.id }, transaction });
+    await AssetSpecialProgram.destroy({
+      where: { asset_id: req.params.id },
+      transaction,
+    });
     if (specialPrograms && specialPrograms.length > 0) {
-        const programsToCreate = specialPrograms
-            .filter(p => p.program_name)
-            .map(p => ({
-                ...p,
-                asset_id: asset.id
-            }));
-        if (programsToCreate.length > 0) {
-            await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
-        }
+      // ✨ FIX: เพิ่ม .filter(p => p.program_id) เข้าไปตรงนี้ ✨
+      const programsToCreate = specialPrograms
+        .filter((p) => p.program_id)
+        .map((p) => ({
+          program_id: p.program_id,
+          license_key: p.license_key,
+          asset_id: asset.id,
+        }));
+
+      if (programsToCreate.length > 0) {
+        await AssetSpecialProgram.bulkCreate(programsToCreate, { transaction });
+      }
+    }
+
+    // Handle IP Assignments update
+    await AssetIpAssignment.destroy({
+      where: { asset_id: req.params.id },
+      transaction,
+    });
+    if (ip_ids && ip_ids.length > 0) {
+      const assignments = ip_ids.map((ipId) => ({
+        asset_id: asset.id,
+        ip_id: ipId,
+      }));
+      await AssetIpAssignment.bulkCreate(assignments, { transaction });
     }
 
     await transaction.commit();
-    const updatedAsset = await Asset.findByPk(req.params.id, { include: getAssetAssociations() });
+    const updatedAsset = await Asset.findByPk(req.params.id, {
+      include: getAssetAssociations(),
+    });
     res.json(flattenAsset(updatedAsset));
   } catch (error) {
     await transaction.rollback();
     console.error(`Error updating asset with id ${req.params.id}:`, error);
-    res.status(400).json({ error: "Failed to update asset", details: error.errors });
+    res
+      .status(400)
+      .json({ error: "Failed to update asset", details: error.errors });
   }
 });
 
