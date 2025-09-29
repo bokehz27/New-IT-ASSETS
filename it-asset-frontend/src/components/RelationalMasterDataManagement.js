@@ -99,35 +99,51 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">{`Manage ${title}`}</h1>
+        {/* ✨ 1. ปรับปรุงปุ่ม Add New */}
         <button
           onClick={() => openModal()}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-md hover:bg-blue-700 shadow-sm"
         >
           Add New
         </button>
       </div>
 
-      <div className="overflow-x-auto bg-white rounded shadow">
+      <div className="overflow-x-auto bg-white rounded-lg shadow-md">
         <table className="min-w-full">
-          <thead className="bg-gray-200">
+          {/* ✨ 2. ปรับปรุง Header ของตาราง */}
+          <thead className="bg-blue-600">
             <tr>
               {dataColumns.map(col => (
-                <th key={col.key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{col.name}</th>
+                <th key={col.key} className="p-3 text-left font-semibold text-white">{col.name}</th>
               ))}
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="p-3 text-left font-semibold text-white">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {data.map(item => (
-              <tr key={item.id}>
+              // ✨ 3. เพิ่ม Hover Effect ให้กับแถว
+              <tr key={item.id} className="hover:bg-gray-50">
                 {dataColumns.map(col => (
-                  <td key={col.key} className="px-6 py-4 whitespace-nowrap">
+                  <td key={col.key} className="p-3 whitespace-nowrap align-middle">
                     {relations.some(r => r.foreignKey === col.key) ? getRelationDisplayValue(item, col.key) : item[col.key]}
                   </td>
                 ))}
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <button onClick={() => openModal(item)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
-                  <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900">Delete</button>
+                {/* ✨ 4. ปรับปรุงปุ่ม Actions */}
+                <td className="p-3 whitespace-nowrap align-middle">
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={() => openModal(item)} 
+                            className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-1 px-3 rounded-md text-sm shadow-sm"
+                        >
+                            Edit
+                        </button>
+                        <button 
+                            onClick={() => handleDelete(item.id)} 
+                            className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md text-sm shadow-sm"
+                        >
+                            Delete
+                        </button>
+                    </div>
                 </td>
               </tr>
             ))}
@@ -135,6 +151,7 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
         </table>
       </div>
 
+      {/* Modal remains the same */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
@@ -179,7 +196,7 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
               })}
               <div className="flex justify-end mt-6">
                 <button type="button" onClick={closeModal} className="bg-gray-300 text-gray-800 px-4 py-2 rounded mr-2 hover:bg-gray-400">Cancel</button>
-                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save</button>
+                <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
               </div>
             </form>
           </div>

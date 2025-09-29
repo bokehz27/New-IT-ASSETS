@@ -1,8 +1,0 @@
-- การปรับหน้า Add Asset ให้เป็น "ฟอร์มแบบไดนามิก
-
-- Log การเปลี่ยนแปลงข้อมูลต่างๆของ Asset
-
-- Log remark ของ port lan
-
-- Backup database
-
