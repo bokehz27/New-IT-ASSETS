@@ -37,6 +37,7 @@ const SwitchPort = require("./models/SwitchPort");
 const vlanRoutes = require('./routes/vlans');
 const ipRoutes = require('./routes/ips');
 const specialProgramRoutes = require('./routes/special_programs');
+const ipPoolRoutes = require('./routes/ip-pools');
 
 
 
@@ -81,6 +82,10 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use('/api/vlans', vlanRoutes);
 app.use('/api/ips', ipRoutes);
 app.use('/api/special-programs', specialProgramRoutes);
+app.use('/api/ip-pools', ipPoolRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/public', publicRoutes);
+
 
 
 // Database connection

@@ -5,11 +5,7 @@ const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
 
-// --- เพิ่มการ import Model ที่จำเป็น ---
-const Ticket = require("../models/ticket");
-const Asset = require("../models/asset");
-const Employee = require("../models/Employee");
-const Faq = require("../models/faq");
+const { Ticket, Asset, Employee, Faq } = require("../models");
 
 const router = express.Router();
 
@@ -45,6 +41,34 @@ function setAttachmentOnPayload(payload, url) {
   }
   return payload;
 }
+
+
+// ✨ 2. สร้าง Endpoint ใหม่สำหรับ Form โดยเฉพาะ (วิธีที่แนะนำ)
+router.get('/form-options', async (req, res) => {
+    try {
+        const [assets, employees] = await Promise.all([
+            Asset.findAll({
+                attributes: ['asset_name'],
+                order: [['asset_name', 'ASC']]
+            }),
+            Employee.findAll({
+                attributes: ['name'],
+                where: { status: 'Active' },
+                order: [['name', 'ASC']]
+            })
+        ]);
+
+        res.json({
+            assets: assets.map(a => a.asset_name),
+            employees: employees.map(e => e.name)
+        });
+
+    } catch (error) {
+        console.error("Error fetching public form options:", error);
+        res.status(500).json({ error: "Failed to fetch form options" });
+    }
+});
+
 
 /* ===================== PUBLIC: list tickets ===================== */
 router.get("/tickets", async (req, res) => {
@@ -132,13 +156,12 @@ router.post("/tickets", upload.single("attachment_user"), async (req, res) => {
 /* ===================== PUBLIC: dropdown helpers (FIXED) ===================== */
 router.get("/asset-users", async (_req, res) => {
   try {
-    // --- UPDATED: ดึงข้อมูลจากตาราง Employee โดยตรง ---
     const rows = await Employee.findAll({
-      attributes: ["fullName"],
-      group: ["fullName"],
-      order: [["fullName", "ASC"]],
+      attributes: ["name"], // ✨ FIX: เปลี่ยนจาก fullName เป็น name
+      where: { status: "Active" },
+      order: [["name", "ASC"]],
     });
-    res.json(rows.map((r) => r.fullName).filter(Boolean));
+    res.json(rows.map((r) => r.name).filter(Boolean));
   } catch (e) {
     console.error("GET /api/public/asset-users error:", e);
     res.status(500).json({ error: "Failed to load asset users" });
@@ -147,13 +170,10 @@ router.get("/asset-users", async (_req, res) => {
 
 router.get("/assets-list", async (_req, res) => {
   try {
-    // --- UPDATED: ดึงข้อมูลจากตาราง Asset โดยตรง ---
     const rows = await Asset.findAll({
-      attributes: ["asset_code", "model"],
-      where: {
-        status: "Enable", // เลือกเฉพาะทรัพย์สินที่ยังใช้งานอยู่
-      },
-      order: [["asset_code", "ASC"]],
+      attributes: ["asset_name", "model_id"], // ✨ FIX: เปลี่ยนจาก asset_code, model เป็น asset_name, model_id
+      where: { status_id: 1 }, // สมมติว่า 1 คือสถานะ 'Enable'
+      order: [["asset_name", "ASC"]],
     });
     res.json(rows);
   } catch (e) {

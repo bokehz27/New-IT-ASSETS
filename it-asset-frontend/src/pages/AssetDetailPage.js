@@ -97,7 +97,7 @@ function AssetDetailPage() {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setReplaceModalOpen(true)}
-            className="bg-yellow-500 text-white font-bold py-2 px-4 rounded-md hover:bg-yellow-600 transition"
+            className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition"
           >
             Replace
           </button>
@@ -142,13 +142,17 @@ function AssetDetailPage() {
             <DetailItem label="Wifi Status" value={asset.wifi_status} />
 
             <DetailItem label="Assigned IPs">
-    {asset.assignedIps && asset.assignedIps.length > 0 ? (
-        <ul className="list-disc list-inside">
-            {/* ✨ แก้ไขให้ดึง ip.ip_address มาแสดง และใช้ ip.id เป็น key ✨ */}
-            {asset.assignedIps.map(ip => <li key={ip.id}>{ip.ip_address}</li>)}
-        </ul>
-    ) : "N/A"}
-</DetailItem>
+              {asset.assignedIps && asset.assignedIps.length > 0 ? (
+                <ul className="list-disc list-inside">
+                  {/* ✨ แก้ไขให้ดึง ip.ip_address มาแสดง และใช้ ip.id เป็น key ✨ */}
+                  {asset.assignedIps.map((ip) => (
+                    <li key={ip.id}>{ip.ip_address}</li>
+                  ))}
+                </ul>
+              ) : (
+                "N/A"
+              )}
+            </DetailItem>
           </InfoCard>
 
           <InfoCard title="Software Information">
@@ -227,7 +231,13 @@ function AssetDetailPage() {
               label="Ref. FIN Asset No."
               value={asset.fin_asset_ref_no}
             />
-            <DetailItem label="Remark" value={asset.remark} />
+          </InfoCard>
+
+          {/* ✨ Remark ถูกแยกออกมาเป็น InfoCard ใหม่ตรงนี้ ✨ */}
+          <InfoCard title="Remark">
+            <div className="p-4 text-sm text-gray-900 break-words">
+              {asset.remark || "N/A"}
+            </div>
           </InfoCard>
         </div>
       </div>

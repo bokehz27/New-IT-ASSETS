@@ -6,7 +6,7 @@ import { FaLaptop, FaServer, FaHdd, FaBoxOpen } from "react-icons/fa";
 // ...
 
 const AssetIcon = ({ category }) => {
-    // ... This component's logic remains the same ...
+  // ... This component's logic remains the same ...
 };
 
 function AssetList({ assets, onDelete }) {
@@ -44,13 +44,22 @@ function AssetList({ assets, onDelete }) {
                   <Link to={`/asset/${asset.id}`} className="bg-blue-600 hover:bg-blue-700 table-action-button">
                     Detail
                   </Link>
-                  {/* Assuming asset_name is the new unique identifier for history */}
+
                   <Link to={`/asset/history/${asset.asset_name}`} className="bg-blue-500 hover:bg-blue-600 table-action-button">
                     History
                   </Link>
-                  <button onClick={() => onDelete(asset.id)} className="bg-red-500 hover:bg-red-600 text-white table-action-button">
+
+                  <Link
+                    to="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onDelete(asset.id);
+                    }}
+                    className="bg-red-500 hover:bg-red-600 text-white table-action-button"
+                  >
                     Delete
-                  </button>
+                  </Link>
+
                 </td>
               </tr>
             ))

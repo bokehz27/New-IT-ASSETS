@@ -5,6 +5,7 @@ import { useForm, useFieldArray, Controller } from "react-hook-form";
 import SearchableDropdown from "./SearchableDropdown";
 import IpAssignmentForm from "./IpAssignmentForm";
 import SpecialProgramsForm from "./SpecialProgramsForm";
+import { Button } from 'primereact/button';
 
 // --- Sub-components (InfoCard, FormField) ---
 const InfoCard = ({ title, children }) => (
@@ -145,7 +146,16 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
       <div className="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
-            {isEditing ? `Edit device : ${watch("asset_name")}` : "Add device"}
+            {isEditing ? (
+              <>
+                Edit device :{" "}
+                <span className="text-blue-600">
+                  {watch("asset_name") || "-"}
+                </span>
+              </>
+            ) : (
+              "Add device"
+            )}
           </h2>
           <p className="text-sm text-gray-500">
             Please complete all required fields.
@@ -320,6 +330,12 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 )}
               />
             </FormField>
+            <IpAssignmentForm
+              initialAssignedIps={formData.assignedIps}
+              onChange={setAssignedIpIds}
+            />
+
+
           </InfoCard>
 
           {/* --- Software Information --- */}
@@ -408,12 +424,14 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                     placeholder="License Key"
                     className="flex-grow w-full p-2 border rounded-md"
                   />
-                  <button
+                  <Button
                     type="button"
-                    onClick={() => removeProgram(index)} /* ... */
-                  >
-                    Remove
-                  </button>
+                    icon="pi pi-times-circle"
+                    className="p-button-rounded p-button-danger p-button-text"
+                    tooltip="Remove Program"
+                    tooltipOptions={{ position: 'top' }}
+                    onClick={() => removeProgram(index)}
+                  />
                 </div>
               ))}
               <button
@@ -422,28 +440,23 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                   // ✅ FIX: เปลี่ยน append เป็น program_id
                   appendProgram({ program_id: "", license_key: "" })
                 }
-                className="bg-green-500 text-white px-3 py-2 rounded-md text-sm mt-2"
+                className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition"
               >
                 Add Program
               </button>
+
             </div>
           </InfoCard>
 
-          <InfoCard title="IP Assignments">
-            <IpAssignmentForm
-              initialAssignedIps={formData.assignedIps}
-              onChange={setAssignedIpIds}
-            />
-          </InfoCard>
+
 
           {/* --- BitLocker CSV File --- */}
           <InfoCard title="BitLocker CSV File">
             {isEditing && formData.bitlocker_csv_file && !removeFile ? (
               <div className="flex justify-between items-center">
                 <a
-                  href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${
-                    formData.bitlocker_csv_file
-                  }`}
+                  href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${formData.bitlocker_csv_file
+                    }`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-blue-600 hover:underline"
