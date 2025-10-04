@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 html {
-  font-size: 75%;
+  font-size: 80%;
 }
 
 /* ==========================================================================
@@ -311,6 +311,17 @@ select:focus {
   box-shadow: none !important;
   border-radius: 6px !important;
 }
+.datatable-hover-effect {
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.datatable-hover-effect:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 50%,
+    transparent
+  ) !important;
+  box-shadow: var(--elevation-2);
+}
 
 /* ==========================================================================
    # สไตล์สำหรับหน้า Ticket List (Card Layout)
@@ -545,6 +556,182 @@ select:focus {
 .switch-item-actions button.delete:hover {
   color: var(--color-error);
   background-color: color-mix(in srgb, var(--color-error) 15%, transparent);
+}
+
+:root {
+  /* กำหนดตัวแปรสีของคุณที่นี่ (ถ้ายังไม่มี) */
+  /* --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-secondary-bg: #f3f4f6;
+  --color-secondary-hover: #e5e7eb;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-divider: #e5e7eb;
+  --color-card-bg: #ffffff;
+  --color-border: #e5e7eb;
+  --color-delete: #ef4444;
+  --color-delete-hover: #dc2626; */
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+  border: 1px solid transparent;
+}
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+}
+.btn-secondary {
+  background-color: var(--color-card-bg);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+.btn-secondary:hover {
+  background-color: var(--color-secondary-bg);
+}
+
+/* --- View Toggle --- */
+.view-toggle-group {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.view-toggle-btn {
+  padding: 0.5rem;
+  background-color: var(--color-card-bg);
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+}
+.view-toggle-btn:hover {
+  background-color: var(--color-secondary-bg);
+  color: var(--color-text-primary);
+}
+.view-toggle-btn.active {
+  background-color: var(--color-primary);
+  color: white;
+}
+.view-toggle-btn:first-child {
+  border-right: 1px solid var(--color-border);
+}
+
+/* --- Location Header --- */
+.location-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-secondary-bg);
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.location-header:hover {
+  background-color: var(--color-secondary-hover);
+}
+.location-stat {
+  position: relative;
+  padding-left: 1rem;
+}
+.location-stat::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-divider);
+}
+
+.section-toggle-icon {
+  transition: transform 0.3s ease;
+}
+.section-toggle-icon.collapsed {
+  transform: rotate(-90deg);
+}
+
+/* --- Switch List Item (Universal) --- */
+.switch-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-divider);
+}
+.switch-list-item:last-child {
+  border-bottom: none;
+}
+.action-btn,
+.action-btn-delete {
+  padding: 0.25rem;
+  border-radius: 9999px; /* circle */
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+}
+.action-btn:hover {
+  background-color: var(--color-secondary-hover);
+  color: var(--color-text-primary);
+}
+.action-btn-delete:hover {
+  background-color: #fee2e2; /* Red-50 */
+  color: var(--color-delete);
+}
+
+/* --- Grid View: Rack Card --- */
+.rack-card {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+  transition: box-shadow 0.2s;
+}
+.rack-card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+.rack-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background-color: #f9fafb; /* gray-50 */
+}
+.rack-card-body {
+  /* No specific styles needed, child handles it */
+}
+
+/* --- List View: Rack Row --- */
+.rack-row {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+.rack-row-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: #f9fafb; /* gray-50 */
+}
+.rack-row-body {
+  /* No specific styles needed, child handles it */
+}
+
+/* --- Unassigned Devices Card --- */
+.unassigned-card {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -1065,3 +1252,117 @@ select:focus {
 .faq-v2-media-btn.pdf {
   @apply bg-blue-600 text-white hover:bg-blue-700;
 }
+
+/* === Gradient Header for Entire Row (จากก่อนหน้า) === */
+.p-datatable .p-datatable-thead {
+  position: relative;
+  background: none !important;
+}
+
+.p-datatable .p-datatable-thead::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #0d47a1 0%, #1976d2 50%, #2196f3 100%);
+  z-index: 0;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background: transparent !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  text-align: center;
+  border: none !important;
+  letter-spacing: 0.3px;
+  z-index: 1;
+  position: relative;
+}
+
+/* Hover / Active Sort Highlight */
+.p-datatable .p-sortable-column.p-highlight {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+.p-datatable .p-sortable-column:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* === ✅ SORT ICON สีขาว === */
+.p-datatable .p-sortable-column .p-sortable-column-icon,
+.p-datatable .p-sortable-column .p-sortable-column-icon.pi-sort-alt,
+.p-datatable .p-sortable-column .p-sortable-column-icon.pi-sort-amount-up-alt,
+.p-datatable .p-sortable-column .p-sortable-column-icon.pi-sort-amount-down {
+  color: #ffffff !important;
+  opacity: 0.9;
+  transition: color 0.2s ease;
+}
+
+.p-datatable .p-datatable-tbody > tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important; /* เส้นบางสีเทาอ่อน */
+  transition: background-color 0.2s ease;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background-color: rgba(33, 150, 243, 0.05) !important; /* ฟ้าอ่อนตอน hover */
+}
+
+.p-datatable .p-sortable-column:hover .p-sortable-column-icon {
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+/* === Modern Search Input === */
+.modern-search-wrapper {
+  position: relative;
+  width: 250px; /* กำหนดความกว้างตามต้องการ */
+}
+
+.modern-search-wrapper .p-inputtext {
+  border-radius: 9999px; /* ทำให้ขอบมนเป็นแคปซูล */
+  border: 1px solid #e5e7eb; /* สีขอบเทาอ่อนๆ */
+  padding-left: 2.5rem !important; /* เพิ่ม padding ด้านซ้ายเพื่อไม่ให้ทับไอคอน */
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* สไตล์ตอนที่กำลัง focus ที่ input */
+.modern-search-wrapper .p-inputtext:focus {
+  border-color: #1976d2; /* เปลี่ยนสีขอบเป็นสีม่วง Indigo */
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2); /* เพิ่มเงาฟุ้งๆ รอบนอก */
+  background-color: #fff;
+}
+
+/* ไอคอนแว่นขยาย */
+.modern-search-icon {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af; /* สีไอคอนเทา */
+  transition: color 0.3s ease-in-out;
+}
+
+/* เปลี่ยนสีไอคอนเมื่อ focus ที่ input */
+.modern-search-wrapper:focus-within .modern-search-icon {
+  color: #1976d2; /* เปลี่ยนสีไอคอนเป็นสีม่วง Indigo */
+}
+
+/* === Luxury Gradient Button (Blue Theme) === */
+.luxury-gradient-btn.p-button {
+  background: linear-gradient(90deg, #0d47a1 0%, #1976d2 50%, #2196f3 100%);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+  transition: all 0.3s ease-in-out;
+  font-weight: 600;
+}
+.luxury-gradient-btn.p-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.5);
+  opacity: 0.95;
+}
+
+
+

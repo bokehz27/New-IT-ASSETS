@@ -6,7 +6,7 @@ const Sequelize = require('sequelize');
 const db = {};
 
 // --- ✨ FIX: Import Model ทั้งหมดให้ครบถ้วน ---
-db.Asset = require('./asset');
+db.Asset = require('./Asset');
 db.Category = require('./Category');
 db.Subcategory = require('./Subcategory');
 db.Brand = require('./Brand');
@@ -18,6 +18,7 @@ db.WindowsVersion = require('./WindowsVersion');
 db.OfficeVersion = require('./OfficeVersion');
 db.AntivirusProgram = require('./AntivirusProgram');
 db.Employee = require('./Employee');
+db.Faq = require('./Faq');
 db.Department = require('./Department');
 db.Location = require('./Location');
 db.AssetStatus = require('./AssetStatus');

@@ -5,6 +5,7 @@ import { useAuth } from "./context/AuthContext";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
+import './index.css';
 
 // Layouts
 import SettingsLayout from "./components/layout/SettingsLayout";
@@ -16,7 +17,6 @@ import EditAssetPage from "./pages/EditAssetPage";
 import AssetDetailPage from "./pages/AssetDetailPage";
 import LoginPage from "./pages/LoginPage";
 import AdminManagementPage from "./pages/AdminManagementPage";
-import TicketListPage from "./pages/TicketListPage";
 import ManagementPage from "./pages/ManagementPage";
 import AssetTicketHistoryPage from "./pages/AssetTicketHistoryPage";
 import ImportAssetsPage from "./pages/ImportAssetsPage";
@@ -26,36 +26,17 @@ import DashboardPage from "./pages/DashboardPage";
 import SwitchListPage from "./pages/SwitchListPage";
 import SwitchDetailPage from "./pages/SwitchDetailPage";
 import ReportPage from "./pages/ReportPage";
-import PublicTicketListPage from "./pages/PublicTicketListPage";
 import PublicFaqPage from "./pages/PublicFaqPage";
 import FaqManagementPage from "./pages/FaqManagementPage";
-import SettingsIndexPage from './pages/SettingsIndexPage';
+import SettingsIndexPage from "./pages/SettingsIndexPage";
 
 // Protected Route
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 import AppHeader from "./components/layout/AppHeader";
 
-
-
-// ✨ 1. Import หน้า Master Data ใหม่ทั้งหมดเข้ามา ✨
-import ManageAssetStatusPage from './pages/ManageAssetStatusPage';
-import ManageEmployeesPage from './pages/ManageEmployeesPage';
-import ManageEmailsPage from './pages/ManageEmailsPage';
-import ManageDepartmentsPage from './pages/ManageDepartmentsPage';
-import ManageCpusPage from './pages/ManageCpusPage';
-import ManageRamsPage from './pages/ManageRamsPage';
-import ManageCategoriesPage from './pages/ManageCategoriesPage';
-import ManageSubCategoriesPage from './pages/ManageSubCategoriesPage';
-import ManageBrandsPage from './pages/ManageBrandsPage';
-import ManageSpecialProgramsPage from './pages/ManageSpecialProgramsPage';
-import ManageAntivirusPage from './pages/ManageAntivirusPage';
-import ManagePositionsPage from './pages/ManagePositionsPage';
-import ManageOfficeVersionsPage from './pages/ManageOfficeVersionsPage';
-import ManageModelsPage from './pages/ManageModelsPage';
-import ManageLocationsPage from './pages/ManageLocationsPage';
-import ManageStoragesPage from './pages/ManageStoragesPage';
-import ManageWindowsVersionsPage from './pages/ManageWindowsVersionsPage';
+import ManageTicketsPage from "./pages/ManageTicketsPage";
+import PublicTicketPage from "./pages/PublicTicketPage";
 
 function App() {
   const { user } = useAuth();
@@ -67,17 +48,13 @@ function App() {
         <main className="container mx-auto p-4 sm:p-6 lg:p-8">
           <Routes>
             {/* Public Routes */}
-            <Route
-              path="/"
-              element={user ? <DashboardPage /> : <PublicTicketListPage />}
-            />
             <Route path="/faq" element={<PublicFaqPage />} />{" "}
-            {/* 3. เพิ่ม Route สำหรับ Public */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<AdminManagementPage />} />
-            <Route path="/public/tickets" element={<PublicTicketListPage />} />
+            <Route path="/report-issue" element={<PublicTicketPage />} />
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<DashboardPage />} />
               <Route path="/assets" element={<AssetListPage />} />
               <Route path="/add" element={<AddAssetPage />} />
               <Route path="/import" element={<ImportAssetsPage />} />
@@ -85,41 +62,41 @@ function App() {
               <Route path="/edit/:assetId" element={<EditAssetPage />} />
               <Route path="/asset/:assetId" element={<AssetDetailPage />} />
               <Route path="/report" element={<ReportPage />} />
-              <Route path="/asset/history/:assetCode" element={<AssetTicketHistoryPage />} />
+              <Route
+                path="/asset/history/:assetCode"
+                element={<AssetTicketHistoryPage />}
+              />
               <Route path="/create-user" element={<AdminManagementPage />} />
-              <Route path="/tickets" element={<TicketListPage />} />
-              <Route path="/switches" element={<SwitchListPage />} />
-              <Route path="/switches/:switchId" element={<SwitchDetailPage />} />
-              <Route path="/manage-faq" element={<FaqManagementPage />} />
-            </Route>
 
+              <Route path="/switches" element={<SwitchListPage />} />
+              <Route
+                path="/switches/:switchId"
+                element={<SwitchDetailPage />}
+              />
+              <Route path="/manage-faq" element={<FaqManagementPage />} />
+              <Route path="/manage-tickets" element={<ManageTicketsPage />} />
+            </Route>
             {/* ✨ 2. อัปเดตเฉพาะ Route ภายใต้ /settings ✨ */}
-            <Route path="/settings" element={<ProtectedRoute><SettingsLayout /></ProtectedRoute>}>
-              <Route path="/settings" element={<ProtectedRoute><SettingsLayout /></ProtectedRoute>}>
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <SettingsLayout />
+                  </ProtectedRoute>
+                }
+              >
                 <Route index element={<SettingsIndexPage />} />
-                <Route path="category" element={<ManageCategoriesPage />} />
-                <Route path="subcategory" element={<ManageSubCategoriesPage />} />
                 ...
               </Route>
-              <Route path="category" element={<ManageCategoriesPage />} />
-              <Route path="subcategory" element={<ManageSubCategoriesPage />} />
-              <Route path="brand" element={<ManageBrandsPage />} />
-              <Route path="model" element={<ManageModelsPage />} />
-              <Route path="ram" element={<ManageRamsPage />} />
-              <Route path="storage" element={<ManageStoragesPage />} />
-              <Route path="cpu" element={<ManageCpusPage />} />
-              <Route path="asset_status" element={<ManageAssetStatusPage />} />
-              <Route path="windows" element={<ManageWindowsVersionsPage />} />
-              <Route path="office" element={<ManageOfficeVersionsPage />} />
-              <Route path="antivirus" element={<ManageAntivirusPage />} />
-              <Route path="special-programs" element={<ManageSpecialProgramsPage />} />
-              <Route path="department" element={<ManageDepartmentsPage />} />
-              <Route path="location" element={<ManageLocationsPage />} />
-              <Route path="position" element={<ManagePositionsPage />} />
-              <Route path="employee" element={<ManageEmployeesPage />} />
-              <Route path="email" element={<ManageEmailsPage />} />
             </Route>
-
           </Routes>
         </main>
       </div>

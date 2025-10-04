@@ -16,7 +16,6 @@ const Asset = sequelize.define("Asset", {
   windows_product_key: { type: DataTypes.STRING, allowNull: true },
   office_product_key: { type: DataTypes.STRING, allowNull: true },
   bitlocker_csv_file: { type: DataTypes.STRING, allowNull: true },
-  user_id: { type: DataTypes.INTEGER, allowNull: true },
   start_date: { type: DataTypes.DATEONLY, allowNull: true },
   end_date: { type: DataTypes.DATEONLY, allowNull: true },
   fin_asset_ref_no: { type: DataTypes.STRING, allowNull: true },
@@ -38,5 +37,7 @@ const Asset = sequelize.define("Asset", {
   tableName: "assets",
   timestamps: true 
 });
+
+
 
 module.exports = Asset;

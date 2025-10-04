@@ -18,92 +18,96 @@ function LoginPage() {
       await login(username, password);
       navigate("/");
     } catch (err) {
-      setError("Failed to log in. Please check your username and password.");
+      setError("❌ Invalid username or password. Please try again.");
     }
   };
 
   return (
-    //  แก้ไข: เปลี่ยนจาก min-h-screen เป็น h-screen และเพิ่ม overflow-hidden
-    <div className="h-screen flex overflow-hidden">
-      {/* ฝั่งซ้าย: สำหรับ Branding และ Visual (จะซ่อนในจอมือถือ) */}
-      <div className="hidden lg:flex w-1/2 bg-indigo-600 text-white flex-col items-center justify-center p-12 text-center">
+    <div className="h-screen flex overflow-hidden bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3]">
+      {/* --- Left Side: Animation / Branding --- */}
+      <div className="hidden lg:flex w-1/2 text-white flex-col items-center justify-center p-12 text-center">
         <Lottie
           animationData={officeAnimation}
           loop={true}
-          className="w-full max-w-md mb-6"
+          className="w-full max-w-md mb-6 drop-shadow-lg"
         />
-        <h1 className="text-4xl font-bold mb-3">IT COMMAND</h1>
-        <p className="text-indigo-200">Please sign in to access the system.</p>
+        <h1 className="text-5xl font-extrabold mb-3 tracking-tight drop-shadow-md">
+          IT COMMAND
+        </h1>
+        <p className="text-blue-100 text-lg">
+          Manage your IT assets and operations seamlessly.
+        </p>
       </div>
 
-      {/* ฝั่งขวา: สำหรับฟอร์ม Login */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center bg-gray-100 p-8">
-        <div className="w-full max-w-sm space-y-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Sign In
-            </h2>
-          </div>
+      {/* --- Right Side: Login Form --- */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6">
+        <div className="bg-white/90 backdrop-blur-md p-10 rounded-2xl shadow-2xl w-full max-w-md">
+          <h2 className="text-3xl font-bold text-center text-[#0d47a1] mb-8">
+            LOGIN
+          </h2>
 
-          <div className="bg-white p-8 rounded-xl shadow-lg">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <p className="text-red-600 text-sm text-center bg-red-100 p-3 rounded-lg">
-                  {error}
-                </p>
-              )}
-
-              <div>
-                <label className="text-sm font-bold text-gray-600 block mb-2">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                  required
-                />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="text-red-700 bg-red-100 p-3 rounded-lg text-center text-sm font-semibold">
+                {error}
               </div>
+            )}
 
-              <div>
-                <label className="text-sm font-bold text-gray-600 block mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                  required
-                />
-              </div>
+            <div>
+              <label className="text-sm font-bold text-gray-700 block mb-2">
+                Username
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
+                placeholder="Enter your username"
+                required
+              />
+            </div>
 
-              <div className="flex items-center">
+            <div>
+              <label className="text-sm font-bold text-gray-700 block mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="flex items-center text-sm text-gray-700">
                 <input
-                  id="remember-me"
-                  name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-[#1976d2] focus:ring-[#1976d2] border-gray-300 rounded mr-2"
                 />
-                <label
-                  htmlFor="remember-me"
-                  className="ml-2 block text-sm text-gray-900"
-                >
-                  Remember me
-                </label>
-              </div>
+                Remember me
+              </label>
+            </div>
 
-              <div>
-                <button
-                  type="submit"
-                  className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-lg transition-transform transform hover:scale-105"
-                >
-                  Log In
-                </button>
-              </div>
-            </form>
-          </div>
+            <button
+              type="submit"
+              className="w-full py-3 bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3] hover:opacity-90 text-white font-semibold text-lg rounded-lg transition-all transform hover:scale-[1.02] shadow-md"
+            >
+              Sign In
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-sm text-gray-600">
+            Need help?{" "}
+            <a
+              href="/report-issue"
+              className="text-[#1976d2] font-semibold hover:underline"
+            >
+              Contact IT Support
+            </a>
+          </p>
         </div>
       </div>
     </div>

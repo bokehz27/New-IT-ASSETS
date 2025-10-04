@@ -7,7 +7,7 @@ const fs = require("fs");
 const sequelize = require("../config/database");
 
 // Import all necessary models
-const Asset = require("../models/asset");
+const Asset = require("../models/Asset");
 const Category = require("../models/Category");
 const Subcategory = require("../models/Subcategory");
 const Brand = require("../models/Brand");
@@ -126,7 +126,22 @@ const flattenAsset = (asset) => {
 const bitlockerDir = path.join(__dirname, "../uploads/bitlocker");
 if (!fs.existsSync(bitlockerDir))
   fs.mkdirSync(bitlockerDir, { recursive: true });
-const upload = multer({ dest: bitlockerDir });
+
+// ✨ START: โค้ดที่แก้ไขใหม่ ✨
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    // กำหนดโฟลเดอร์ที่จะเก็บไฟล์
+    cb(null, bitlockerDir);
+  },
+  filename: function (req, file, cb) {
+    // สร้างชื่อไฟล์ใหม่ โดยใช้ assetId + ชื่อไฟล์เดิม เพื่อให้แน่ใจว่าไม่ซ้ำกัน
+    // เช่น 1-bitlocker_keys.csv
+    const newFilename = `${req.params.assetId}-${file.originalname}`;
+    cb(null, newFilename);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 router.post(
   "/:assetId/upload-bitlocker",
@@ -172,6 +187,14 @@ router.post(
  */
 router.get("/", async (req, res) => {
   try {
+    if (req.query.all) {
+      const allAssets = await Asset.findAll({
+        attributes: ['id', 'asset_name'],
+        order: [['asset_name', 'ASC']]
+      });
+      return res.json(allAssets); // ส่งกลับเป็น Array ตรงๆ
+    }
+
     const { search, page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
     let whereClause = {};
@@ -418,6 +441,42 @@ router.delete("/:id", async (req, res) => {
   } catch (error) {
     console.error(`Error deleting asset with id ${req.params.id}:`, error);
     res.status(500).json({ error: "Failed to delete asset" });
+  }
+});
+
+/**
+ * =========================================
+ * ✨ [C] Bulk Create assets from JSON (for CSV import)
+ * =========================================
+ */
+router.post("/upload", async (req, res) => {
+  const assetsData = req.body; // คาดหวังข้อมูลที่เป็น Array of objects
+  if (!Array.isArray(assetsData) || assetsData.length === 0) {
+    return res.status(400).json({ error: "Invalid data format. Expecting a non-empty array of assets." });
+  }
+
+  const transaction = await sequelize.transaction();
+  try {
+    const createdAssets = [];
+    // เราประมวลผลทีละรายการ เพราะ resolveFks เป็น async และต้อง await ทีละแถว
+    for (const asset of assetsData) {
+      const fkIds = await resolveFks(asset);
+      const newAsset = await Asset.create(
+        { ...asset, ...fkIds },
+        { transaction }
+      );
+      createdAssets.push(newAsset);
+    }
+
+    await transaction.commit();
+    res.status(201).json({ message: `${createdAssets.length} assets imported successfully.` });
+  } catch (error) {
+    await transaction.rollback();
+    console.error("CRITICAL ERROR ON BULK CREATE ASSET:", error);
+    res.status(400).json({
+      error: "Failed to import assets. Please check data integrity.",
+      details: error.errors ? error.errors.map(e => e.message) : [{ message: error.message }],
+    });
   }
 });
 

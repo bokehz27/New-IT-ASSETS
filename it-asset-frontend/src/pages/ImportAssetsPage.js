@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import api from "../api"; // Adjust path as needed
+import api from "../api";
 import { useNavigate } from "react-router-dom";
 import Papa from "papaparse";
+import { toast } from 'react-toastify'; // ✨ 1. Import toast เข้ามาใช้
 
 function ImportAssetsPage() {
   const [file, setFile] = useState(null);
   const [previewData, setPreviewData] = useState([]);
   const [headers, setHeaders] = useState([]);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [parsedData, setParsedData] = useState([]); // ✨ 2. State ใหม่สำหรับเก็บข้อมูลทั้งหมด
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
 
@@ -16,58 +16,63 @@ function ImportAssetsPage() {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
-      setError("");
-      setMessage("");
 
+      // ✨ 3. แก้ไข Papa.parse ให้อ่านไฟล์ทั้งหมด
       Papa.parse(selectedFile, {
         header: true,
         skipEmptyLines: true,
-        preview: 5,
         complete: (results) => {
+          if (results.errors.length > 0) {
+              toast.error("Error parsing CSV file. Please check the format.");
+              console.error("CSV Parsing Errors:", results.errors);
+              // เคลียร์ค่าทั้งหมดถ้าไฟล์ผิดพลาด
+              setFile(null);
+              setHeaders([]);
+              setPreviewData([]);
+              setParsedData([]);
+              return;
+          }
           setHeaders(results.meta.fields);
-          setPreviewData(results.data);
+          setPreviewData(results.data.slice(0, 5)); // แสดงแค่ 5 แถวแรก
+          setParsedData(results.data); // เก็บข้อมูลทั้งหมดไว้ใน state
         },
       });
     }
   };
 
   const handleUpload = async () => {
-    if (!file) {
-      setError("Please select a file to upload.");
+    if (!file || parsedData.length === 0) {
+      toast.error("Please select a valid CSV file to upload.");
       return;
     }
     setUploading(true);
-    setError("");
-    setMessage("");
-
-    const formData = new FormData();
-    formData.append("file", file);
 
     try {
-      const res = await api.post("/assets/upload", formData);
-      setMessage(res.data.message);
+      // ✨ 4. เปลี่ยนจากการส่ง FormData เป็นการส่ง JSON Array ไปที่ Endpoint ใหม่
+      const res = await api.post("/assets/upload", parsedData);
+      toast.success(res.data.message || "Assets imported successfully!");
       setPreviewData([]);
       setFile(null);
-      setTimeout(() => navigate("/"), 2000);
+      setParsedData([]);
+      setTimeout(() => navigate("/assets"), 2000); // กลับไปหน้า Asset List
     } catch (err) {
-      setError(err.response?.data?.error || "An error occurred during upload.");
+      const errorMsg = err.response?.data?.error || "An error occurred during import.";
+      toast.error(errorMsg);
       console.error(err);
     } finally {
       setUploading(false);
     }
   };
 
-  const csvTemplateHeaders =
-    "asset_code,serial_number,brand,model,subcategory,ram,cpu,storage,device_id,ip_address,wifi_registered,mac_address_lan,mac_address_wifi,start_date,location,fin_asset_ref,user_id,user_name,department,category,status,windows_version,windows_key,office_version,office_key,antivirus";
+  // ✨ 5. อัปเดต Header ของ Template ให้ถูกต้อง
+  const csvTemplateHeaders = "asset_name,serial_number,category,subcategory,brand,model,cpu,ram,storage,device_id,mac_address_lan,mac_address_wifi,wifi_status,windows_version,windows_product_key,office_version,office_product_key,antivirus,user_name,user_id,department,location,status,start_date,fin_asset_ref_no,remark";
 
   const handleDownloadTemplate = () => {
-    const blob = new Blob([csvTemplateHeaders], {
-      type: "text/csv;charset=utf-8;",
-    });
+    const blob = new Blob([csvTemplateHeaders], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", "asset_template.csv");
+    link.setAttribute("download", "asset_template_new.csv");
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
@@ -80,18 +85,18 @@ function ImportAssetsPage() {
         Import Assets from CSV
       </h2>
 
-      <div className="bg-blue-50 border border-gray-200 text-blue-800 p-4 rounded-md mb-6 text-sm">
+      <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-md mb-6 text-sm">
         <p className="font-semibold">Instructions:</p>
         <ul className="list-disc list-inside mt-2 space-y-1">
           <li>The file must be in .csv format and encoded in UTF-8.</li>
-          <li>The first row (Header) must match the Template exactly.</li>
-          <li>Date format should be YYYY-MM-DD.</li>
+          <li>The first row (Header) must match the Template exactly. The order of columns is important.</li>
+          <li>For fields like Category, Brand, Model, etc., please use the exact name as it appears in the system.</li>
           <li>
             <button
               onClick={handleDownloadTemplate}
               className="text-blue-600 font-semibold hover:underline"
             >
-              Download Template File Here
+              Download New Template File Here
             </button>
           </li>
         </ul>
@@ -173,17 +178,12 @@ function ImportAssetsPage() {
           {uploading ? "Importing..." : "Confirm and Import Data"}
         </button>
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/assets")}
           className="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-md hover:bg-gray-300 transition"
         >
           Cancel
         </button>
       </div>
-
-      {message && (
-        <p className="mt-4 text-green-600 font-semibold">{message}</p>
-      )}
-      {error && <p className="mt-4 text-red-600 font-semibold">{error}</p>}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import api from "../api";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import ReplaceAssetModal from "../components/ReplaceAssetModal";
+import { DocumentTextIcon } from "@heroicons/react/outline";
 
 // ✨ คอมโพเนนต์ย่อยที่ขาดไป ถูกเพิ่มกลับมาตรงนี้แล้ว ✨
 const StatusBadge = ({ status }) => {
@@ -188,23 +189,34 @@ function AssetDetailPage() {
           </InfoCard>
 
           <InfoCard title="BitLocker Recovery Keys">
-            {asset.bitlocker_csv_file ? (
-              <a
-                href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${
-                  asset.bitlocker_csv_file
-                }`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                Download BitLocker CSV
-              </a>
-            ) : (
-              <p className="text-gray-500 px-4 py-3">
-                No BitLocker file uploaded for this asset.
-              </p>
-            )}
-          </InfoCard>
+  <div className="p-4">
+    {asset.bitlocker_csv_file ? (
+      <div className="flex items-center justify-between p-3 bg-gray-50 border rounded-md">
+        <div className="flex items-center min-w-0">
+          <DocumentTextIcon className="h-6 w-6 text-gray-400 flex-shrink-0" />
+          <span className="ml-3 text-sm font-medium text-gray-800 truncate">
+            {/* ดึงชื่อไฟล์จาก path มาแสดง */}
+            {asset.bitlocker_csv_file.split('/').pop()}
+          </span>
+        </div>
+        <div className="ml-4 flex-shrink-0">
+          <a
+            href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${asset.bitlocker_csv_file}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"
+          >
+            Download
+          </a>
+        </div>
+      </div>
+    ) : (
+      <p className="text-sm text-gray-500">
+        No BitLocker file uploaded for this asset.
+      </p>
+    )}
+  </div>
+</InfoCard>
         </div>
 
         <div className="lg:col-span-1 space-y-6">

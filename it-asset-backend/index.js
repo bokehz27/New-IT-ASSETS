@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const sequelize = require("./config/database");
 require('./models');
+const path = require('path');
 
 const authRoutes = require("./routes/auth");
 const assetRoutes = require("./routes/assets");
@@ -28,9 +29,9 @@ const switchRoutes = require("./routes/switchRoutes");
 const rackRoutes = require("./routes/rackRoutes");
 const publicRoutes = require("./routes/public");
 const ticketRoutes = require("./routes/tickets");
+const ticketsRouter = require('./routes/tickets');
 const faqRoutes = require("./routes/faqs");
 const reportRoutes = require("./routes/reports");
-const path = require("path");
 const dashboardRoutes = require("./routes/dashboard");
 const userRoutes = require("./routes/users");
 const SwitchPort = require("./models/SwitchPort");
@@ -50,7 +51,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 
 // Protected Routes
-app.use("/api/assets", authMiddleware, assetRoutes);
+app.use("/api/assets", assetRoutes);
 app.use("/api/asset_statuses", assetStatusRoutes);
 app.use("/api/brands", authMiddleware, brandRoutes);
 app.use("/api/categories", authMiddleware, categoryRoutes);
@@ -66,12 +67,13 @@ app.use("/api/departments", authMiddleware, departmentRoutes);
 app.use("/api/locations", authMiddleware, locationRoutes);
 app.use("/api/positions", authMiddleware, positionRoutes);
 app.use("/api/emails", authMiddleware, emailRoutes);
-app.use("/api/employees", authMiddleware, employeeRoutes);
+app.use("/api/employees", employeeRoutes);
 app.use("/api/asset_special_programs", authMiddleware, assetSpecialProgramRoutes);
-app.use("/api/tickets", authMiddleware, ticketRoutes);
+app.use("/api/tickets", ticketRoutes);
+app.use('/api/tickets', ticketsRouter);
 app.use("/api/switches", authMiddleware, switchRoutes);
 app.use("/api/racks", authMiddleware, rackRoutes);
-app.use("/api/faqs", authMiddleware, faqRoutes);
+app.use("/api/faqs", faqRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/users", authMiddleware, userRoutes);
@@ -85,6 +87,7 @@ app.use('/api/special-programs', specialProgramRoutes);
 app.use('/api/ip-pools', ipPoolRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 

@@ -1,71 +1,73 @@
-// it-asset-backend/models/ticket.js
-const { DataTypes } = require("sequelize");
+const { DataTypes, Model } = require("sequelize");
 const sequelize = require("../config/database");
 
-const Ticket = sequelize.define(
-  "Ticket",
+// ✨ แก้ไข: ใช้ชื่อไฟล์เป็นตัวพิมพ์ใหญ่ทั้งหมด (PascalCase)
+const Asset = require("./Asset");
+const Employee = require("./Employee");
+const User = require("./User");
+
+class Ticket extends Model {}
+
+Ticket.init(
   {
-    // PK (Sequelize จะสร้าง id: INTEGER, autoIncrement ให้โดยอัตโนมัติ)
-    report_date: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
-    asset_code: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-    },
-    reporter_name: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    contact_phone: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    problem_description: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
-
-    // ✅ แนบไฟล์ (ผู้ใช้ / แอดมิน) + ช่องเดิมสำหรับ fallback
-    attachment_user_url: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    attachment_admin_url: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    attachment_url: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      comment: "ใช้เป็นช่องเดิม/สำรอง กรณีโปรเจ็กต์เก่าเก็บไฟล์แค่ช่องเดียว",
-    },
-
-    // ส่วนของงานซ่อม
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    asset_id: { type: DataTypes.INTEGER, allowNull: false },
+    employee_id: { type: DataTypes.INTEGER, allowNull: true },
+    internal_phone: { type: DataTypes.STRING(4), allowNull: true },
+    issue_description: { type: DataTypes.TEXT, allowNull: false },
+    solution: { type: DataTypes.TEXT, allowNull: true },
+    issue_attachment_path: { type: DataTypes.STRING, allowNull: true },
+    solution_attachment_path: { type: DataTypes.STRING, allowNull: true },
     repair_type: {
-      type: DataTypes.STRING(100), // ถ้ามีชุดค่าตายตัว จะเปลี่ยนเป็น ENUM ก็ได้
-      allowNull: true,
+      type: DataTypes.ENUM(
+        "Hardware",
+        "Software",
+        "Driver",
+        "Install",
+        "Email",
+        "Setup",
+        "AD_Error",
+        "Network",
+        "Install_Network",
+        "Printer",
+        "User_Error",
+        "Training",
+        "Virus",
+        "MC_Frame",
+        "AX",
+        "Maintenance",
+        "Therefore",
+        "Location_Change",
+        "Replacement",
+        "Other"
+      ),
+      defaultValue: "Other",
     },
-    solution: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    handler_name: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
+    handled_by: { type: DataTypes.INTEGER, allowNull: true },
     status: {
-      type: DataTypes.STRING(50),
-      allowNull: false,
-      defaultValue: "Request", // คงค่าเริ่มต้นเดิม
+      type: DataTypes.ENUM("Pending", "In Progress", "Completed", "Rejected"),
+      defaultValue: "Pending",
+    },
+    created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+      onUpdate: DataTypes.NOW,
     },
   },
   {
+    sequelize,
+    modelName: "Ticket",
     tableName: "tickets",
-    timestamps: true, // มี createdAt / updatedAt ตามที่ DB แสดง
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
+
+// ✨ แก้ไข: เหลือไว้แค่ belongsTo และเอา hasMany ที่อยู่ผิดที่ออก
+Ticket.belongsTo(Asset, { foreignKey: "asset_id" });
+Ticket.belongsTo(Employee, { foreignKey: "employee_id" });
+Ticket.belongsTo(User, { as: "handler", foreignKey: "handled_by" });
 
 module.exports = Ticket;

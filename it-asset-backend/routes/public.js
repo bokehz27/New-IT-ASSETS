@@ -5,6 +5,7 @@ const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
 
+// ✨ 1. เปลี่ยนมา import ทุกอย่างจาก models/index.js ที่เดียว
 const { Ticket, Asset, Employee, Faq } = require("../models");
 
 const router = express.Router();
@@ -30,130 +31,75 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
 });
 
-/* helper */
-function setAttachmentOnPayload(payload, url) {
-  if (!url) return payload;
-  const attrs = Ticket.rawAttributes || {};
-  if ("attachment_user_url" in attrs) {
-    payload.attachment_user_url = url;
-  } else if ("attachment_url" in attrs) {
-    payload.attachment_url = url;
-  }
-  return payload;
-}
-
+/* ===================== PUBLIC ROUTES ===================== */
 
 // ✨ 2. สร้าง Endpoint ใหม่สำหรับ Form โดยเฉพาะ (วิธีที่แนะนำ)
-router.get('/form-options', async (req, res) => {
-    try {
-        const [assets, employees] = await Promise.all([
-            Asset.findAll({
-                attributes: ['asset_name'],
-                order: [['asset_name', 'ASC']]
-            }),
-            Employee.findAll({
-                attributes: ['name'],
-                where: { status: 'Active' },
-                order: [['name', 'ASC']]
-            })
-        ]);
-
-        res.json({
-            assets: assets.map(a => a.asset_name),
-            employees: employees.map(e => e.name)
-        });
-
-    } catch (error) {
-        console.error("Error fetching public form options:", error);
-        res.status(500).json({ error: "Failed to fetch form options" });
-    }
-});
-
-
-/* ===================== PUBLIC: list tickets ===================== */
-router.get("/tickets", async (req, res) => {
+router.get("/form-options", async (req, res) => {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10;
-    const offset = (page - 1) * limit;
-
-    const { q, reporterName, assetCode, status, startDate, endDate } =
-      req.query;
-
-    const where = {};
-    if (status) where.status = status;
-
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59, 999);
-      where.report_date = { [Op.between]: [start, end] };
-    }
-
-    if (q) {
-      where[Op.or] = [
-        { reporter_name: { [Op.like]: `%${q}%` } },
-        { asset_code: { [Op.like]: `%${q}%` } },
-      ];
-    } else {
-      if (reporterName)
-        where.reporter_name = { [Op.like]: `%${reporterName}%` };
-      if (assetCode) where.asset_code = { [Op.like]: `%${assetCode}%` };
-    }
-
-    const { count, rows } = await Ticket.findAndCountAll({
-      where,
-      order: [["report_date", "DESC"]],
-      limit,
-      offset,
-    });
+    const [assets, employees] = await Promise.all([
+      Asset.findAll({
+        attributes: ["asset_name"],
+        order: [["asset_name", "ASC"]],
+      }),
+      Employee.findAll({
+        attributes: ["name"],
+        where: { status: "Active" },
+        order: [["name", "ASC"]],
+      }),
+    ]);
 
     res.json({
-      tickets: rows,
-      totalItems: count,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page,
+      assets: assets.map((a) => a.asset_name),
+      employees: employees.map((e) => e.name),
     });
-  } catch (e) {
-    console.error("GET /api/public/tickets error:", e);
-    res.status(500).json({ error: "Failed to fetch public tickets" });
+  } catch (error) {
+    console.error("Error fetching public form options:", error);
+    res.status(500).json({ error: "Failed to fetch form options" });
   }
 });
 
-/* ===================== PUBLIC: create ticket ===================== */
+// POST: /api/public/tickets - สร้าง Ticket ใหม่
+// (โค้ดส่วนนี้ทำงานถูกต้องแล้ว ไม่ต้องแก้ไข)
 router.post("/tickets", upload.single("attachment_user"), async (req, res) => {
   try {
     const { reporter_name, asset_code, contact_phone, problem_description } =
       req.body;
-
-    if (!reporter_name || !asset_code || !problem_description) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    let attachmentUrl = null;
-    if (req.file) {
-      attachmentUrl = `/uploads/tickets/${req.file.filename}`;
-    }
-
     const payload = {
       reporter_name,
       asset_code,
-      contact_phone: contact_phone || "",
+      contact_phone,
       problem_description,
-      status: "Request",
       report_date: new Date(),
     };
-    setAttachmentOnPayload(payload, attachmentUrl);
-
-    const ticket = await Ticket.create(payload);
-    res.status(201).json(ticket);
-  } catch (e) {
-    console.error("POST /api/public/tickets error:", e);
-    res.status(500).json({ error: "Failed to create ticket" });
+    if (req.file) {
+      payload.attachment_user_url = `/uploads/tickets/${req.file.filename}`;
+    }
+    const newTicket = await Ticket.create(payload);
+    res.status(201).json(newTicket);
+  } catch (error) {
+    console.error("POST /public/tickets error:", error);
+    res
+      .status(400)
+      .json({ error: "Failed to create ticket", details: error.message });
   }
 });
 
-/* ===================== PUBLIC: dropdown helpers (FIXED) ===================== */
+// GET: /api/public/faqs - ดึงข้อมูล FAQ ทั้งหมด
+// (โค้ดส่วนนี้ทำงานถูกต้องแล้ว ไม่ต้องแก้ไข)
+router.get("/faqs", async (req, res) => {
+  try {
+    const faqs = await Faq.findAll({ order: [["createdAt", "DESC"]] });
+    res.json(faqs);
+  } catch (e) {
+    console.error("GET /public/faqs error:", e);
+    res.status(500).json({ error: "Failed to fetch FAQs" });
+  }
+});
+
+/* ===================== DEPRECATED / ไม่แนะนำให้ใช้แล้ว ===================== */
+// Endpoint เก่าเหล่านี้ไม่จำเป็นแล้ว เพราะเรามี /form-options ที่ดีกว่า
+// ได้ทำการแก้ไขให้ถูกต้อง แต่แนะนำให้เปลี่ยนไปใช้ /form-options แทน
+
 router.get("/asset-users", async (_req, res) => {
   try {
     const rows = await Employee.findAll({
@@ -171,7 +117,7 @@ router.get("/asset-users", async (_req, res) => {
 router.get("/assets-list", async (_req, res) => {
   try {
     const rows = await Asset.findAll({
-      attributes: ["asset_name", "model_id"], // ✨ FIX: เปลี่ยนจาก asset_code, model เป็น asset_name, model_id
+      attributes: ["asset_name"], // ✨ FIX: เปลี่ยนเป็น asset_name
       where: { status_id: 1 }, // สมมติว่า 1 คือสถานะ 'Enable'
       order: [["asset_name", "ASC"]],
     });
@@ -179,22 +125,6 @@ router.get("/assets-list", async (_req, res) => {
   } catch (e) {
     console.error("GET /api/public/assets-list error:", e);
     res.status(500).json({ error: "Failed to load assets list" });
-  }
-});
-
-// GET: /api/public/faqs - ดึงข้อมูล FAQ ทั้งหมด
-router.get("/faqs", async (req, res) => {
-  try {
-    const faqs = await Faq.findAll({
-      order: [
-        ["category", "ASC"],
-        ["question", "ASC"],
-      ],
-    });
-    res.json(faqs);
-  } catch (err) {
-    console.error("Error fetching public FAQs:", err);
-    res.status(500).json({ error: "Could not fetch FAQs" });
   }
 });
 
