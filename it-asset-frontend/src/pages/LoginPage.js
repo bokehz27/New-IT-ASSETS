@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
 import officeAnimation from "../animations/Rocket research.json";
+import { motion } from "framer-motion"; // Import motion
 
 function LoginPage() {
   const [username, setUsername] = useState("");
@@ -41,7 +42,12 @@ function LoginPage() {
 
       {/* --- Right Side: Login Form --- */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6">
-        <div className="bg-white/90 backdrop-blur-md p-10 rounded-2xl shadow-2xl w-full max-w-md">
+        <motion.div // Changed div to motion.div
+          initial={{ opacity: 0, scale: 0.95 }} // Initial state
+          animate={{ opacity: 1, scale: 1 }} // Animation state
+          transition={{ duration: 0.5, ease: "easeOut" }} // Animation duration and easing
+          className="bg-white/90 backdrop-blur-md p-10 rounded-2xl shadow-2xl w-full max-w-md"
+        >
           <h2 className="text-3xl font-bold text-center text-[#0d47a1] mb-8">
             LOGIN
           </h2>
@@ -98,17 +104,7 @@ function LoginPage() {
               Sign In
             </button>
           </form>
-
-          <p className="mt-8 text-center text-sm text-gray-600">
-            Need help?{" "}
-            <a
-              href="/report-issue"
-              className="text-[#1976d2] font-semibold hover:underline"
-            >
-              Contact IT Support
-            </a>
-          </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

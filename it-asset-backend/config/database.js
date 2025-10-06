@@ -1,14 +1,13 @@
-// config/database.js
 const { Sequelize } = require("sequelize");
+require('dotenv').config();
 
-// สร้าง instance ของ Sequelize
 const sequelize = new Sequelize(
-  "it_assets_v2", // ชื่อ Database
-  "root", // User ของ Database (เปลี่ยนตามของคุณ)
-  "123456", // Password ของ Database (เปลี่ยนตามของคุณ)
+  process.env.DB_NAME,    // ชื่อ Database
+  process.env.DB_USER,    // User ของ Database
+  process.env.DB_PASSWORD, // Password ของ Database
   {
-    host: "172.18.1.61", // Host ของ Database
-    dialect: "mysql", // บอก Sequelize ว่าเราใช้ MySQL
+    host: process.env.DB_HOST,       // Host ของ Database
+    dialect: process.env.DB_DIALECT, // บอก Sequelize ว่าเราใช้ Database อะไร
   }
 );
 

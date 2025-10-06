@@ -108,7 +108,6 @@ const MasterDataManagement = ({ apiEndpoint, title, dataColumns }) => {
 
   const exportCSV = () => dt.current.exportCSV();
 
-  // ✨ [ปรับแก้] สไตล์ปุ่ม Add New ให้เป็น Gradient
   const leftToolbarTemplate = () => (
     <Button
       label="Add New"
@@ -118,7 +117,6 @@ const MasterDataManagement = ({ apiEndpoint, title, dataColumns }) => {
     />
   );
 
-  // ✨ [ปรับแก้] สไตล์ช่องค้นหาและปุ่ม Export
   const rightToolbarTemplate = () => (
     <div className="flex items-center gap-2">
       <div className="relative">
@@ -140,7 +138,6 @@ const MasterDataManagement = ({ apiEndpoint, title, dataColumns }) => {
     </div>
   );
 
-  // ✨ [ปรับแก้] สไตล์ปุ่ม Save/Cancel ใน Footer
   const modalFooter = (
     <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t rounded-b-lg">
       <Button
@@ -159,7 +156,6 @@ const MasterDataManagement = ({ apiEndpoint, title, dataColumns }) => {
 
   return (
     <div>
-      {/* ✨ [ปรับแก้] สไตล์ Header หลักให้เป็น Gradient Text */}
       <h1 className="text-3xl font-extrabold bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3] bg-clip-text text-transparent mb-6">
         {`Manage ${title}`}
       </h1>
@@ -183,7 +179,7 @@ const MasterDataManagement = ({ apiEndpoint, title, dataColumns }) => {
         globalFilter={globalFilter}
         globalFilterFields={dataColumns.map((col) => col.key)}
         emptyMessage={`No ${title} found.`}
-        className="datatable-hover-effect text-sm"
+        className="datatable-hover-effect text-sm text-gray-800" // ✨ [ปรับแก้] เพิ่มสีตัวอักษรหลัก
       >
         {dataColumns.map((col) => (
           <Column
@@ -192,12 +188,15 @@ const MasterDataManagement = ({ apiEndpoint, title, dataColumns }) => {
             header={col.name}
             sortable
             style={{ minWidth: "12rem" }}
+            bodyClassName="text-gray-800" // ✨ [ปรับแก้] เพิ่มสีตัวอักษรใน Cell
+            headerClassName="text-sm text-gray-800 font-semibold" // ✨ [ปรับแก้] เพิ่มสไตล์ให้ Header
           />
         ))}
         <Column
           body={actionBodyTemplate}
           style={{ width: "8rem", textAlign: "center" }}
           header="Actions"
+          headerClassName="text-sm text-gray-800 font-semibold" // ✨ [ปรับแก้] เพิ่มสไตล์ให้ Header
         />
       </DataTable>
 
@@ -211,7 +210,6 @@ const MasterDataManagement = ({ apiEndpoint, title, dataColumns }) => {
         contentStyle={{ padding: 0 }}
       >
         <div className="flex flex-col">
-          {/* ✨ [ปรับแก้] สไตล์ Header ของ Dialog ให้เป็น Gradient */}
           <div className="px-6 py-4 bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3] text-white rounded-t-xl">
             <h3 className="text-lg font-semibold">
               {currentItem ? `Edit ${title}` : `Add New ${title}`}
@@ -237,7 +235,6 @@ const MasterDataManagement = ({ apiEndpoint, title, dataColumns }) => {
                     placeholder={`Select ${col.name}`}
                   />
                 ) : (
-                  // ✨ [ปรับแก้] สไตล์ InputText ให้มี focus color ที่ตรงกัน
                   <InputText
                     id={col.key}
                     value={formData[col.key] || ""}

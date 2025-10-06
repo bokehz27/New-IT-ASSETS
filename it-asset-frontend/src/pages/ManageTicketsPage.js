@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react"; // <-- เพิ่ม useMemo
 import axios from "../api";
 import { toast } from "react-toastify";
 
@@ -12,6 +12,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { Dropdown } from "primereact/dropdown";
 import { Tag } from "primereact/tag";
 import { InputText } from "primereact/inputtext";
+import { Calendar } from "primereact/calendar"; // <-- เพิ่ม Calendar
 import SearchableDropdown from "../components/SearchableDropdown";
 import {
   FaClock,
@@ -20,7 +21,7 @@ import {
   FaTimesCircle,
 } from "react-icons/fa";
 
-import { Clock, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Clock, Loader2, CheckCircle2, XCircle, CalendarIcon, X } from "lucide-react"; // <-- เพิ่มไอคอน
 
 const ManageTicketsPage = () => {
   const [tickets, setTickets] = useState([]);
@@ -32,6 +33,10 @@ const ManageTicketsPage = () => {
   const [assets, setAssets] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [users, setUsers] = useState([]);
+
+  // --- ✨ State ใหม่สำหรับ Filter ---
+  const [statusFilter, setStatusFilter] = useState("All"); // ค่าเริ่มต้นคือ 'All'
+  const [dateRange, setDateRange] = useState(null); // เก็บ array [startDate, endDate]
 
   const repairTypes = [
     { label: "Hardware issue (PC,NB)", value: "Hardware" },
@@ -82,7 +87,7 @@ const ManageTicketsPage = () => {
       .catch((err) => console.error("Failed to fetch users", err));
   }, []);
 
-  const fetchTickets = async () => {
+  const fetchTickets = async () => { // <--- ต้องมี { ตรงนี้
     try {
       const response = await axios.get("/tickets");
       setTickets(response.data);
@@ -90,6 +95,50 @@ const ManageTicketsPage = () => {
       toast.error("Failed to fetch tickets.");
     }
   };
+  // --- ✨ [ส่วนที่เพิ่มใหม่] Logic การนับจำนวนและกรองข้อมูล ---
+
+  // 1. นับจำนวน Ticket ในแต่ละสถานะ (ใช้ useMemo เพื่อไม่ให้คำนวณใหม่ทุกครั้งที่ re-render)
+  const statusCounts = useMemo(() => {
+    const counts = {
+      All: tickets.length,
+      Pending: 0,
+      "In Progress": 0,
+      Completed: 0,
+      Rejected: 0,
+    };
+    for (const ticket of tickets) {
+      if (counts[ticket.status] !== undefined) {
+        counts[ticket.status]++;
+      }
+    }
+    return counts;
+  }, [tickets]); // จะคำนวณใหม่เมื่อ 'tickets' เปลี่ยนแปลงเท่านั้น
+
+  // 2. กรอง Ticket ตาม status และ date range ที่เลือก
+  const filteredTickets = useMemo(() => {
+    let filtered = tickets;
+
+    // กรองตามสถานะ
+    if (statusFilter && statusFilter !== "All") {
+      filtered = filtered.filter((ticket) => ticket.status === statusFilter);
+    }
+
+    // กรองตามช่วงวันที่
+    const [startDate, endDate] = dateRange || [null, null];
+    if (startDate && endDate) {
+      // ตั้งเวลาของวันสิ้นสุดให้เป็นท้ายสุดของวัน (23:59:59) เพื่อให้รวมข้อมูลของวันนั้นด้วย
+      const endOfDay = new Date(endDate);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      filtered = filtered.filter((ticket) => {
+        const ticketDate = new Date(ticket.created_at);
+        return ticketDate >= startDate && ticketDate <= endOfDay;
+      });
+    }
+
+    return filtered;
+  }, [tickets, statusFilter, dateRange]); // จะคำนวณใหม่เมื่อค่าใดค่าหนึ่งเปลี่ยนแปลง
+
 
   const openNew = () => {
     setCurrentTicket({ status: "Pending", repair_type: "Other" });
@@ -164,24 +213,51 @@ const ManageTicketsPage = () => {
 
   // --- UI Templates ---
   const leftToolbarTemplate = () => (
-    <Button
-      label="New Ticket"
-      icon="pi pi-plus"
-      onClick={openNew}
-      className="luxury-gradient-btn text-white font-semibold px-4 py-2 text-sm rounded-lg shadow-md hover:opacity-90 transition-all"
-    />
-  );
-  const rightToolbarTemplate = () => (
-    <div className="relative w-full md:w-80">
-      <i className="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />{" "}
-      {/* <--- ปรับขนาดไอคอน */}
-      <InputText
-        type="search"
-        value={globalFilter}
-        onChange={(e) => setGlobalFilter(e.target.value)}
-        placeholder="Search tickets..."
-        className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
+    <div className="flex flex-col md:flex-row items-center gap-2">
+      <Button
+        label="New Ticket"
+        icon="pi pi-plus"
+        onClick={openNew}
+        className="luxury-gradient-btn text-white font-semibold px-4 py-2 text-sm rounded-lg shadow-md hover:opacity-90 transition-all"
       />
+    </div>
+  );
+
+  const rightToolbarTemplate = () => (
+    <div className="flex flex-col md:flex-row items-center gap-2">
+      {/* --- ส่วนของปฏิทินที่ย้ายมา --- */}
+      <div className="flex items-center gap-2 p-fluid">
+        <Calendar
+          value={dateRange}
+          onChange={(e) => setDateRange(e.value)}
+          selectionMode="range"
+          readOnlyInput
+          placeholder="Select a date range"
+          dateFormat="dd/mm/yy"
+          showIcon
+          className="text-sm"
+        />
+        {dateRange && dateRange[0] && (
+          <Button
+            icon={<X size={14} />}
+            className="p-button-secondary p-button-sm"
+            onClick={() => setDateRange(null)}
+            tooltip="Clear Date Filter"
+          />
+        )}
+      </div>
+
+      {/* --- ช่องค้นหาเดิม --- */}
+      <div className="relative w-full md:w-80">
+        <i className="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+        <InputText
+          type="search"
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          placeholder="Search tickets..."
+          className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
+        />
+      </div>
     </div>
   );
 
@@ -273,9 +349,8 @@ const ManageTicketsPage = () => {
         {rowData.issue_attachment_path && (
           <div className="mt-2">
             <a
-              href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${
-                rowData.issue_attachment_path
-              }`}
+              href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${rowData.issue_attachment_path
+                }`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-blue-500 hover:underline p-1 bg-blue-50 rounded"
@@ -295,9 +370,8 @@ const ManageTicketsPage = () => {
         {rowData.solution_attachment_path && (
           <div className="mt-2">
             <a
-              href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${
-                rowData.solution_attachment_path
-              }`}
+              href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${rowData.solution_attachment_path
+                }`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-green-500 hover:underline p-1 bg-green-50 rounded"
@@ -341,11 +415,57 @@ const ManageTicketsPage = () => {
     </div>
   );
 
+  // --- ✨ [ส่วนที่เพิ่มใหม่] UI Component สำหรับปุ่มสถานะ ---
+  const StatusSummary = () => {
+    const statusOrder = ["All", "Pending", "In Progress", "Completed", "Rejected"];
+    const statusColors = {
+      All: "border-gray-500 text-gray-700 bg-white hover:bg-gray-100",
+      Pending: "border-yellow-500 text-yellow-700 bg-yellow-50 hover:bg-yellow-100",
+      "In Progress": "border-blue-500 text-blue-700 bg-blue-50 hover:bg-blue-100",
+      Completed: "border-green-500 text-green-700 bg-green-50 hover:bg-green-100",
+      Rejected: "border-red-500 text-red-700 bg-red-50 hover:bg-red-100",
+    };
+    const activeStatusColors = {
+      All: "bg-gray-600 text-white",
+      Pending: "bg-yellow-500 text-white",
+      "In Progress": "bg-blue-500 text-white",
+      Completed: "bg-green-500 text-white",
+      Rejected: "bg-red-500 text-white",
+    };
+
+    return (
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {statusOrder.map((status) => (
+          <button
+            key={status}
+            onClick={() => setStatusFilter(status)}
+            className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-xs font-bold transition-all ${statusFilter === status
+              ? activeStatusColors[status]
+              : statusColors[status]
+              }`}
+          >
+            <span>{status}</span>
+            <span className={`px-2 py-0.5 rounded-full text-xs ${statusFilter === status
+              ? 'bg-white/20'
+              : 'bg-black/5'
+              }`}>
+              {statusCounts[status]}
+            </span>
+          </button>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="p-4 md:p-6">
       <h1 className="text-3xl font-extrabold bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3] bg-clip-text text-transparent mb-6">
         Manage Tickets
       </h1>
+
+      {/* ✨ [ส่วนที่เพิ่มใหม่] แสดง StatusSummary ที่นี่ */}
+      <StatusSummary />
+
 
       <Toolbar
         className="mb-4 flex flex-col items-stretch gap-4 p-2 md:flex-row md:items-center md:justify-between"
@@ -356,7 +476,8 @@ const ManageTicketsPage = () => {
       <div className="overflow-x-auto">
         <DataTable
           ref={dt}
-          value={tickets}
+          // ✨ เปลี่ยน value จาก 'tickets' เป็น 'filteredTickets'
+          value={filteredTickets}
           dataKey="id"
           paginator
           rows={10}
