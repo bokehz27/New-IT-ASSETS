@@ -2,11 +2,61 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../api";
+import { toast } from "react-toastify";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import ReplaceAssetModal from "../components/ReplaceAssetModal";
-import { DocumentTextIcon } from "@heroicons/react/outline";
 
-// ✨ คอมโพเนนต์ย่อยที่ขาดไป ถูกเพิ่มกลับมาตรงนี้แล้ว ✨
+// --- ICONS ---
+const DocumentTextIcon = ({ className = "h-6 w-6" }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+    />
+  </svg>
+);
+const PencilIcon = ({ className = "h-4 w-4" }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L15.232 5.232z"
+    />
+  </svg>
+);
+const TrashIcon = ({ className = "h-4 w-4" }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+    />
+  </svg>
+);
+
+// --- SUB-COMPONENTS (RE-STYLED) ---
 const StatusBadge = ({ status }) => {
   const statusStyles = {
     Enable: "bg-green-100 text-green-800",
@@ -17,7 +67,7 @@ const StatusBadge = ({ status }) => {
   return (
     <span
       className={`px-3 py-1 text-xs font-medium rounded-full ${
-        statusStyles[status] || "bg-gray-100 text-gray-800"
+        statusStyles[status] || "bg-slate-100 text-slate-800"
       }`}
     >
       {status || "N/A"}
@@ -26,19 +76,19 @@ const StatusBadge = ({ status }) => {
 };
 
 const InfoCard = ({ title, children }) => (
-  <div className="bg-white shadow-md rounded-lg overflow-hidden">
-    <div className="p-4 border-b border-gray-200">
-      <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+  <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+    <div className="p-4 border-b border-slate-200 bg-slate-50">
+      <h3 className="text-base font-semibold text-slate-800">{title}</h3>
     </div>
-    <div className="divide-y divide-gray-200">{children}</div>
+    <div className="divide-y divide-slate-200">{children}</div>
   </div>
 );
 
 const DetailItem = ({ label, children, value }) => (
-  <div className="px-4 py-3 grid grid-cols-3 gap-4">
-    <dt className="text-sm font-medium text-gray-500">{label}</dt>
-    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 col-span-2 break-words">
-      {children || value || "N/A"}
+  <div className="px-4 py-3 grid grid-cols-3 gap-4 items-start">
+    <dt className="text-sm font-medium text-slate-500">{label}</dt>
+    <dd className="text-sm text-slate-800 col-span-2 break-words">
+      {children || value || <span className="text-slate-400">N/A</span>}
     </dd>
   </div>
 );
@@ -54,7 +104,6 @@ function AssetDetailPage() {
   const fetchAsset = useCallback(async () => {
     try {
       setLoading(true);
-      // API จะ return ข้อมูลที่ flatten แล้วจาก backend
       const response = await api.get(`/assets/${assetId}`);
       setAsset(response.data);
       setError(null);
@@ -77,43 +126,74 @@ function AssetDetailPage() {
     );
     navigate(`/asset/${newAsset.id}`);
   };
+  const handleDelete = async () => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete this asset: ${asset.asset_name}?`
+      )
+    ) {
+      try {
+        await api.delete(`/assets/${assetId}`);
+        toast.success("Asset deleted successfully!");
+        navigate("/assets"); // พาผู้ใช้กลับไปที่หน้ารายการ
+      } catch (error) {
+        toast.error("Failed to delete asset.");
+        console.error(error);
+      }
+    }
+  };
 
-  if (loading) return <div className="text-center p-10">Loading...</div>;
+  if (loading)
+    return <div className="text-center p-10 text-slate-500">Loading...</div>;
   if (error)
-    return <div className="text-center p-10 text-red-600">{error}</div>;
+    return (
+      <div className="text-center p-10 text-red-600 bg-red-50 rounded-lg">
+        {error}
+      </div>
+    );
   if (!asset) return <div className="text-center p-10">No asset found.</div>;
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      <div className="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">
+      {/* --- [NEW DESIGN] PAGE HEADER --- */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            ASSET : <span className="text-blue-600">{asset.asset_name}</span>
+          <h2 className="text-3xl font-extrabold text-slate-800">
+            ASSET:{" "}
+            <span className="bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3] bg-clip-text text-transparent">
+              {asset.asset_name}
+            </span>
           </h2>
           <div className="mt-2 flex items-center space-x-2">
-            <p className="text-sm text-gray-500">Status :</p>
+            <p className="text-sm text-slate-500">Status:</p>
             <StatusBadge status={asset.status} />
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2 self-end md:self-center">
           <button
             onClick={() => setReplaceModalOpen(true)}
-            className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition"
+            className="bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:opacity-90"
           >
             Replace
           </button>
           <Link
             to={`/edit/${asset.id}`}
-            className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:opacity-90"
           >
             Edit
           </Link>
+          <button
+            onClick={handleDelete}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-red-700 to-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:opacity-90"
+          >
+            Delete
+          </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <InfoCard title="Hardware specifications">
+          <InfoCard title="Hardware Specifications">
             <DetailItem
               label="Brand / Model"
               value={`${asset.brand || ""} ${asset.model || ""}`.trim()}
@@ -130,7 +210,7 @@ function AssetDetailPage() {
             <DetailItem label="Hard Disk" value={asset.storage} />
           </InfoCard>
 
-          <InfoCard title="Network information">
+          <InfoCard title="Network Information">
             <DetailItem label="Device ID" value={asset.device_id} />
             <DetailItem
               label="Mac Address - LAN"
@@ -141,18 +221,14 @@ function AssetDetailPage() {
               value={asset.mac_address_wifi}
             />
             <DetailItem label="Wifi Status" value={asset.wifi_status} />
-
             <DetailItem label="Assigned IPs">
               {asset.assignedIps && asset.assignedIps.length > 0 ? (
-                <ul className="list-disc list-inside">
-                  {/* ✨ แก้ไขให้ดึง ip.ip_address มาแสดง และใช้ ip.id เป็น key ✨ */}
+                <ul className="list-disc list-inside space-y-1">
                   {asset.assignedIps.map((ip) => (
                     <li key={ip.id}>{ip.ip_address}</li>
                   ))}
                 </ul>
-              ) : (
-                "N/A"
-              )}
+              ) : null}
             </DetailItem>
           </InfoCard>
 
@@ -170,57 +246,57 @@ function AssetDetailPage() {
             <DetailItem label="Antivirus" value={asset.antivirus} />
             <DetailItem label="Special Programs">
               {asset.specialPrograms && asset.specialPrograms.length > 0 ? (
-                <ul className="list-disc list-inside">
+                <ul className="list-disc list-inside space-y-1">
                   {asset.specialPrograms.map((prog) => (
                     <li key={prog.id}>
                       {prog.program_name}
                       {prog.license_key && (
-                        <span className="text-gray-500 ml-2">
+                        <span className="text-slate-500 ml-2">
                           (Key: {prog.license_key})
                         </span>
                       )}
                     </li>
                   ))}
                 </ul>
-              ) : (
-                "N/A"
-              )}
+              ) : null}
             </DetailItem>
           </InfoCard>
 
           <InfoCard title="BitLocker Recovery Keys">
-  <div className="p-4">
-    {asset.bitlocker_csv_file ? (
-      <div className="flex items-center justify-between p-3 bg-gray-50 border rounded-md">
-        <div className="flex items-center min-w-0">
-          <DocumentTextIcon className="h-6 w-6 text-gray-400 flex-shrink-0" />
-          <span className="ml-3 text-sm font-medium text-gray-800 truncate">
-            {/* ดึงชื่อไฟล์จาก path มาแสดง */}
-            {asset.bitlocker_csv_file.split('/').pop()}
-          </span>
-        </div>
-        <div className="ml-4 flex-shrink-0">
-          <a
-            href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${asset.bitlocker_csv_file}`}
-            target="_blank"
-            rel="noreferrer"
-            className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"
-          >
-            Download
-          </a>
-        </div>
-      </div>
-    ) : (
-      <p className="text-sm text-gray-500">
-        No BitLocker file uploaded for this asset.
-      </p>
-    )}
-  </div>
-</InfoCard>
+            <div className="p-4">
+              {asset.bitlocker_csv_file ? (
+                <div className="flex items-center justify-between p-3 bg-slate-50 border rounded-md">
+                  <div className="flex items-center min-w-0">
+                    <DocumentTextIcon className="h-6 w-6 text-slate-400 flex-shrink-0" />
+                    <span className="ml-3 text-sm font-medium text-slate-800 truncate">
+                      {asset.bitlocker_csv_file.split("/").pop()}
+                    </span>
+                  </div>
+                  <div className="ml-4 flex-shrink-0">
+                    <a
+                      href={`${process.env.REACT_APP_API_URL.replace(
+                        "/api",
+                        ""
+                      )}${asset.bitlocker_csv_file}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"
+                    >
+                      Download
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500">
+                  No BitLocker file uploaded for this asset.
+                </p>
+              )}
+            </div>
+          </InfoCard>
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-          <InfoCard title="Configuration and location">
+          <InfoCard title="Configuration and Location">
             <DetailItem label="User" value={asset.user_name} />
             <DetailItem label="User ID" value={asset.user_id} />
             <DetailItem
@@ -230,13 +306,13 @@ function AssetDetailPage() {
             <DetailItem label="Location" value={asset.location} />
           </InfoCard>
 
-          <InfoCard title="Management details">
+          <InfoCard title="Management Details">
             <DetailItem
               label="Start Date"
               value={
                 asset.start_date
                   ? new Date(asset.start_date).toLocaleDateString("en-GB")
-                  : "N/A"
+                  : null
               }
             />
             <DetailItem
@@ -245,10 +321,9 @@ function AssetDetailPage() {
             />
           </InfoCard>
 
-          {/* ✨ Remark ถูกแยกออกมาเป็น InfoCard ใหม่ตรงนี้ ✨ */}
           <InfoCard title="Remark">
-            <div className="p-4 text-sm text-gray-900 break-words">
-              {asset.remark || "N/A"}
+            <div className="p-4 text-sm text-slate-800 break-words whitespace-pre-wrap">
+              {asset.remark || <span className="text-slate-400">N/A</span>}
             </div>
           </InfoCard>
         </div>

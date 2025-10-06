@@ -1,4 +1,4 @@
-// PublicTicketPage.js (Toolbar แบบโปร่ง ไม่มีพื้นหลัง)
+// PublicTicketPage.js (ปรับแก้ Font-Size)
 
 import React, { useState, useEffect, useRef } from "react";
 import axios from "../api";
@@ -96,20 +96,23 @@ const PublicTicketPage = () => {
     <Button
       label="แจ้งปัญหา"
       icon="pi pi-flag-fill"
-      className="luxury-gradient-btn text-white font-semibold px-5 py-2.5 rounded-lg shadow-md hover:opacity-90 transition-all"
+      // ✨ [ปรับแก้] ปรับขนาด Padding และ Font Size ให้เหมือนหน้า Manage
+      className="luxury-gradient-btn text-white font-semibold px-4 py-2 text-sm rounded-lg shadow-md hover:opacity-90 transition-all"
       onClick={openNew}
     />
   );
 
   const rightToolbarTemplate = () => (
     <div className="relative w-full md:w-80">
-      <i className="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-base" />
+      {/* ✨ [ปรับแก้] ปรับขนาดไอคอน */}
+      <i className="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
       <InputText
         type="search"
         value={globalFilter}
         onChange={(e) => setGlobalFilter(e.target.value)}
         placeholder="Search tickets..."
-        className="w-full pl-10 pr-4 py-3 text-base border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
+        // ✨ [ปรับแก้] ปรับ Padding และ Font Size
+        className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
       />
     </div>
   );
@@ -147,16 +150,17 @@ const PublicTicketPage = () => {
     const config = statusConfig[rowData.status] || {};
     const { Icon, color, bg, text, spin } = config;
 
+    // ✨ [ปรับแก้] ปรับ UI ของ Tag Status ทั้งหมด
     return (
-      <div className={`flex items-center gap-2 px-2 py-1 rounded-full ${bg}`}>
+      <div className={`inline-flex items-center gap-1.5 py-1 rounded-md ${bg}`}>
         {Icon && (
           <Icon
             className={`${color} ${spin ? "animate-spin" : ""}`}
-            size={18}
+            size={10}
             strokeWidth={2.2}
           />
         )}
-        <span className={`font-semibold ${color} text-sm`}>{text}</span>
+        <span className={`font-semibold ${color} text-xs px-1.5`}>{text}</span>
       </div>
     );
   };
@@ -263,13 +267,15 @@ const PublicTicketPage = () => {
           emptyMessage="No tickets found."
           className="shadow-md rounded-lg overflow-hidden border border-gray-200 text-gray-800 datatable-hover-effect"
         >
+          {/* ✨ [ปรับแก้] เพิ่ม headerClassName และ bodyClassName ให้กับทุก Column */}
           <Column
             header="Request Date"
             body={dateBodyTemplate}
             sortable
             sortField="created_at"
             style={{ width: "110px" }}
-            bodyClassName="text-gray-800"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             field="Asset.asset_name"
@@ -278,41 +284,47 @@ const PublicTicketPage = () => {
             filter
             filterPlaceholder="Search..."
             style={{ minWidth: "120px" }}
-            bodyClassName="text-gray-800"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             field="Employee.name"
             header="Requester"
             sortable
             style={{ minWidth: "180px" }}
-            bodyClassName="text-gray-800"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             field="internal_phone"
             header="Phone"
             style={{ width: "70px" }}
-            bodyClassName="text-gray-800"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             field="issue_description"
             header="Problem"
-            body={issueBodyTemplate} // ⬅️ ใช้ Template ใหม่
+            body={issueBodyTemplate}
             bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
-            bodyClassName="text-gray-800"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             field="solution"
             header="Solution"
-            body={solutionBodyTemplate} // ⬅️ ใช้ Template ใหม่
+            body={solutionBodyTemplate}
             bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
-            bodyClassName="text-gray-800"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             field="handler.username"
             header="Operator"
             sortable
             style={{ minWidth: "115px" }}
-            bodyClassName="text-gray-800"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             header="Status"
@@ -320,7 +332,8 @@ const PublicTicketPage = () => {
             body={statusBodyTemplate}
             sortable
             style={{ width: "120px" }}
-            bodyClassName="text-gray-800"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
         </DataTable>
       </div>
@@ -380,7 +393,8 @@ const PublicTicketPage = () => {
                 }
                 keyfilter="pint"
                 maxLength={4}
-                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
+                // ✨ [ปรับแก้] ปรับ Padding
+                className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
               />
             </div>
 
@@ -397,7 +411,8 @@ const PublicTicketPage = () => {
                   })
                 }
                 rows={5}
-                className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
+                 // ✨ [ปรับแก้] ปรับ Padding
+                className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
                 autoResize
               />
 

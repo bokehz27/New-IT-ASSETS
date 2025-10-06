@@ -121,36 +121,47 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
   };
 
   const exportCSV = () => dt.current.exportCSV();
-  const leftToolbarTemplate = () => <Button label="Add New" icon="pi pi-plus" className="p-button-sm p-button-success" onClick={() => openModal()} />;
 
+  // ✨ [ปรับแก้] สไตล์ปุ่ม Add New ให้เป็น Gradient
+  const leftToolbarTemplate = () => (
+    <Button
+      label="Add New"
+      icon="pi pi-plus"
+      className="bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white px-4 py-2 text-sm rounded-lg font-semibold shadow hover:opacity-90"
+      onClick={() => openModal()}
+    />
+  );
+
+  // ✨ [ปรับแก้] สไตล์ช่องค้นหาและปุ่ม Export
   const rightToolbarTemplate = () => (
     <div className="flex items-center gap-2">
-      <InputText type="search" value={globalFilter} onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Global Search" className="p-inputtext-sm" />
-      <Button label="Export" icon="pi pi-upload" className="p-button-sm p-button-help" onClick={exportCSV} />
+      <div className="relative">
+        <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <InputText type="search" value={globalFilter} onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Search..." className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition" />
+      </div>
+      <Button label="Export" icon="pi pi-upload" className="p-button-sm p-button-outlined p-button-secondary" onClick={exportCSV} />
     </div>
   );
-
+  
   const actionBodyTemplate = (rowData) => (
     <div className="flex gap-2 justify-center">
-      <Button icon="pi pi-pencil" className="p-button-rounded p-button-success" tooltip="Edit" tooltipOptions={{ position: 'top' }} onClick={() => openModal(rowData)} />
-      <Button icon="pi pi-trash" className="p-button-rounded p-button-danger" tooltip="Delete" tooltipOptions={{ position: 'top' }} onClick={() => handleDelete(rowData)} />
+      <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-button-sm" tooltip="Edit" tooltipOptions={{ position: 'top' }} onClick={() => openModal(rowData)} />
+      <Button icon="pi pi-trash" className="p-button-rounded p-button-danger p-button-sm" tooltip="Delete" tooltipOptions={{ position: 'top' }} onClick={() => handleDelete(rowData)} />
     </div>
   );
 
-  // ✨ 1. ออกแบบ Footer ของ Modal ใหม่
+  // ✨ [ปรับแก้] สไตล์ปุ่ม Save/Cancel ใน Footer
   const modalFooter = (
     <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t rounded-b-lg">
-      {/* ปุ่ม Cancel */}
       <Button
         label="Cancel"
         onClick={closeModal}
-        className="px-4 py-2 font-semibold text-sm bg-white text-gray-700 border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        className="px-4 py-2 font-semibold text-sm bg-white text-gray-700 border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
       />
-      {/* ปุ่ม Save */}
       <Button
         label="Save"
         onClick={handleSubmit}
-        className="px-4 py-2 font-semibold text-sm bg-indigo-600 text-white border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        className="bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3] text-white px-4 py-2 rounded-md font-semibold shadow hover:opacity-90"
         autoFocus
       />
     </div>
@@ -158,9 +169,14 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">{`Manage ${title}`}</h1>
+      {/* ✨ [ปรับแก้] สไตล์ Header หลักให้เป็น Gradient Text */}
+      <h1 className="text-3xl font-extrabold bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3] bg-clip-text text-transparent mb-6">
+        {`Manage ${title}`}
+      </h1>
+
       <Toolbar className="mb-4 p-2" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
-      <DataTable ref={dt} value={processedData} paginator rows={10} rowsPerPageOptions={[10, 20, 50, 100]} dataKey="id" size="small" stripedRows showGridlines globalFilter={globalFilter} globalFilterFields={dataColumns.map(col => relations.some(r => r.foreignKey === col.key) ? `${col.key}_display` : col.key)} emptyMessage={`No ${title} found.`}>
+      
+      <DataTable ref={dt} value={processedData} paginator rows={10} rowsPerPageOptions={[10, 20, 50, 100]} dataKey="id" size="small" stripedRows showGridlines globalFilter={globalFilter} globalFilterFields={dataColumns.map(col => relations.some(r => r.foreignKey === col.key) ? `${col.key}_display` : col.key)} emptyMessage={`No ${title} found.`} className="datatable-hover-effect text-sm">
         {dataColumns.map(col => {
           const isRelation = relations.some(r => r.foreignKey === col.key);
           return <Column key={col.key} field={isRelation ? `${col.key}_display` : col.key} header={col.name} sortable style={{ minWidth: '12rem' }} />;
@@ -168,23 +184,23 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
         <Column body={actionBodyTemplate} style={{ width: '8rem', textAlign: 'center' }} header="Actions" />
       </DataTable>
 
-      {/* ✨ 2. ปรับการแสดงผล Dialog */}
       <Dialog
         visible={isModalOpen}
         style={{ width: '450px' }}
         footer={modalFooter}
         onHide={closeModal}
-        className="shadow-xl"
+        className="shadow-xl rounded-xl overflow-hidden"
+        headerStyle={{ display: 'none' }}
+        contentStyle={{ padding: 0 }}
       >
         <div className="flex flex-col">
-          {/* Header */}
-          <div className="px-6 py-4 border-b rounded-t-lg">
-            <h3 className="text-xl font-semibold text-gray-800">
+          {/* ✨ [ปรับแก้] สไตล์ Header ของ Dialog ให้เป็น Gradient */}
+          <div className="px-6 py-4 bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3] text-white rounded-t-xl">
+            <h3 className="text-lg font-semibold">
               {currentItem ? `Edit ${title}` : `Add New ${title}`}
             </h3>
           </div>
 
-          {/* Form Content */}
           <div className="p-6 space-y-4">
             {dataColumns.map(col => {
               const relation = relations.find(r => r.foreignKey === col.key);
@@ -209,12 +225,12 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
                       placeholder="Select Status"
                     />
                   ) : (
-                    // ✨ 4. ปรับสไตล์ InputText
+                    // ✨ [ปรับแก้] สไตล์ InputText ให้มี focus color ที่ตรงกัน
                     <InputText
                       id={col.key}
                       value={formData[col.key] || ''}
                       onChange={(e) => handleInputChange(e, col.key)}
-                      className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out sm:text-sm"
+                      className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition sm:text-sm"
                       required
                     />
                   )}

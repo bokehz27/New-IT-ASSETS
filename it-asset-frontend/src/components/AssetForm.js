@@ -5,7 +5,7 @@ import { useForm, useFieldArray, Controller } from "react-hook-form";
 import SearchableDropdown from "./SearchableDropdown";
 import IpAssignmentForm from "./IpAssignmentForm";
 import SpecialProgramsForm from "./SpecialProgramsForm";
-import { Button } from 'primereact/button';
+import { Button } from "primereact/button";
 
 // --- Sub-components (InfoCard, FormField) ---
 const InfoCard = ({ title, children }) => (
@@ -163,17 +163,17 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
         </div>
         <div className="flex gap-2">
           <button
-            type="submit"
-            className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition"
-          >
-            Save
-          </button>
-          <button
             type="button"
             onClick={onCancel}
-            className="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-md hover:bg-gray-300 transition"
+            className="px-4 py-2 font-semibold text-sm bg-white text-slate-700 border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50"
           >
             Cancel
+          </button>
+          <button
+            type="submit"
+            className="bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:opacity-90"
+          >
+            Save
           </button>
         </div>
       </div>
@@ -334,8 +334,6 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
               initialAssignedIps={formData.assignedIps}
               onChange={setAssignedIpIds}
             />
-
-
           </InfoCard>
 
           {/* --- Software Information --- */}
@@ -429,7 +427,7 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                     icon="pi pi-times-circle"
                     className="p-button-rounded p-button-danger p-button-text"
                     tooltip="Remove Program"
-                    tooltipOptions={{ position: 'top' }}
+                    tooltipOptions={{ position: "top" }}
                     onClick={() => removeProgram(index)}
                   />
                 </div>
@@ -437,26 +435,23 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
               <button
                 type="button"
                 onClick={() =>
-                  // ✅ FIX: เปลี่ยน append เป็น program_id
                   appendProgram({ program_id: "", license_key: "" })
                 }
-                className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition"
+                className="bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:opacity-90"
               >
                 Add Program
               </button>
-
             </div>
           </InfoCard>
-
-
 
           {/* --- BitLocker CSV File --- */}
           <InfoCard title="BitLocker CSV File">
             {isEditing && formData.bitlocker_csv_file && !removeFile ? (
               <div className="flex justify-between items-center">
                 <a
-                  href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${formData.bitlocker_csv_file
-                    }`}
+                  href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${
+                    formData.bitlocker_csv_file
+                  }`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-blue-600 hover:underline"
@@ -466,7 +461,7 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 <button
                   type="button"
                   onClick={() => setRemoveFile(true)}
-                  className="bg-red-500 text-white text-sm font-semibold py-1 px-3 rounded-md hover:bg-red-600 transition"
+                  className="px-3 py-1 text-sm font-semibold bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition"
                 >
                   Replace File
                 </button>

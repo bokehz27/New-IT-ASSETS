@@ -374,50 +374,48 @@ const ManageTicketsPage = () => {
             sortable
             sortField="created_at"
             style={{ width: "110px" }}
-            bodyClassName="text-gray-800 text-xs"
-            headerClassName="text-xs"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             field="Asset.asset_name"
             header="IT Asset"
             sortable
-            filter
-            filterPlaceholder="Search..."
             style={{ minWidth: "110px" }}
-            bodyClassName="text-gray-800 text-xs"
-            headerClassName="text-xs"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             field="Employee.name"
             header="Requester"
             sortable
             style={{ minWidth: "150px" }}
-            bodyClassName="text-gray-800 text-xs"
-            headerClassName="text-xs"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             field="issue_description"
             header="Problem"
             body={issueBodyTemplate}
             bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
-            bodyClassName="text-gray-800 text-xs"
-            headerClassName="text-xs"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             field="solution"
             header="Solution"
             body={solutionBodyTemplate}
             bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
-            bodyClassName="text-gray-800 text-xs"
-            headerClassName="text-xs"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             field="handler.username"
             header="Operator"
             sortable
             style={{ minWidth: "90px" }}
-            bodyClassName="text-gray-800 text-xs"
-            headerClassName="text-xs"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             header="Status"
@@ -425,22 +423,22 @@ const ManageTicketsPage = () => {
             body={statusBodyTemplate}
             sortable
             style={{ width: "90px" }}
-            bodyClassName="text-gray-800 text-xs"
-            headerClassName="text-xs"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
           <Column
             header="Actions"
             body={actionBodyTemplate}
             style={{ width: "90px" }}
-            bodyClassName="text-gray-800 text-xs"
-            headerClassName="text-xs"
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
           />
         </DataTable>
       </div>
       {/* ✨ ปรับปรุงฟอร์มใน Dialog */}
       <Dialog
         visible={dialogVisible}
-        style={{ width: "45vw", maxWidth: "650px" }} // <--- ปรับแก้ค่าในบรรทัดนี้
+        style={{ width: "70vw", maxWidth: "1000px" }} // <-- เพิ่มความกว้าง
         footer={dialogFooter}
         onHide={hideDialog}
         className="shadow-xl rounded-xl overflow-hidden"
@@ -448,35 +446,32 @@ const ManageTicketsPage = () => {
         contentStyle={{ padding: 0 }}
       >
         <div className="flex flex-col rounded-xl overflow-hidden">
-          {" "}
-          {/* ✅ เพิ่มขอบมน */}
-          {/* Header */}
           <div className="px-6 py-4 bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3] text-white rounded-t-xl">
-            {" "}
-            {/* ✅ มนเฉพาะหัว */}
             <h3 className="text-lg font-semibold">
               {currentTicket?.id ? "Edit Ticket" : "Create New Ticket"}
             </h3>
           </div>
-          {/* Form Content */}
-          <div className="p-6 space-y-4">
-            {/* ... (Asset Dropdown) ... */}
-            <SearchableDropdown
-              label="Asset"
-              idPrefix="sdd-asset"
-              options={assets}
-              value={currentTicket?.asset_id}
-              onChange={(value) =>
-                setCurrentTicket({ ...currentTicket, asset_id: value })
-              }
-              placeholder="Select an Asset"
-            />
 
-            {/* Issue Description */}
-            <div>
+          {/* ✨ [ปรับ Layout] เปลี่ยนจาก space-y-4 เป็น grid --- */}
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="md:col-span-2">
+              <SearchableDropdown
+                label="Asset"
+                idPrefix="sdd-asset"
+                options={assets}
+                value={currentTicket?.asset_id}
+                onChange={(value) =>
+                  setCurrentTicket({ ...currentTicket, asset_id: value })
+                }
+                placeholder="Select an Asset"
+              />
+            </div>
+
+            {/* Column 1: Problem */}
+            <div className="space-y-2">
               <label
                 htmlFor="issue_description"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700"
               >
                 ปัญหา (Issue Description)
               </label>
@@ -489,17 +484,13 @@ const ManageTicketsPage = () => {
                     issue_description: e.target.value,
                   })
                 }
-                rows={4}
+                rows={5}
                 className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 autoResize
               />
-
-              {/* ✨ START: ส่วนแสดงไฟล์แนบ "ปัญหา" ✨ */}
               {currentTicket?.issue_attachment_path && (
-                <div className="mt-2 p-2 bg-gray-100 rounded-md border">
-                  <p className="text-sm font-medium text-gray-600">
-                    ไฟล์แนบปัจจุบัน:
-                  </p>
+                <div className="p-2 bg-gray-100 rounded-md border text-sm">
+                  <p className="font-medium text-gray-600">ไฟล์แนบปัจจุบัน:</p>
                   <a
                     href={`${process.env.REACT_APP_API_URL.replace(
                       "/api",
@@ -507,15 +498,13 @@ const ManageTicketsPage = () => {
                     )}${currentTicket.issue_attachment_path}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline break-all"
+                    className="text-blue-600 hover:underline break-all"
                   >
                     {currentTicket.issue_attachment_path.split("-").pop()}
                   </a>
                 </div>
               )}
-              {/* ✨ END: ส่วนแสดงไฟล์แนบ "ปัญหา" ✨ */}
-
-              <div className="mt-2">
+              <div>
                 <label
                   htmlFor="issue_attachment"
                   className="block text-sm font-medium text-gray-500"
@@ -527,14 +516,69 @@ const ManageTicketsPage = () => {
                 <input
                   type="file"
                   id="issue_attachment"
-                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   onChange={(e) => setIssueAttachment(e.target.files[0])}
                 />
               </div>
             </div>
 
-            {/* ... (Reported By, Internal Phone, Handled By, etc.) ... */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Column 2: Solution */}
+            <div className="space-y-2">
+              <label
+                htmlFor="solution"
+                className="block text-sm font-medium text-gray-700"
+              >
+                วิธีแก้ปัญหา (Solution)
+              </label>
+              <InputTextarea
+                id="solution"
+                value={currentTicket?.solution || ""}
+                onChange={(e) =>
+                  setCurrentTicket({
+                    ...currentTicket,
+                    solution: e.target.value,
+                  })
+                }
+                rows={5}
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                autoResize
+              />
+              {currentTicket?.solution_attachment_path && (
+                <div className="p-2 bg-gray-100 rounded-md border text-sm">
+                  <p className="font-medium text-gray-600">ไฟล์แนบปัจจุบัน:</p>
+                  <a
+                    href={`${process.env.REACT_APP_API_URL.replace(
+                      "/api",
+                      ""
+                    )}${currentTicket.solution_attachment_path}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline break-all"
+                  >
+                    {currentTicket.solution_attachment_path.split("-").pop()}
+                  </a>
+                </div>
+              )}
+              <div>
+                <label
+                  htmlFor="solution_attachment"
+                  className="block text-sm font-medium text-gray-500"
+                >
+                  {currentTicket?.solution_attachment_path
+                    ? "เปลี่ยนไฟล์แนบ"
+                    : "แนบไฟล์วิธีแก้ (ถ้ามี)"}
+                </label>
+                <input
+                  type="file"
+                  id="solution_attachment"
+                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                  onChange={(e) => setSolutionAttachment(e.target.files[0])}
+                />
+              </div>
+            </div>
+
+            {/* Requester Info (Full Width) */}
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
               <SearchableDropdown
                 label="ชื่อผู้แจ้ง (Reported By)"
                 idPrefix="sdd-employee"
@@ -568,7 +612,8 @@ const ManageTicketsPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Handler Info (Full Width) */}
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
               <SearchableDropdown
                 label="ผู้ดำเนินการ (Handled By)"
                 idPrefix="sdd-handler"
@@ -599,67 +644,6 @@ const ManageTicketsPage = () => {
                 }
                 placeholder="Select Status"
               />
-            </div>
-
-            {/* Solution */}
-            <div>
-              <label
-                htmlFor="solution"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                วิธีแก้ปัญหา (Solution)
-              </label>
-              <InputTextarea
-                id="solution"
-                value={currentTicket?.solution || ""}
-                onChange={(e) =>
-                  setCurrentTicket({
-                    ...currentTicket,
-                    solution: e.target.value,
-                  })
-                }
-                rows={4}
-                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                autoResize
-              />
-
-              {/* ✨ START: ส่วนแสดงไฟล์แนบ "วิธีแก้ปัญหา" ✨ */}
-              {currentTicket?.solution_attachment_path && (
-                <div className="mt-2 p-2 bg-gray-100 rounded-md border">
-                  <p className="text-sm font-medium text-gray-600">
-                    ไฟล์แนบปัจจุบัน:
-                  </p>
-                  <a
-                    href={`${process.env.REACT_APP_API_URL.replace(
-                      "/api",
-                      ""
-                    )}${currentTicket.solution_attachment_path}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline break-all"
-                  >
-                    {currentTicket.solution_attachment_path.split("-").pop()}
-                  </a>
-                </div>
-              )}
-              {/* ✨ END: ส่วนแสดงไฟล์แนบ "วิธีแก้ปัญหา" ✨ */}
-
-              <div className="mt-2">
-                <label
-                  htmlFor="solution_attachment"
-                  className="block text-sm font-medium text-gray-500"
-                >
-                  {currentTicket?.solution_attachment_path
-                    ? "เปลี่ยนไฟล์แนบ"
-                    : "แนบไฟล์วิธีแก้ (ถ้ามี)"}
-                </label>
-                <input
-                  type="file"
-                  id="solution_attachment"
-                  className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                  onChange={(e) => setSolutionAttachment(e.target.files[0])}
-                />
-              </div>
             </div>
           </div>
         </div>

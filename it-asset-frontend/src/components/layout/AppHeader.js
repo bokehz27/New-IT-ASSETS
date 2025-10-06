@@ -137,7 +137,7 @@ const AppHeader = () => {
                     key={link.to}
                     to={link.to}
                     className={({ isActive }) =>
-                      `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      `px-4 py-2 rounded-lg text-base font-medium transition-all duration-200 ${
                         isActive
                           ? "bg-white/20 text-white shadow-inner"
                           : "text-white/80 hover:bg-white/10 hover:text-white"
@@ -152,7 +152,7 @@ const AppHeader = () => {
                 <div className="relative" ref={miniProgramMenuRef}>
                   <button
                     onClick={() => setIsMiniProgramOpen(!isMiniProgramOpen)}
-                    className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition"
+                    className="flex items-center gap-1 px-4 py-2 rounded-lg text-base font-medium text-white/80 hover:text-white hover:bg-white/10 transition"
                   >
                     <span>Mini Program</span>
                     <ChevronDownIcon
@@ -166,7 +166,7 @@ const AppHeader = () => {
                       <NavLink
                         to="/switches"
                         onClick={() => setIsMiniProgramOpen(false)}
-                        className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-base hover:bg-gray-100"
                       >
                         Manage Switch
                       </NavLink>
@@ -195,13 +195,13 @@ const AppHeader = () => {
                     <Link
                       to="/create-user"
                       onClick={() => setIsProfileMenuOpen(false)}
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      className="block px-4 py-2 text-base hover:bg-gray-100"
                     >
                       Create User
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-base hover:bg-gray-100"
                     >
                       Logout
                     </button>
@@ -212,19 +212,19 @@ const AppHeader = () => {
               <div className="hidden md:flex items-center space-x-4">
                 <Link
                   to="/faq"
-                  className="px-4 py-2 rounded-full text-sm font-semibold text-white/90 hover:text-white hover:bg-white/20 transition"
+                  className="px-4 py-2 rounded-full text-base font-semibold text-white/90 hover:text-white hover:bg-white/20 transition"
                 >
                   FAQ
                 </Link>
                 <Link
                   to="/report-issue"
-                  className="px-4 py-2 rounded-full text-sm font-semibold text-white/90 hover:text-white hover:bg-white/20 transition"
+                  className="px-4 py-2 rounded-full text-base font-semibold text-white/90 hover:text-white hover:bg-white/20 transition"
                 >
                   แจ้งปัญหา
                 </Link>
                 <Link
                   to="/login"
-                  className="px-5 py-2 rounded-full text-sm font-semibold bg-white text-[#1976d2] hover:bg-gray-100 transition shadow"
+                  className="px-5 py-2 rounded-full text-base font-semibold bg-white text-[#1976d2] hover:bg-gray-100 transition shadow"
                 >
                   Admin Login
                 </Link>
@@ -306,7 +306,7 @@ const AppHeader = () => {
                 </Link>
                 <Link
                   to="/report-issue"
-                  className="ghost-button-vibrant px-4 py-2 rounded-full text-sm font-semibold"
+                  className="ghost-button-vibrant px-4 py-2 rounded-full text-base font-semibold"
                 >
                   แจ้งปัญหา
                 </Link>

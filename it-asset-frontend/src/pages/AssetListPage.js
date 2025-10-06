@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
+import { toast } from "react-toastify"; // ✨ เพิ่ม toastify สำหรับ feedback
 
 // PrimeReact Components
 import { DataTable } from "primereact/datatable";
@@ -26,62 +27,48 @@ const AssetIcon = ({ category }) => {
 };
 
 function AssetListPage() {
-  // --- State Management ---
+  // --- State Management (ปรับปรุงใหม่) ---
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [limit, setLimit] = useState(10); // Default rows per page for DataTable
+  const [globalFilter, setGlobalFilter] = useState(""); // ✨ เปลี่ยนจาก searchTerm เป็น globalFilter
   const dt = useRef(null);
 
-  // --- Data Fetching ---
-  const fetchAssets = async (page, currentLimit, searchQuery) => {
+  // --- Data Fetching (ปรับปรุงใหม่) ---
+  const fetchAssets = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await api.get("/assets", {
-        params: {
-          search: searchQuery,
-          page: page,
-          limit: currentLimit,
-        },
-      });
-      setAssets(response.data.assets);
-      setTotalItems(response.data.totalItems);
-      setTotalPages(response.data.totalPages);
-      setCurrentPage(response.data.currentPage);
+      // ✨ ดึงข้อมูลทั้งหมดมาในครั้งเดียว
+      const response = await api.get("/assets?all=true");
+      setAssets(response.data);
     } catch (error) {
       console.error("Error fetching assets:", error);
+      toast.error("Failed to fetch assets."); // ✨ แสดงข้อความผิดพลาด
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      fetchAssets(currentPage, limit, searchTerm);
-    }, 300); // Debounce search input
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, currentPage, limit]);
+    fetchAssets(); // ✨ เรียกใช้แค่ครั้งเดียวเมื่อ Component โหลด
+  }, []);
 
   // --- Event Handlers ---
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this asset?")) {
       try {
         await api.delete(`/assets/${id}`);
-        fetchAssets(currentPage, limit, searchTerm); // Refresh data
+        toast.success("Asset deleted successfully!"); // ✨ แสดงข้อความสำเร็จ
+        fetchAssets(); // Refresh data
       } catch (error) {
         console.error("Error deleting asset:", error);
-        alert("Failed to delete asset.");
+        toast.error("Failed to delete asset."); // ✨ แสดงข้อความผิดพลาด
       }
     }
   };
 
   // --- UI Templates for DataTable ---
   const leftToolbarTemplate = () => (
-    <Link to="/asset/new">
+    <Link to="/add">
       <Button
         label="New Asset"
         icon="pi pi-plus"
@@ -89,14 +76,14 @@ function AssetListPage() {
       />
     </Link>
   );
-  
+
   const rightToolbarTemplate = () => (
     <div className="relative w-full md:w-80">
       <i className="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
       <InputText
         type="search"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        value={globalFilter} // ✨ ผูกกับ globalFilter
+        onChange={(e) => setGlobalFilter(e.target.value)} // ✨ อัปเดต globalFilter
         placeholder="Search assets..."
         className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
       />
@@ -115,7 +102,7 @@ function AssetListPage() {
         <Button
           icon="pi pi-eye"
           tooltip="Detail"
-          tooltipOptions={{ position: 'top' }}
+          tooltipOptions={{ position: "top" }}
           className="p-button-rounded p-button-info p-button-sm"
         />
       </Link>
@@ -123,17 +110,10 @@ function AssetListPage() {
         <Button
           icon="pi pi-history"
           tooltip="History"
-          tooltipOptions={{ position: 'top' }}
+          tooltipOptions={{ position: "top" }}
           className="p-button-rounded p-button-secondary p-button-sm"
         />
       </Link>
-      <Button
-        icon="pi pi-trash"
-        tooltip="Delete"
-        tooltipOptions={{ position: 'top' }}
-        className="p-button-rounded p-button-danger p-button-sm"
-        onClick={() => handleDelete(rowData.id)}
-      />
     </div>
   );
 
@@ -155,73 +135,78 @@ function AssetListPage() {
           value={assets}
           dataKey="id"
           paginator
-          rows={limit}
+          rows={10}
           rowsPerPageOptions={[10, 20, 50]}
-          onPage={(e) => {
-            setCurrentPage(e.page + 1);
-            setLimit(e.rows);
-          }}
-          lazy
-          totalRecords={totalItems}
           loading={loading}
           rowHover
+          size="small"
+          showGridlines
+          globalFilter={globalFilter} // ✨ เพิ่ม globalFilter
           emptyMessage="No assets found."
           className="shadow-md rounded-lg overflow-hidden border border-gray-200 text-gray-800 datatable-hover-effect"
         >
-            <Column
-              header="Picture"
-              body={pictureBodyTemplate}
-              style={{ width: "100px", textAlign: 'center' }}
-              headerClassName="text-sm"
-            />
-            <Column
-              field="category"
-              header="Category"
-              sortable
-              style={{ minWidth: "100px" }}
-              bodyClassName="text-gray-800 text-xs"
-              headerClassName="text-sm"
-            />
-            <Column
-              field="asset_name"
-              header="IT Asset"
-              sortable
-              style={{ minWidth: "100px" }}
-              bodyClassName="text-gray-800 text-xs font-medium"
-              headerClassName="text-sm"
-            />
-            
-            <Column
-              field="department"
-              header="Department"
-              sortable
-              style={{ minWidth: "100px" }}
-              bodyClassName="text-gray-800 text-xs"
-              headerClassName="text-sm"
-            />
-            <Column
-              field="user_name"
-              header="Device User"
-              sortable
-              style={{ minWidth: "130px" }}
-              bodyClassName="text-gray-800 text-xs"
-              headerClassName="text-sm"
-            />
-            <Column
-              field="user_id"
-              header="User ID"
-              sortable
-              style={{ minWidth: "100px" }}
-              bodyClassName="text-gray-800 text-xs"
-              headerClassName="text-sm"
-            />
-            <Column
-              header="Actions"
-              body={actionBodyTemplate}
-              style={{ width: "100px", textAlign: 'center' }}
-              bodyClassName="text-gray-800 text-xs"
-              headerClassName="text-sm"
-            />
+          <Column
+            header="Picture"
+            body={pictureBodyTemplate}
+            style={{ width: "100px", textAlign: "center" }}
+            headerClassName="text-sm"
+          />
+          <Column
+            field="category"
+            header="Category"
+            sortable
+            style={{ minWidth: "100px" }}
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
+          />
+          <Column
+            field="asset_name"
+            header="IT Asset"
+            sortable
+            style={{ minWidth: "100px" }}
+            bodyClassName="text-gray-800 text-sm font-medium"
+            headerClassName="text-sm"
+          />
+          <Column
+            field="location"
+            header="Location"
+            sortable
+            style={{ minWidth: "120px" }}
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
+          />
+
+          <Column
+            field="department"
+            header="Department"
+            sortable
+            style={{ minWidth: "100px" }}
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
+          />
+          <Column
+            field="user_name"
+            header="Device User"
+            sortable
+            style={{ minWidth: "130px" }}
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
+          />
+          <Column
+            field="user_id"
+            header="User ID"
+            sortable
+            style={{ minWidth: "100px" }}
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
+          />
+          <Column
+            header="Actions"
+            body={actionBodyTemplate}
+            style={{ width: "120px", textAlign: "center" }} // ✨ ปรับความกว้างเล็กน้อย
+            bodyClassName="text-gray-800 text-sm"
+            headerClassName="text-sm"
+          />
         </DataTable>
       </div>
     </div>

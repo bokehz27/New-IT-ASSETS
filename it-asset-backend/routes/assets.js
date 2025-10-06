@@ -5,6 +5,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const sequelize = require("../config/database");
+const exceljs = require("exceljs");
 
 // Import all necessary models
 const Asset = require("../models/Asset");
@@ -182,17 +183,125 @@ router.post(
 
 /**
  * =========================
+ * Export to excel
+ * =========================
+ */
+router.get("/reports/assets/export-simple", async (req, res) => {
+  try {
+    const { fields, export_special_programs, export_bitlocker_keys } =
+      req.query;
+
+    // ดึงข้อมูล Asset ทั้งหมดพร้อมข้อมูล关联
+    const allAssetsRaw = await Asset.findAll({
+      include: getAssetAssociations(),
+      order: [["asset_name", "ASC"]],
+    });
+    const allAssets = allAssetsRaw.map(flattenAsset);
+
+    const workbook = new exceljs.Workbook();
+
+    // --- Sheet 1: Assets ---
+    if (fields) {
+      const assetSheet = workbook.addWorksheet("Assets");
+      const selectedFields = fields.split(",");
+
+      // สร้าง Headers
+      assetSheet.columns = selectedFields.map((field) => ({
+        header: field.replace(/_/g, " ").toUpperCase(),
+        key: field,
+        width: 25,
+      }));
+
+      // เพิ่มข้อมูล
+      allAssets.forEach((asset) => {
+        const rowData = {};
+        selectedFields.forEach((field) => {
+          if (field === "assignedIps" && Array.isArray(asset[field])) {
+            rowData[field] = asset[field].map((ip) => ip.ip_address).join(", ");
+          } else {
+            rowData[field] = asset[field] || "N/A";
+          }
+        });
+        assetSheet.addRow(rowData);
+      });
+    }
+
+    // --- Sheet 2: Special Programs ---
+    if (export_special_programs === "true") {
+      const spSheet = workbook.addWorksheet("Special Programs");
+      spSheet.columns = [
+        { header: "ASSET_NAME", key: "asset_name", width: 20 },
+        { header: "PROGRAM_NAME", key: "program_name", width: 30 },
+        { header: "LICENSE_KEY", key: "license_key", width: 40 },
+      ];
+      allAssets.forEach((asset) => {
+        if (asset.specialPrograms && asset.specialPrograms.length > 0) {
+          asset.specialPrograms.forEach((prog) => {
+            spSheet.addRow({
+              asset_name: asset.asset_name,
+              program_name: prog.program_name,
+              license_key: prog.license_key || "N/A",
+            });
+          });
+        }
+      });
+    }
+
+    // --- Sheet 3: BitLocker ---
+    if (export_bitlocker_keys === "true") {
+      // You would typically fetch BitLocker details here.
+      // For this example, we'll just export the file path.
+      const blSheet = workbook.addWorksheet("BitLocker Info");
+      blSheet.columns = [
+        { header: "ASSET_NAME", key: "asset_name", width: 20 },
+        { header: "BITLOCKER_FILE_PATH", key: "bitlocker_csv_file", width: 50 },
+      ];
+      allAssets.forEach((asset) => {
+        if (asset.bitlocker_csv_file) {
+          blSheet.addRow({
+            asset_name: asset.asset_name,
+            bitlocker_csv_file: asset.bitlocker_csv_file,
+          });
+        }
+      });
+    }
+
+    // ส่งไฟล์กลับไป
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="assets_report_${new Date()
+        .toISOString()
+        .slice(0, 10)}.xlsx"`
+    );
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Error exporting asset report:", error);
+    res.status(500).json({ error: "Failed to generate report." });
+  }
+});
+
+/**
+ * =========================
  * [R] List assets
  * =========================
  */
 router.get("/", async (req, res) => {
   try {
     if (req.query.all) {
-      const allAssets = await Asset.findAll({
-        attributes: ['id', 'asset_name'],
-        order: [['asset_name', 'ASC']]
+      // --- START: โค้ดที่แก้ไข ---
+      const allAssetsRaw = await Asset.findAll({
+        include: getAssetAssociations(), // 👈 ดึงข้อมูลทั้งหมดที่เกี่ยวข้อง
+        order: [["asset_name", "ASC"]],
       });
-      return res.json(allAssets); // ส่งกลับเป็น Array ตรงๆ
+      // ทำการ flatten ข้อมูลให้อยู่ในรูปแบบที่ Frontend ใช้งานได้ง่าย
+      const allAssetsFlattened = allAssetsRaw.map(flattenAsset);
+      return res.json(allAssetsFlattened);
+      // --- END: โค้ดที่แก้ไข ---
     }
 
     const { search, page = 1, limit = 20 } = req.query;
@@ -361,6 +470,120 @@ router.post("/", async (req, res) => {
 
 /**
  * =========================================
+ * Replace Asset
+ * =========================================
+ */
+router.post("/clone-and-replace", async (req, res) => {
+  const { oldAssetId, newAssetName, transferOptions } = req.body;
+
+  if (!oldAssetId || !newAssetName || !transferOptions) {
+    return res.status(400).json({ error: "Missing required fields." });
+  }
+
+  const t = await sequelize.transaction();
+  try {
+    const oldAsset = await Asset.findByPk(oldAssetId, {
+      include: getAssetAssociations(),
+      transaction: t,
+    });
+    if (!oldAsset) {
+      await t.rollback();
+      return res.status(404).json({ error: "Original asset not found." });
+    }
+
+    const replacedStatus = await AssetStatus.findOne({
+      where: { name: "Replaced" },
+      transaction: t,
+    });
+    const enabledStatus = await AssetStatus.findOne({
+      where: { name: "Enable" },
+      transaction: t,
+    });
+    if (!replacedStatus || !enabledStatus) {
+      await t.rollback();
+      return res
+        .status(500)
+        .json({
+          error: "Could not find required statuses 'Replaced' or 'Enable'.",
+        });
+    }
+
+    const dataToCopy = {
+      asset_name: newAssetName,
+      status_id: enabledStatus.id,
+    };
+
+    // --- ส่วนของการ "ย้าย" (คัดลอก และ ล้างค่า) ---
+    if (transferOptions.employee_data) {
+      dataToCopy.employee_id = oldAsset.employee_id;
+      dataToCopy.user_id = oldAsset.user_id;
+      oldAsset.employee_id = null;
+      oldAsset.user_id = null;
+    }
+    if (transferOptions.department_id) {
+      dataToCopy.department_id = oldAsset.department_id;
+      oldAsset.department_id = null;
+    }
+    if (transferOptions.location_id) {
+      dataToCopy.location_id = oldAsset.location_id;
+      oldAsset.location_id = null;
+    }
+    if (transferOptions.office_config) {
+      dataToCopy.office_version_id = oldAsset.office_version_id;
+      dataToCopy.office_product_key = oldAsset.office_product_key;
+      oldAsset.office_version_id = null;
+      oldAsset.office_product_key = null;
+    }
+    if (transferOptions.antivirus_program_id) {
+      dataToCopy.antivirus_program_id = oldAsset.antivirus_program_id;
+      oldAsset.antivirus_program_id = null;
+    }
+
+    // --- สร้าง Asset ใหม่พร้อมข้อมูลที่คัดลอกมา ---
+    const newAsset = await Asset.create(dataToCopy, { transaction: t });
+
+    // --- ย้ายข้อมูลตารางเชื่อม (IP & Special Programs) ---
+    if (transferOptions.ip_assignments) {
+      await AssetIpAssignment.update(
+        { asset_id: newAsset.id },
+        { where: { asset_id: oldAssetId }, transaction: t }
+      );
+    }
+    if (transferOptions.special_programs) {
+      await AssetSpecialProgram.update(
+        { asset_id: newAsset.id },
+        { where: { asset_id: oldAssetId }, transaction: t }
+      );
+    }
+
+    // --- อัปเดต Asset เก่า ---
+    oldAsset.status_id = replacedStatus.id;
+    const replacementNote = `\n--- Replaced on ${new Date().toLocaleDateString()} by ${
+      newAsset.asset_name
+    }. ---`;
+    oldAsset.remark = (oldAsset.remark || "") + replacementNote;
+    await oldAsset.save({ transaction: t });
+
+    await t.commit();
+
+    const finalNewAsset = await Asset.findByPk(newAsset.id, {
+      include: getAssetAssociations(),
+    });
+    res
+      .status(200)
+      .json({
+        message: "Asset cloned and replaced successfully",
+        newAsset: flattenAsset(finalNewAsset),
+      });
+  } catch (error) {
+    await t.rollback();
+    console.error("Asset clone and replace failed:", error);
+    res.status(500).json({ error: "An internal error occurred." });
+  }
+});
+
+/**
+ * =========================================
  * [U] Update asset
  * =========================================
  */
@@ -452,7 +675,11 @@ router.delete("/:id", async (req, res) => {
 router.post("/upload", async (req, res) => {
   const assetsData = req.body; // คาดหวังข้อมูลที่เป็น Array of objects
   if (!Array.isArray(assetsData) || assetsData.length === 0) {
-    return res.status(400).json({ error: "Invalid data format. Expecting a non-empty array of assets." });
+    return res
+      .status(400)
+      .json({
+        error: "Invalid data format. Expecting a non-empty array of assets.",
+      });
   }
 
   const transaction = await sequelize.transaction();
@@ -469,13 +696,19 @@ router.post("/upload", async (req, res) => {
     }
 
     await transaction.commit();
-    res.status(201).json({ message: `${createdAssets.length} assets imported successfully.` });
+    res
+      .status(201)
+      .json({
+        message: `${createdAssets.length} assets imported successfully.`,
+      });
   } catch (error) {
     await transaction.rollback();
     console.error("CRITICAL ERROR ON BULK CREATE ASSET:", error);
     res.status(400).json({
       error: "Failed to import assets. Please check data integrity.",
-      details: error.errors ? error.errors.map(e => e.message) : [{ message: error.message }],
+      details: error.errors
+        ? error.errors.map((e) => e.message)
+        : [{ message: error.message }],
     });
   }
 });

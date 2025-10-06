@@ -1,132 +1,110 @@
+// src/components/AdminUserModal.js (แก้ไขแล้ว)
+
 import React, { useState, useEffect } from "react";
+import api from "../api";
+import { toast } from "react-toastify";
 
-function AdminUserModal({ isOpen, onClose, user, onSave }) {
-  const initialFormState = {
-    username: "",
-    password: "",
-    role: "it_staff",
-  };
-
-  const [formData, setFormData] = useState(initialFormState);
+function AdminUserModal({ user, onClose, onSave }) {
+  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [confirmPassword, setConfirmPassword] = useState(""); // ✨ 1. เพิ่ม State สำหรับ Confirm Password
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setError(""); // Clear error on open
-      if (user) {
-        // Edit mode
-        setFormData({
-          username: user.username || "",
-          password: "", // ไม่ต้องแสดงรหัสผ่านเดิม
-          role: user.role || "it_staff",
-        });
-      } else {
-        // Add mode
-        setFormData(initialFormState);
-      }
+    if (user) {
+      setFormData({ username: user.username, password: "" });
+    } else {
+      setFormData({ username: "", password: "" });
     }
-  }, [isOpen, user]);
-
-  if (!isOpen) return null;
+    setConfirmPassword("");
+    setError("");
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // ตรวจสอบข้อมูลเบื้องต้น
-    if (!formData.username) {
-      setError("Username is required.");
-      return;
-    }
+    setError("");
+    
+    // --- ✨ 2. เพิ่ม Logic การตรวจสอบ Password ---
     if (!user && !formData.password) {
-      // ต้องใส่รหัสผ่านเมื่อสร้าง user ใหม่
-      setError("Password is required for new users.");
+        setError("Password is required for new users.");
+        return;
+    }
+    if (formData.password !== confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
-    if (formData.password && formData.password.length < 6) {
-      setError("Password must be at least 6 characters long.");
-      return;
+
+    setSubmitting(true);
+    try {
+      // ตัด property ที่ไม่ต้องการส่งออกไป (role) และ password ถ้าไม่ได้กรอก
+      const payload = { username: formData.username };
+      if (formData.password) {
+        payload.password = formData.password;
+      }
+      
+      if (user) {
+        await api.put(`/users/${user.id}`, payload);
+        toast.success("User updated successfully!");
+      } else {
+        await api.post("/users", payload);
+        toast.success("User created successfully!");
+      }
+      onSave();
+    } catch (err) {
+      const errorMessage = err.response?.data?.error || "An error occurred.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setSubmitting(false);
     }
-    onSave(formData, user ? user.id : null); // ส่งข้อมูลกลับไปให้หน้าหลักจัดการ
   };
+  
+  const inputClassName = "w-full p-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition sm:text-sm";
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg z-50">
-        <h2 className="text-2xl font-bold mb-4">
-          {user ? "Edit User" : "Add New User"}
-        </h2>
-        {error && (
-          <p className="text-red-600 text-sm text-center p-2 mb-3 bg-red-100 rounded-md">
-            {error}
-          </p>
-        )}
+    <div className="fixed inset-0 bg-slate-900/70 flex justify-center items-center z-[9990]">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-4 bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white">
+          <h2 className="text-lg font-semibold">{user ? "Edit User" : "Create New User"}</h2>
+        </div>
+        
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Username*
-              </label>
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                className="w-full mt-1"
-                required
-              />
+            <div className="p-6 space-y-4">
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Username <span className="text-red-500">*</span></label>
+                <input type="text" name="username" value={formData.username} onChange={handleChange} className={inputClassName} required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                <input type="password" name="password" value={formData.password} onChange={handleChange} className={inputClassName} placeholder={user ? "Leave blank to keep unchanged" : ""} />
+              </div>
+              {/* --- ✨ 3. เพิ่มช่อง Confirm Password --- */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Confirm Password</label>
+                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClassName} />
+              </div>
+
+              {/* --- ✨ 4. ลบช่อง Role ออก --- */}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full mt-1"
-                placeholder={
-                  user
-                    ? "Leave blank to keep current password"
-                    : "At least 6 characters"
-                }
-              />
+
+            {/* Footer */}
+            <div className="flex justify-end items-center gap-3 px-6 py-4 bg-slate-50 border-t border-slate-200">
+                <button type="button" onClick={onClose} className="px-4 py-2 font-semibold text-sm bg-white text-slate-700 border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50">
+                    Cancel
+                </button>
+                <button type="submit" disabled={submitting} className="bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white px-5 py-2 rounded-lg text-sm font-semibold shadow hover:opacity-90 disabled:opacity-70">
+                    {submitting ? "Saving..." : "Save User"}
+                </button>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Role
-              </label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full mt-1"
-              >
-                <option value="it_staff">IT Staff</option>
-                <option value="admin">Administrator</option>
-              </select>
-            </div>
-          </div>
-          <div className="mt-6 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-md hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700"
-            >
-              Save
-            </button>
-          </div>
         </form>
+
       </div>
     </div>
   );

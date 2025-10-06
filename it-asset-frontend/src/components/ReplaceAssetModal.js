@@ -1,134 +1,122 @@
 // src/components/ReplaceAssetModal.js
+
 import React, { useState } from "react";
 import api from "../api";
+import { toast } from "react-toastify";
 
-const ReplaceAssetModal = ({ asset, onClose, onSuccess }) => {
-  const [newAssetCode, setNewAssetCode] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+// ✨ 1. สร้างรายการ Fields ที่สามารถย้ายได้แบบละเอียด
+const transferableFields = [
+    { key: 'employee_data', label: 'User Name & User ID' },
+    { key: 'department_id', label: 'Department' },
+    { key: 'location_id', label: 'Location' },
+    { key: 'ip_assignments', label: 'Assigned IPs' },
+    { key: 'office_config', label: 'Microsoft Office & Key' },
+    { key: 'antivirus_program_id', label: 'Antivirus' },
+    { key: 'special_programs', label: 'Special Programs' },
+];
+
+function ReplaceAssetModal({ asset, onClose, onSuccess }) {
+  const [newAssetName, setNewAssetName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // รายการข้อมูลที่จะคัดลอก
-  const fieldsToCopy = {
-    ip_address: "IP Address",
-    wifi_registered: "Wifi Register",
-    antivirus: "Antivirus",
-    specialPrograms: "Special Programs", // ✅ เพิ่มให้เลือกได้
-    user_name: "User",
-    user_id: "User ID",
-    department: "Department / Division",
-    location: "Location",
-    category: "Category",
-    subcategory: "Subcategory",
-    office_version: "Microsoft Office",
-    office_key: "Office Product Key",
-  };
-
-  const [checkedFields, setCheckedFields] = useState(
-    Object.keys(fieldsToCopy).reduce(
-      (acc, key) => ({ ...acc, [key]: true }),
-      {}
-    )
+  const [fieldsToTransfer, setFieldsToTransfer] = useState(
+    transferableFields.reduce((acc, field) => {
+      acc[field.key] = true; // ตั้งค่าเริ่มต้นให้เลือกทั้งหมด
+      return acc;
+    }, {})
   );
 
-  const handleCheckboxChange = (event) => {
-    const { name, checked } = event.target;
-    setCheckedFields((prev) => ({ ...prev, [name]: checked }));
+  const handleTransferChange = (e) => {
+    const { name, checked } = e.target;
+    setFieldsToTransfer(prev => ({ ...prev, [name]: checked }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!newAssetCode.trim()) {
-      setError("Please enter the new asset code.");
+  const handleSubmit = async () => {
+    if (!newAssetName.trim()) {
+      setError("Please enter a name for the new asset.");
       return;
     }
-    setIsSubmitting(true);
+
+    setSubmitting(true);
     setError("");
 
-    const selectedFields = Object.keys(checkedFields).filter(
-      (key) => checkedFields[key]
-    );
-
     try {
-      const response = await api.post(`/assets/${asset.id}/replace`, {
-        newAssetCode: newAssetCode.trim(),
-        fieldsToCopy: selectedFields,
+      const response = await api.post("/assets/clone-and-replace", {
+        oldAssetId: asset.id,
+        newAssetName: newAssetName.trim(),
+        transferOptions: fieldsToTransfer,
       });
+      toast.success(`Asset successfully replaced with ${newAssetName.trim()}`);
       onSuccess(response.data.newAsset);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to replace asset.");
-      console.error(err);
+      const errorMessage = err.response?.data?.error || "An error occurred during replacement.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
+  
+  const inputClassName = "w-full p-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition sm:text-sm";
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">
-          Replace Asset :{" "}
-          <span className="text-blue-600">{asset.asset_code}</span>
-        </h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Fields to Move :
-            </label>
-            <div className="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-md">
-              {Object.entries(fieldsToCopy).map(([key, label]) => (
-                <label key={key} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    name={key}
-                    checked={checkedFields[key]}
-                    onChange={handleCheckboxChange}
-                    className="form-checkbox h-4 w-4 text-blue-600"
-                  />
-                  <span className="text-sm text-gray-800">{label}</span>
-                </label>
-              ))}
+    <div className="fixed inset-0 bg-slate-900/70 flex justify-center items-center z-[9990]">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg flex flex-col overflow-hidden">
+        <div className="px-6 py-4 bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white">
+          <h2 className="text-lg font-semibold">Replace Asset</h2>
+        </div>
+
+        <div className="p-6 space-y-4">
+            <p className="text-sm text-slate-600">
+                Old Asset: <strong className="text-slate-800">{asset.asset_name}</strong>
+            </p>
+            
+            <div>
+                <label htmlFor="new-asset-name" className="block text-sm font-medium text-slate-700 mb-1">New Asset Name <span className="text-red-500">*</span></label>
+                <input
+                    type="text"
+                    id="new-asset-name"
+                    value={newAssetName}
+                    onChange={(e) => setNewAssetName(e.target.value)}
+                    className={inputClassName}
+                    placeholder="Enter the name of the new asset..."
+                />
             </div>
-          </div>
+            
+            {/* ✨ 2. แสดง Checkbox แบบละเอียด */}
+            <div className="space-y-3 pt-2">
+                <label className="block text-sm font-medium text-slate-700">Select data to MOVE to the new asset</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                    {transferableFields.map(field => (
+                         <div key={field.key} className="relative flex items-start">
+                            <div className="flex h-5 items-center">
+                                <input 
+                                    id={`transfer-${field.key}`} 
+                                    name={field.key} 
+                                    type="checkbox" 
+                                    checked={fieldsToTransfer[field.key]} 
+                                    onChange={handleTransferChange} 
+                                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="ml-3 text-sm">
+                                <label htmlFor={`transfer-${field.key}`} className="font-medium text-slate-700">{field.label}</label>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
 
-          <div className="mb-6">
-            <label
-              htmlFor="newAssetCode"
-              className="block text-gray-700 text-sm font-bold mb-2"
-            >
-              New Asset Code :
-            </label>
-            <input
-              id="newAssetCode"
-              type="text"
-              value={newAssetCode}
-              onChange={(e) => setNewAssetCode(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              required
-            />
-          </div>
+            {error && <p className="text-red-500 text-sm pt-2">{error}</p>}
+        </div>
 
-          {error && <p className="text-red-500 text-xs italic mb-4">{error}</p>}
-
-          <div className="flex items-center justify-end space-x-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-blue-300"
-            >
-              {isSubmitting ? "Replacing..." : "Confirm Replace"}
-            </button>
-          </div>
-        </form>
+        <div className="flex justify-end items-center gap-3 px-6 py-4 bg-slate-50 border-t border-slate-200">
+          <button type="button" onClick={onClose} className="px-4 py-2 font-semibold text-sm bg-white text-slate-700 border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50">Cancel</button>
+          <button type="button" onClick={handleSubmit} disabled={submitting} className="bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white px-5 py-2 rounded-lg text-sm font-semibold shadow hover:opacity-90 disabled:opacity-70">{submitting ? "Replacing..." : "Confirm Replacement"}</button>
+        </div>
       </div>
     </div>
   );
-};
-
+}
 export default ReplaceAssetModal;
