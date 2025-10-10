@@ -1,11 +1,10 @@
-// pages/AdminManagementPage.js (แก้ไขแล้ว)
+// pages/AdminManagementPage.js
 
 import React, { useState, useEffect } from "react";
 import api from "../api";
 import AdminUserModal from "../components/AdminUserModal";
 import { toast } from "react-toastify";
 
-// ✨ 1. Import PrimeReact Components
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
@@ -56,7 +55,6 @@ function AdminManagementPage() {
     }
   };
 
-  // --- ✨ 2. สร้าง UI Templates สำหรับ DataTable ---
   const leftToolbarTemplate = () => (
     <Button
       label="Create User"
@@ -74,20 +72,25 @@ function AdminManagementPage() {
   );
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    // ✨ [ปรับปรุง] เพิ่ม layout หลักให้เหมือนหน้าอื่น
+    <div className="p-4 md:p-6 space-y-6 bg-slate-50 min-h-screen">
       <h1 className="text-3xl font-extrabold bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3] bg-clip-text text-transparent">
-        User Management
+        Admin User Management
       </h1>
 
-      <Toolbar className="mb-4 p-2" left={leftToolbarTemplate}></Toolbar>
-
-      {/* --- ✨ 3. เปลี่ยนจาก <table> เป็น <DataTable> --- */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <DataTable value={users} dataKey="id" size="small" stripedRows rowHover>
-          <Column field="username" header="Username" sortable headerClassName="text-sm" bodyClassName="text-sm text-slate-800 p-3 font-medium" />
-          <Column header="Actions" body={actionBodyTemplate} style={{ width: "120px", textAlign: 'center' }} headerClassName="text-sm" />
-        </DataTable>
+      {/* ✨ [ปรับปรุง] เพิ่ม Wrapper div เพื่อจำกัดความกว้างและจัดกลาง */}
+      <div className="max-w-2xl mx-auto">
+        <Toolbar className="mb-4 p-2 rounded-lg" left={leftToolbarTemplate}></Toolbar>
+        
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+          <DataTable value={users} dataKey="id" size="small" stripedRows rowHover>
+            <Column field="username" header="Username" sortable headerClassName="text-sm" bodyClassName="text-sm text-slate-800 p-3 font-medium" />
+            <Column header="Actions" body={actionBodyTemplate} style={{ width: "120px", textAlign: 'center' }} headerClassName="text-sm" />
+          </DataTable>
+        </div>
       </div>
+      {/* ✨ สิ้นสุด Wrapper div */}
+
 
       {isModalOpen && (
         <AdminUserModal user={selectedUser} onClose={closeModal} onSave={handleSave} />

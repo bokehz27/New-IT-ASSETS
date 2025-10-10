@@ -183,7 +183,7 @@ router.post(
 
 /**
  * =========================
- * Export to excel
+ * Export to XLSX (Excel) with Multiple Sheets
  * =========================
  */
 router.get("/reports/assets/export-simple", async (req, res) => {
@@ -191,7 +191,6 @@ router.get("/reports/assets/export-simple", async (req, res) => {
     const { fields, export_special_programs, export_bitlocker_keys } =
       req.query;
 
-    // ดึงข้อมูล Asset ทั้งหมดพร้อมข้อมูล关联
     const allAssetsRaw = await Asset.findAll({
       include: getAssetAssociations(),
       order: [["asset_name", "ASC"]],
@@ -201,23 +200,21 @@ router.get("/reports/assets/export-simple", async (req, res) => {
     const workbook = new exceljs.Workbook();
 
     // --- Sheet 1: Assets ---
-    if (fields) {
+    if (fields && fields.length > 0) {
       const assetSheet = workbook.addWorksheet("Assets");
       const selectedFields = fields.split(",");
 
-      // สร้าง Headers
       assetSheet.columns = selectedFields.map((field) => ({
         header: field.replace(/_/g, " ").toUpperCase(),
         key: field,
         width: 25,
       }));
 
-      // เพิ่มข้อมูล
       allAssets.forEach((asset) => {
         const rowData = {};
         selectedFields.forEach((field) => {
-          if (field === "assignedIps" && Array.isArray(asset[field])) {
-            rowData[field] = asset[field].map((ip) => ip.ip_address).join(", ");
+          if (field === "ip_address" && Array.isArray(asset.assignedIps) && asset.assignedIps.length > 0) {
+            rowData[field] = asset.assignedIps.map((ip) => ip.ip_address).join(" / ");
           } else {
             rowData[field] = asset[field] || "N/A";
           }
@@ -225,60 +222,61 @@ router.get("/reports/assets/export-simple", async (req, res) => {
         assetSheet.addRow(rowData);
       });
     }
-
-    // --- Sheet 2: Special Programs ---
+    
+    // ✨ FIX: เพิ่ม Logic การสร้าง Sheet "Special Programs" กลับมา
     if (export_special_programs === "true") {
       const spSheet = workbook.addWorksheet("Special Programs");
       spSheet.columns = [
-        { header: "ASSET_NAME", key: "asset_name", width: 20 },
-        { header: "PROGRAM_NAME", key: "program_name", width: 30 },
-        { header: "LICENSE_KEY", key: "license_key", width: 40 },
+        { header: "IT ASSET", key: "asset_name", width: 25 },
+        { header: "PROGRAM NAME", key: "program_name", width: 30 },
+        { header: "LICENSE KEY", key: "license_key", width: 40 },
       ];
-      allAssets.forEach((asset) => {
+
+      allAssets.forEach(asset => {
         if (asset.specialPrograms && asset.specialPrograms.length > 0) {
-          asset.specialPrograms.forEach((prog) => {
+          asset.specialPrograms.forEach(prog => {
             spSheet.addRow({
               asset_name: asset.asset_name,
               program_name: prog.program_name,
-              license_key: prog.license_key || "N/A",
+              license_key: prog.license_key
             });
           });
         }
       });
     }
 
-    // --- Sheet 3: BitLocker ---
+    // ✨ FIX: เพิ่ม Logic การสร้าง Sheet "BitLocker Info" กลับมา
     if (export_bitlocker_keys === "true") {
-      // You would typically fetch BitLocker details here.
-      // For this example, we'll just export the file path.
       const blSheet = workbook.addWorksheet("BitLocker Info");
       blSheet.columns = [
-        { header: "ASSET_NAME", key: "asset_name", width: 20 },
-        { header: "BITLOCKER_FILE_PATH", key: "bitlocker_csv_file", width: 50 },
+        { header: "IT ASSET", key: "asset_name", width: 25 },
+        { header: "BITLOCKER FILE PATH", key: "file_path", width: 80 },
       ];
-      allAssets.forEach((asset) => {
+      allAssets.forEach(asset => {
         if (asset.bitlocker_csv_file) {
           blSheet.addRow({
             asset_name: asset.asset_name,
-            bitlocker_csv_file: asset.bitlocker_csv_file,
+            file_path: asset.bitlocker_csv_file
           });
         }
       });
     }
 
-    // ส่งไฟล์กลับไป
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
+    if (workbook.worksheets.length === 0) {
+      return res.status(400).json({ error: "No fields selected for export." });
+    }
+
+    // ✨ FIX: ตั้งค่า Headers และเขียนไฟล์กลับไปเป็น .xlsx
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="assets_report_${new Date()
-        .toISOString()
-        .slice(0, 10)}.xlsx"`
+      `attachment; filename="assets_report_${new Date().toISOString().slice(0, 10)}.xlsx"`
     );
+    
     await workbook.xlsx.write(res);
+
     res.end();
+
   } catch (error) {
     console.error("Error exporting asset report:", error);
     res.status(500).json({ error: "Failed to generate report." });
@@ -710,6 +708,104 @@ router.post("/upload", async (req, res) => {
         ? error.errors.map((e) => e.message)
         : [{ message: error.message }],
     });
+  }
+});
+
+
+/**
+ * =========================================
+ * [R] Get all Windows Versions for dropdown
+ * =========================================
+ */
+router.get("/meta/windows-versions", async (req, res) => {
+  try {
+    const versions = await WindowsVersion.findAll({ order: [["name", "ASC"]] });
+    res.json(versions);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch Windows versions." });
+  }
+});
+
+/**
+ * =========================================
+ * [R] Get all Office Versions for dropdown
+ * =========================================
+ */
+router.get("/meta/office-versions", async (req, res) => {
+  try {
+    const versions = await OfficeVersion.findAll({ order: [["name", "ASC"]] });
+    res.json(versions);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch Office versions." });
+  }
+});
+
+
+/**
+ * =========================================
+ * [R] Generate Asset Report by Software Version
+ * =========================================
+ */
+router.get("/reports/by-version", async (req, res) => {
+  const { type, versionId } = req.query; // type can be 'windows' or 'office'
+
+  if (!type || !versionId) {
+    return res.status(400).json({ error: "Report type and version ID are required." });
+  }
+
+  try {
+    let whereClause = {};
+    let versionInfo;
+    
+    if (type === 'windows') {
+      whereClause = { windows_version_id: versionId };
+      versionInfo = await WindowsVersion.findByPk(versionId);
+    } else if (type === 'office') {
+      whereClause = { office_version_id: versionId };
+      versionInfo = await OfficeVersion.findByPk(versionId);
+    } else {
+      return res.status(400).json({ error: "Invalid report type specified." });
+    }
+
+    if (!versionInfo) {
+      return res.status(404).json({ error: "Version not found." });
+    }
+
+    const assetsRaw = await Asset.findAll({
+      where: whereClause,
+      include: getAssetAssociations(),
+      order: [['asset_name', 'ASC']]
+    });
+    const assets = assetsRaw.map(flattenAsset);
+    
+    // --- Generate Excel File ---
+    const workbook = new exceljs.Workbook();
+    const sheetName = versionInfo.name.substring(0, 30); // Excel sheet name limit is 31 chars
+    const worksheet = workbook.addWorksheet(sheetName);
+
+    worksheet.columns = [
+      { header: 'ASSET NAME', key: 'asset_name', width: 25 },
+      { header: 'SERIAL NUMBER', key: 'serial_number', width: 25 },
+      { header: 'USER NAME', key: 'user_name', width: 30 },
+      { header: 'DEPARTMENT', key: 'department', width: 20 },
+      { header: 'LOCATION', key: 'location', width: 30 },
+      { header: 'START DATE', key: 'start_date', width: 15 },
+    ];
+
+    worksheet.addRows(assets);
+
+    const safeFileName = versionInfo.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const fileName = `${type}_report_${safeFileName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (error) {
+    console.error("Failed to generate version report:", error);
+    res.status(500).json({ error: "Failed to generate version report" });
   }
 });
 
