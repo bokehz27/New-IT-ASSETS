@@ -86,17 +86,17 @@ function PublicFaqPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-8 text-center">
         <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3] bg-clip-text text-transparent">
-          FAQ & Help Center
+          คำถามที่พบบ่อย
         </h1>
         <p className="mt-4 text-lg text-slate-600">
-          Find the answers to your most common questions below.
+          ค้นหาคำตอบสำหรับคำถามที่พบบ่อยที่สุดด้านล่าง
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
         <aside className="lg:col-span-1 sticky top-24">
           <div className="bg-white p-4 border border-slate-200 rounded-xl shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900 mb-3">Categories</h2>
+            <h2 className="text-lg font-semibold text-slate-900 mb-3">หมวดหมู่</h2>
             <nav className="flex flex-col gap-1">
               {categories.map((category) => (
                 <button

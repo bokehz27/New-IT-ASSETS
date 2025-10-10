@@ -26,6 +26,7 @@ const ReportPage = () => {
     { key: "user_name", label: "User Name" },
     { key: "department", label: "Department" },
     { key: "status", label: "Status" },
+    { key: "ip_address", label: "IP Address" },
     { key: "windows_version", label: "Windows Version" },
     { key: "windows_product_key", label: "Windows Key" },
     { key: "office_version", label: "Office Version" },

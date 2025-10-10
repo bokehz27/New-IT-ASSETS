@@ -245,7 +245,7 @@ const PublicTicketPage = () => {
   return (
     <div className="p-4 md:p-6">
       <h1 className="text-4xl font-extrabold bg-gradient-to-r from-[#0d47a1] via-[#1976d2] to-[#2196f3] bg-clip-text text-transparent mb-6">
-        Ticket Status
+        แจ้งปัญหา / งานซ่อม
       </h1>
 
       <Toolbar

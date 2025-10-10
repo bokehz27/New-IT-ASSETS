@@ -417,42 +417,93 @@ const ManageTicketsPage = () => {
 
   // --- ✨ [ส่วนที่เพิ่มใหม่] UI Component สำหรับปุ่มสถานะ ---
   const StatusSummary = () => {
-    const statusOrder = ["All", "Pending", "In Progress", "Completed", "Rejected"];
-    const statusColors = {
-      All: "border-gray-500 text-gray-700 bg-white hover:bg-gray-100",
-      Pending: "border-yellow-500 text-yellow-700 bg-yellow-50 hover:bg-yellow-100",
-      "In Progress": "border-blue-500 text-blue-700 bg-blue-50 hover:bg-blue-100",
-      Completed: "border-green-500 text-green-700 bg-green-50 hover:bg-green-100",
-      Rejected: "border-red-500 text-red-700 bg-red-50 hover:bg-red-100",
-    };
-    const activeStatusColors = {
-      All: "bg-gray-600 text-white",
-      Pending: "bg-yellow-500 text-white",
-      "In Progress": "bg-blue-500 text-white",
-      Completed: "bg-green-500 text-white",
-      Rejected: "bg-red-500 text-white",
+    // กำหนดลำดับและข้อมูลสำหรับแต่ละสถานะ
+    const statusConfig = [
+      { name: "All", icon: null, color: "gray" },
+      { name: "Pending", icon: <Clock size={12} />, color: "yellow" },
+      { name: "In Progress", icon: <Loader2 size={12} className="animate-spin" />, color: "blue", },
+      { name: "Completed", icon: <CheckCircle2 size={12} />, color: "green" },
+      { name: "Rejected", icon: <XCircle size={12} />, color: "red" },
+    ];
+
+    // Object สำหรับเก็บ CSS classes ของแต่ละสี
+    const colorStyles = {
+      gray: {
+        base: "border-gray-300 bg-white text-gray-700 hover:bg-gray-100",
+        active: "bg-gray-800 text-white border-gray-800",
+        countBg: "bg-gray-100",
+        countText: "text-gray-600",
+        activeCountBg: "bg-white/25",
+        activeCountText: "text-white",
+      },
+      yellow: {
+        base: "border-yellow-400 bg-yellow-50 text-yellow-800 hover:bg-yellow-100",
+        active: "bg-yellow-500 text-white border-yellow-500",
+        countBg: "bg-yellow-200/50",
+        countText: "text-yellow-900",
+        activeCountBg: "bg-white/25",
+        activeCountText: "text-white",
+      },
+      blue: {
+        base: "border-blue-400 bg-blue-50 text-blue-800 hover:bg-blue-100",
+        active: "bg-blue-600 text-white border-blue-600",
+        countBg: "bg-blue-200/50",
+        countText: "text-blue-900",
+        activeCountBg: "bg-white/25",
+        activeCountText: "text-white",
+      },
+      green: {
+        base: "border-green-400 bg-green-50 text-green-800 hover:bg-green-100",
+        active: "bg-green-600 text-white border-green-600",
+        countBg: "bg-green-200/50",
+        countText: "text-green-900",
+        activeCountBg: "bg-white/25",
+        activeCountText: "text-white",
+      },
+      red: {
+        base: "border-red-400 bg-red-50 text-red-800 hover:bg-red-100",
+        active: "bg-red-600 text-white border-red-600",
+        countBg: "bg-red-200/50",
+        countText: "text-red-900",
+        activeCountBg: "bg-white/25",
+        activeCountText: "text-white",
+      },
     };
 
     return (
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        {statusOrder.map((status) => (
-          <button
-            key={status}
-            onClick={() => setStatusFilter(status)}
-            className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-xs font-bold transition-all ${statusFilter === status
-              ? activeStatusColors[status]
-              : statusColors[status]
-              }`}
-          >
-            <span>{status}</span>
-            <span className={`px-2 py-0.5 rounded-full text-xs ${statusFilter === status
-              ? 'bg-white/20'
-              : 'bg-black/5'
-              }`}>
-              {statusCounts[status]}
-            </span>
-          </button>
-        ))}
+        {statusConfig.map(({ name, icon, color }) => {
+          const isActive = statusFilter === name;
+          const styles = colorStyles[color];
+
+          return (
+            <button
+              key={name}
+              onClick={() => setStatusFilter(name)}
+              // ✨ ปรับปรุง className ทั้งหมด
+              className={`
+                flex items-center gap-2 pl-3 pr-2 py-1.5 
+                border rounded-full text-xs font-semibold tracking-wide 
+                transition-all duration-200 ease-in-out
+                focus:outline-none focus:ring-2 focus:ring-offset-2
+                ${isActive ? styles.active : styles.base}
+              `}
+            >
+              {icon && <span className="mr-0">{icon}</span>}
+              <span className="leading-none">{name}</span>
+              <span
+                className={`
+                  flex items-center justify-center 
+                  min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold
+                  transition-colors duration-200
+                  ${isActive ? `${styles.activeCountBg} ${styles.activeCountText}` : `${styles.countBg} ${styles.countText}`}
+                `}
+              >
+                {statusCounts[name]}
+              </span>
+            </button>
+          );
+        })}
       </div>
     );
   };

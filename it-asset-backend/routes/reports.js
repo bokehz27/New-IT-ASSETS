@@ -4,6 +4,7 @@ const ExcelJS = require("exceljs");
 
 const Asset = require("../models/Asset");
 const AssetSpecialProgram = require("../models/AssetSpecialProgram");
+const IPAddress = require("../models/AssetIpAssignment");
 
 // Reusable function to apply header styling
 const applyHeaderStyles = (worksheet) => {
@@ -51,19 +52,43 @@ router.get("/assets/export-simple", async (req, res) => {
     if (fields) {
       const selectedFields = fields.split(",");
       if (selectedFields.length > 0) {
-        const assets = await Asset.findAll({ raw: true });
+        const assets = await Asset.findAll({
+          include: [
+            {
+              model: IPAddress, // ชื่อ Model ของ IP
+              as: "ip_addresses", // Alias ที่ตั้งใน Association (อาจจะต้องเปลี่ยน)
+              attributes: ["ip_address"], // ดึงมาเฉพาะคอลัมน์ ip_address
+              required: false, // ใช้ left join เพื่อให้ asset ที่ไม่มี IP ยังแสดงผล
+            },
+          ],
+          order: [["asset_code", "ASC"]],
+        });
+
         const worksheet = workbook.addWorksheet("Assets");
 
         worksheet.columns = selectedFields.map((field) => ({
-          header: field,
+          header: field
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (l) => l.toUpperCase()), // ทำให้ชื่อ Header สวยงามขึ้น
           key: field,
           width: 25,
         }));
 
-        const rowsToAdd = assets.map((fullAsset) => {
+        // ✨ 3. แก้ไขการสร้างข้อมูลสำหรับแต่ละแถว
+        const rowsToAdd = assets.map((asset) => {
           const rowData = {};
+          const fullAsset = asset.get({ plain: true }); // แปลง Sequelize instance เป็น Object ธรรมดา
+
           selectedFields.forEach((field) => {
-            rowData[field] = fullAsset[field] || "N/A";
+            if (field === "ip_address") {
+              // นำ IP ทั้งหมดมา join กันด้วย ", "
+              const ips = (fullAsset.ip_addresses || [])
+                .map((ip) => ip.ip_address)
+                .join(", ");
+              rowData[field] = ips || "N/A";
+            } else {
+              rowData[field] = fullAsset[field] || "N/A";
+            }
           });
           return rowData;
         });
