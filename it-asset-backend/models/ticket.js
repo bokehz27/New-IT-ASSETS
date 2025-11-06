@@ -13,6 +13,7 @@ Ticket.init(
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     asset_id: { type: DataTypes.INTEGER, allowNull: false },
     employee_id: { type: DataTypes.INTEGER, allowNull: true },
+    corrected_email: { type: DataTypes.STRING, allowNull: true },
     internal_phone: { type: DataTypes.STRING(4), allowNull: true },
     issue_description: { type: DataTypes.TEXT, allowNull: false },
     solution: { type: DataTypes.TEXT, allowNull: true },

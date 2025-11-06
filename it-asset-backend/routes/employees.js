@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Employee = require("../models/Employee");
+const Email = require("../models/Email");
 // Department, Position, Email ไม่จำเป็นต้องใช้ในไฟล์นี้แล้ว ถ้าไม่ได้ใช้ที่อื่น
 // const Department = require("../models/Department");
 // const Position = require("../models/Position");
@@ -10,10 +11,18 @@ const Employee = require("../models/Employee");
 router.get("/", async (req, res) => {
   try {
     // ✨ แก้ไข: เอา include ออกเพื่อให้ส่งข้อมูลแบบปกติ
-    const data = await Employee.findAll();
+    const data = await Employee.findAll({
+      include: [{
+        model: Email,
+        attributes: ['email'] // ดึงมาเฉพาะคอลัมน์ email
+      }],
+      where: {
+        status: 'Active' // (แนะนำ) ควรดึงมาเฉพาะพนักงานที่ยัง Active
+      }
+    });
     res.json(data);
   } catch (err) { 
-    console.error("Error fetching employees:", err); // เพิ่ม log เพื่อช่วย debug
+    console.error("Error fetching employees:", err);
     res.status(500).json({ error: err.message }); 
   }
 });

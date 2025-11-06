@@ -1,4 +1,4 @@
-// src/pages/AssetDetailPage.js
+// ✅ UPDATED FULL FILE — AssetDetailPage.js
 
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../api";
@@ -23,40 +23,9 @@ const DocumentTextIcon = ({ className = "h-6 w-6" }) => (
     />
   </svg>
 );
-const PencilIcon = ({ className = "h-4 w-4" }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L15.232 5.232z"
-    />
-  </svg>
-);
-const TrashIcon = ({ className = "h-4 w-4" }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-    />
-  </svg>
-);
 
-// --- SUB-COMPONENTS (RE-STYLED) ---
+// --- SUB COMPONENTS ---
+
 const StatusBadge = ({ status }) => {
   const statusStyles = {
     Enable: "bg-green-100 text-green-800",
@@ -75,23 +44,37 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const InfoCard = ({ title, children }) => (
-  <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-    <div className="p-4 border-b border-slate-200 bg-slate-50">
-      <h3 className="text-base font-semibold text-slate-800">{title}</h3>
-    </div>
-    <div className="divide-y divide-slate-200">{children}</div>
-  </div>
-);
+// ✅ AUTO-HIDE IF EMPTY
+const DetailItem = ({ label, children, value }) => {
+  const hasValue =
+    (typeof value === "string" && value.trim() !== "") ||
+    (Array.isArray(value) && value.length > 0) ||
+    (!!children && children !== null);
 
-const DetailItem = ({ label, children, value }) => (
-  <div className="px-4 py-3 grid grid-cols-3 gap-4 items-start">
-    <dt className="text-sm font-medium text-slate-500">{label}</dt>
-    <dd className="text-sm text-slate-800 col-span-2 break-words">
-      {children || value || <span className="text-slate-400">N/A</span>}
-    </dd>
-  </div>
-);
+  if (!hasValue) return null;
+  return (
+    <div className="px-4 py-3 grid grid-cols-3 gap-4 items-start">
+      <dt className="text-sm font-medium text-slate-500">{label}</dt>
+      <dd className="text-sm text-slate-800 col-span-2 break-words">
+        {children || value}
+      </dd>
+    </div>
+  );
+};
+
+const ConditionalCard = ({ title, children }) => {
+  const validChildren = React.Children.toArray(children).filter(Boolean);
+  if (validChildren.length === 0) return null;
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="p-4 border-b border-slate-200 bg-slate-50">
+        <h3 className="text-base font-semibold text-slate-800">{title}</h3>
+      </div>
+      <div className="divide-y divide-slate-200">{validChildren}</div>
+    </div>
+  );
+};
 
 function AssetDetailPage() {
   const { assetId } = useParams();
@@ -121,21 +104,16 @@ function AssetDetailPage() {
 
   const handleReplaceSuccess = (newAsset) => {
     setReplaceModalOpen(false);
-    alert(
-      `Asset ${asset.asset_name} replaced by ${newAsset.asset_name} successfully!`
-    );
+    alert(`Asset ${asset.asset_name} replaced by ${newAsset.asset_name} successfully!`);
     navigate(`/asset/${newAsset.id}`);
   };
+
   const handleDelete = async () => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete this asset: ${asset.asset_name}?`
-      )
-    ) {
+    if (window.confirm(`Are you sure you want to delete this asset: ${asset.asset_name}?`)) {
       try {
         await api.delete(`/assets/${assetId}`);
         toast.success("Asset deleted successfully!");
-        navigate("/assets"); // พาผู้ใช้กลับไปที่หน้ารายการ
+        navigate("/assets");
       } catch (error) {
         toast.error("Failed to delete asset.");
         console.error(error);
@@ -143,19 +121,13 @@ function AssetDetailPage() {
     }
   };
 
-  if (loading)
-    return <div className="text-center p-10 text-slate-500">Loading...</div>;
-  if (error)
-    return (
-      <div className="text-center p-10 text-red-600 bg-red-50 rounded-lg">
-        {error}
-      </div>
-    );
+  if (loading) return <div className="text-center p-10 text-slate-500">Loading...</div>;
+  if (error) return <div className="text-center p-10 text-red-600 bg-red-50 rounded-lg">{error}</div>;
   if (!asset) return <div className="text-center p-10">No asset found.</div>;
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* --- [NEW DESIGN] PAGE HEADER --- */}
+      {/* PAGE HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-extrabold text-slate-800">
@@ -169,6 +141,7 @@ function AssetDetailPage() {
             <StatusBadge status={asset.status} />
           </div>
         </div>
+
         <div className="flex items-center gap-2 self-end md:self-center">
           <button
             onClick={() => setReplaceModalOpen(true)}
@@ -191,80 +164,72 @@ function AssetDetailPage() {
         </div>
       </div>
 
+      {/* ========== CONTENT GRID ========== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <InfoCard title="Hardware Specifications">
-            <DetailItem
-              label="Brand / Model"
-              value={`${asset.brand || ""} ${asset.model || ""}`.trim()}
-            />
+
+          {/* ✅ Hardware */}
+          <ConditionalCard title="Hardware Specifications">
+            <DetailItem label="Brand / Model" value={`${asset.brand || ""} ${asset.model || ""}`.trim()} />
             <DetailItem label="Serial Number" value={asset.serial_number} />
-            <DetailItem
-              label="Category"
-              value={`${asset.category || ""} / ${
-                asset.subcategory || ""
-              }`.trim()}
-            />
+            <DetailItem label="Category" value={`${asset.category || ""} / ${asset.subcategory || ""}`.trim()} />
             <DetailItem label="CPU" value={asset.cpu} />
             <DetailItem label="Memory (RAM)" value={asset.ram} />
             <DetailItem label="Hard Disk" value={asset.storage} />
-          </InfoCard>
+          </ConditionalCard>
 
-          <InfoCard title="Network Information">
+          {/* ✅ For Printer (always shown) */}
+          <ConditionalCard title="For Printer">
+            <DetailItem label="PA" value={asset.pa} />
+            <DetailItem label="PRT" value={asset.prt} />
+          </ConditionalCard>
+
+          {/* ✅ Network */}
+          <ConditionalCard title="Network Information">
             <DetailItem label="Device ID" value={asset.device_id} />
-            <DetailItem
-              label="Mac Address - LAN"
-              value={asset.mac_address_lan}
-            />
-            <DetailItem
-              label="Mac Address - WiFi"
-              value={asset.mac_address_wifi}
-            />
+            <DetailItem label="Mac Address - LAN" value={asset.mac_address_lan} />
+            <DetailItem label="Mac Address - WiFi" value={asset.mac_address_wifi} />
             <DetailItem label="Wifi Status" value={asset.wifi_status} />
-            <DetailItem label="Assigned IPs">
-              {asset.assignedIps && asset.assignedIps.length > 0 ? (
+
+            {asset.assignedIps?.length > 0 && (
+              <DetailItem label="Assigned IPs">
                 <ul className="list-disc list-inside space-y-1">
                   {asset.assignedIps.map((ip) => (
                     <li key={ip.id}>{ip.ip_address}</li>
                   ))}
                 </ul>
-              ) : null}
-            </DetailItem>
-          </InfoCard>
+              </DetailItem>
+            )}
+          </ConditionalCard>
 
-          <InfoCard title="Software Information">
+          {/* ✅ Software */}
+          <ConditionalCard title="Software Information">
             <DetailItem label="Windows" value={asset.windows_version} />
-            <DetailItem
-              label="Windows Product Key"
-              value={asset.windows_product_key}
-            />
+            <DetailItem label="Windows Product Key" value={asset.windows_product_key} />
             <DetailItem label="Microsoft Office" value={asset.office_version} />
-            <DetailItem
-              label="Office Product Key"
-              value={asset.office_product_key}
-            />
+            <DetailItem label="Office Product Key" value={asset.office_product_key} />
             <DetailItem label="Antivirus" value={asset.antivirus} />
-            <DetailItem label="Special Programs">
-              {asset.specialPrograms && asset.specialPrograms.length > 0 ? (
+
+            {asset.specialPrograms?.length > 0 && (
+              <DetailItem label="Special Programs">
                 <ul className="list-disc list-inside space-y-1">
                   {asset.specialPrograms.map((prog) => (
                     <li key={prog.id}>
                       {prog.program_name}
                       {prog.license_key && (
-                        <span className="text-slate-500 ml-2">
-                          (Key: {prog.license_key})
-                        </span>
+                        <span className="text-slate-500 ml-2">(Key: {prog.license_key})</span>
                       )}
                     </li>
                   ))}
                 </ul>
-              ) : null}
-            </DetailItem>
-          </InfoCard>
+              </DetailItem>
+            )}
+          </ConditionalCard>
 
-          <InfoCard title="BitLocker Recovery Keys">
-            <div className="p-4">
-              {asset.bitlocker_csv_file ? (
+          {/* ✅ BitLocker */}
+          {asset.bitlocker_csv_file && (
+            <ConditionalCard title="BitLocker Recovery Keys">
+              <div className="p-4">
                 <div className="flex items-center justify-between p-3 bg-slate-50 border rounded-md">
                   <div className="flex items-center min-w-0">
                     <DocumentTextIcon className="h-6 w-6 text-slate-400 flex-shrink-0" />
@@ -274,10 +239,7 @@ function AssetDetailPage() {
                   </div>
                   <div className="ml-4 flex-shrink-0">
                     <a
-                      href={`${process.env.REACT_APP_API_URL.replace(
-                        "/api",
-                        ""
-                      )}${asset.bitlocker_csv_file}`}
+                      href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${asset.bitlocker_csv_file}`}
                       target="_blank"
                       rel="noreferrer"
                       className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"
@@ -286,46 +248,39 @@ function AssetDetailPage() {
                     </a>
                   </div>
                 </div>
-              ) : (
-                <p className="text-sm text-slate-500">
-                  No BitLocker file uploaded for this asset.
-                </p>
-              )}
-            </div>
-          </InfoCard>
+              </div>
+            </ConditionalCard>
+          )}
         </div>
 
+        {/* ✅ Right Column */}
         <div className="lg:col-span-1 space-y-6">
-          <InfoCard title="Configuration and Location">
+          <ConditionalCard title="Configuration and Location">
             <DetailItem label="User" value={asset.user_name} />
             <DetailItem label="User ID" value={asset.user_id} />
-            <DetailItem
-              label="Department / Division"
-              value={asset.department}
-            />
+            <DetailItem label="Department / Division" value={asset.department} />
             <DetailItem label="Location" value={asset.location} />
-          </InfoCard>
+          </ConditionalCard>
 
-          <InfoCard title="Management Details">
+          <ConditionalCard title="Management Details">
             <DetailItem
               label="Start Date"
               value={
                 asset.start_date
                   ? new Date(asset.start_date).toLocaleDateString("en-GB")
-                  : null
+                  : ""
               }
             />
-            <DetailItem
-              label="Ref. FIN Asset No."
-              value={asset.fin_asset_ref_no}
-            />
-          </InfoCard>
+            <DetailItem label="Ref. FIN Asset No." value={asset.fin_asset_ref_no} />
+          </ConditionalCard>
 
-          <InfoCard title="Remark">
-            <div className="p-4 text-sm text-slate-800 break-words whitespace-pre-wrap">
-              {asset.remark || <span className="text-slate-400">N/A</span>}
-            </div>
-          </InfoCard>
+          {asset.remark && (
+            <ConditionalCard title="Remark">
+              <div className="p-4 text-sm text-slate-800 break-words whitespace-pre-wrap">
+                {asset.remark}
+              </div>
+            </ConditionalCard>
+          )}
         </div>
       </div>
 

@@ -1,5 +1,4 @@
 // src/pages/ReportPage.js
-
 import React, { useState, useEffect, useMemo } from "react";
 import api from "../api";
 import SearchableDropdown from "../components/SearchableDropdown";
@@ -8,7 +7,7 @@ const ReportPage = () => {
   // --- State for active tab ---
   const [activeTab, setActiveTab] = useState('general'); // 'general' or 'version'
 
-  // --- States from your original file ---
+  // --- States from your original file (with PA/PRT added) ---
   const [availableFields, setAvailableFields] = useState([
     { key: "asset_name", label: "IT Asset" },
     { key: "serial_number", label: "Serial Number" },
@@ -37,6 +36,10 @@ const ReportPage = () => {
     { key: "office_product_key", label: "Office Key" },
     { key: "antivirus", label: "Antivirus" },
     { key: "remark", label: "Remark" },
+    // ✅ เพิ่มฟิลด์ใหม่สำหรับ General Export
+    { key: "pa", label: "PA" },
+    { key: "prt", label: "PRT" },
+
     { key: "export_special_programs", label: "Special Programs (Sheet)" },
     { key: "export_bitlocker_keys", label: "BitLocker Keys (Sheet)" },
   ]);
@@ -44,13 +47,18 @@ const ReportPage = () => {
   const [presets, setPresets] = useState([]);
   const [newPresetName, setNewPresetName] = useState("");
   const [selectedPresetName, setSelectedPresetName] = useState("");
+
+  // --- Version report states
   const [reportType, setReportType] = useState('windows');
   const [windowsVersions, setWindowsVersions] = useState([]);
   const [officeVersions, setOfficeVersions] = useState([]);
   const [selectedVersionId, setSelectedVersionId] = useState(null);
+  // ✅ เพิ่ม checkbox สำหรับ include PA/PRT ใน Version Report
+  const [includePA, setIncludePA] = useState(false);
+  const [includePRT, setIncludePRT] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // --- All logic functions from your original file (no changes needed) ---
+  // --- Load presets
   useEffect(() => {
     try {
       const savedPresets = localStorage.getItem("reportPresets");
@@ -62,6 +70,7 @@ const ReportPage = () => {
     }
   }, []);
 
+  // --- Load versions for the Version Report tab
   useEffect(() => {
     const fetchVersions = async () => {
       try {
@@ -80,8 +89,7 @@ const ReportPage = () => {
   }, []);
 
   const presetOptions = useMemo(() =>
-    presets.map(p => ({ label: p.name, value: p.name })),
-    [presets]);
+    presets.map(p => ({ label: p.name, value: p.name })), [presets]);
 
   const savePresetsToLocalStorage = (updatedPresets) => {
     localStorage.setItem("reportPresets", JSON.stringify(updatedPresets));
@@ -191,7 +199,13 @@ const ReportPage = () => {
     setIsGenerating(true);
     try {
       const response = await api.get("/assets/reports/by-version", {
-        params: { type: reportType, versionId: selectedVersionId },
+        params: {
+          type: reportType,
+          versionId: selectedVersionId,
+          // ✅ ส่ง flags สำหรับคอลัมน์ PA/PRT ใน Version Report
+          include_pa: includePA,
+          include_prt: includePRT,
+        },
         responseType: 'blob',
       });
       const contentDisposition = response.headers['content-disposition'];
@@ -215,7 +229,6 @@ const ReportPage = () => {
       setIsGenerating(false);
     }
   };
-
 
   return (
     <div className="p-4 md:p-6 space-y-6">
@@ -250,21 +263,28 @@ const ReportPage = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
                 {availableFields.map((field) => (
                   <label key={field.key} className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" name={field.key} checked={!!selectedFields[field.key]} onChange={handleCheckboxChange}
+                    <input
+                      type="checkbox"
+                      name={field.key}
+                      checked={!!selectedFields[field.key]}
+                      onChange={handleCheckboxChange}
                       className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="text-sm text-slate-700">{field.label}</span>
                   </label>
                 ))}
               </div>
-              <button onClick={handleExport} className="bg-gradient-to-r from-green-600 to-green-500 text-white font-bold py-2 px-6 rounded-lg shadow hover:opacity-90 transition">
+              <button
+                onClick={handleExport}
+                className="bg-gradient-to-r from-green-600 to-green-500 text-white font-bold py-2 px-6 rounded-lg shadow hover:opacity-90 transition"
+              >
                 Export to Excel
               </button>
             </div>
 
             <hr className="my-8" />
 
-            {/* Consolidated Preset Management Section */}
+            {/* Preset Management */}
             <div>
               <h2 className="text-xl font-semibold mb-4 text-slate-800">Manage Presets</h2>
               <div className="mb-6">
@@ -282,13 +302,22 @@ const ReportPage = () => {
 
               <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 mb-6">
                 <div className="flex-grow w-full">
-                  <label htmlFor="new-preset-name" className="block text-sm font-medium text-slate-700">Save Current Selection as New Preset:</label>
-                  <input type="text" id="new-preset-name" value={newPresetName} onChange={(e) => setNewPresetName(e.target.value)}
+                  <label htmlFor="new-preset-name" className="block text-sm font-medium text-slate-700">
+                    Save Current Selection as New Preset:
+                  </label>
+                  <input
+                    type="text"
+                    id="new-preset-name"
+                    value={newPresetName}
+                    onChange={(e) => setNewPresetName(e.target.value)}
                     className="mt-1 w-full p-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition sm:text-sm"
                     placeholder="e.g., Windows & Office Info"
                   />
                 </div>
-                <button onClick={handleSavePreset} className="bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white font-bold py-2 px-4 rounded-lg shadow hover:opacity-90 w-full sm:w-auto flex-shrink-0">
+                <button
+                  onClick={handleSavePreset}
+                  className="bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white font-bold py-2 px-4 rounded-lg shadow hover:opacity-90 w-full sm:w-auto flex-shrink-0"
+                >
                   Save Preset
                 </button>
               </div>
@@ -298,9 +327,15 @@ const ReportPage = () => {
                   <h3 className="text-md font-semibold text-slate-700 mb-2">Saved Presets:</h3>
                   <ul className="space-y-3">
                     {presets.map((preset) => (
-                      <li key={preset.name} className="flex items-center justify-between bg-slate-50 p-3 rounded-md border border-slate-200">
+                      <li
+                        key={preset.name}
+                        className="flex items-center justify-between bg-slate-50 p-3 rounded-md border border-slate-200"
+                      >
                         <span className="text-slate-800 font-medium">{preset.name}</span>
-                        <button onClick={() => handleDeletePreset(preset.name)} className="text-red-500 hover:text-red-700 font-semibold text-sm">
+                        <button
+                          onClick={() => handleDeletePreset(preset.name)}
+                          className="text-red-500 hover:text-red-700 font-semibold text-sm"
+                        >
                           Delete
                         </button>
                       </li>
@@ -316,21 +351,35 @@ const ReportPage = () => {
         {activeTab === 'version' && (
           <div className="bg-white p-6 rounded-b-xl rounded-r-xl border border-slate-200 shadow-sm">
             <h2 className="text-xl font-semibold mb-4 text-slate-800">License & Version Report</h2>
-            <p className="text-sm text-slate-600 mb-4">Generate a report of all assets using a specific version of Windows or Office.</p>
+            <p className="text-sm text-slate-600 mb-4">
+              Generate a report of all assets using a specific version of Windows or Office.
+            </p>
+
             <div className="flex items-center space-x-6 mb-4">
               <label className="flex items-center space-x-2 cursor-pointer">
-                <input type="radio" name="reportType" value="windows" checked={reportType === 'windows'} onChange={handleReportTypeChange}
+                <input
+                  type="radio"
+                  name="reportType"
+                  value="windows"
+                  checked={reportType === 'windows'}
+                  onChange={handleReportTypeChange}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm font-medium text-slate-700">Windows Report</span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
-                <input type="radio" name="reportType" value="office" checked={reportType === 'office'} onChange={handleReportTypeChange}
+                <input
+                  type="radio"
+                  name="reportType"
+                  value="office"
+                  checked={reportType === 'office'}
+                  onChange={handleReportTypeChange}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm font-medium text-slate-700">Office Report</span>
               </label>
             </div>
+
             <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
               <div className="flex-grow w-full">
                 <label htmlFor="version-select" className="block text-sm font-medium text-slate-700 mb-1">
@@ -344,10 +393,32 @@ const ReportPage = () => {
                   placeholder={`-- Select or Search a ${reportType} Version --`}
                 />
               </div>
+
+              {/* ✅ เพิ่มตัวเลือก Include PA/PRT */}
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={includePA}
+                    onChange={(e) => setIncludePA(e.target.checked)}
+                  />
+                  <span className="text-sm">Include PA</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={includePRT}
+                    onChange={(e) => setIncludePRT(e.target.checked)}
+                  />
+                  <span className="text-sm">Include PRT</span>
+                </label>
+              </div>
+
               <button
                 onClick={handleGenerateVersionReport}
                 disabled={isGenerating}
-                className="bg-gradient-to-r from-green-600 to-green-500 text-white font-bold py-2 px-6 rounded-lg shadow hover:opacity-90 transition w-full sm:w-auto flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                className="bg-gradient-to-r from-green-600 to-green-500 text-white font-bold py-2 px-6 rounded-lg shadow hover:opacity-90 transition w-full sm:w-auto flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 {isGenerating ? 'Generating...' : 'Generate Report'}
               </button>
             </div>

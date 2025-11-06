@@ -23,6 +23,9 @@ const PublicTicketPage = () => {
   const [newTicketData, setNewTicketData] = useState({});
   const [assets, setAssets] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [allEmployeesData, setAllEmployeesData] = useState([]); // เก็บข้อมูลพนักงานทั้งหมด (ที่มีอีเมล)
+  const [selectedEmployeeEmail, setSelectedEmployeeEmail] = useState(""); // เก็บอีเมลของคนที่ถูกเลือก
+  const [showCorrectEmailInput, setShowCorrectEmailInput] = useState(false);
   const [issueAttachment, setIssueAttachment] = useState(null);
   const [globalFilter, setGlobalFilter] = useState("");
   const dt = useRef(null);
@@ -38,9 +41,13 @@ const PublicTicketPage = () => {
 
     axios
       .get("/employees")
-      .then((res) =>
-        setEmployees(res.data.map((e) => ({ label: e.name, value: e.id })))
-      )
+      .then((res) => {
+        // เก็บข้อมูลทั้งหมด (ที่มี object Email) ไว้ใน state ใหม่
+        setAllEmployeesData(res.data);
+
+        // สร้าง options สำหรับ dropdown เหมือนเดิม
+        setEmployees(res.data.map((e) => ({ label: e.name, value: e.id })));
+      })
       .catch((err) => console.error("Failed to fetch employees", err));
   }, []);
 
@@ -56,12 +63,14 @@ const PublicTicketPage = () => {
   const openNew = () => {
     setNewTicketData({});
     setIssueAttachment(null);
+    setSelectedEmployeeEmail("");
     setDialogVisible(true);
   };
 
   const hideDialog = () => {
     setDialogVisible(false);
     setIssueAttachment(null);
+    setSelectedEmployeeEmail("");
   };
 
   const handleReportSubmit = async () => {
@@ -373,11 +382,73 @@ const PublicTicketPage = () => {
               idPrefix="sdd-public-employee"
               options={employees}
               value={newTicketData.employee_id}
-              onChange={(v) =>
-                setNewTicketData({ ...newTicketData, employee_id: v })
-              }
+              // ✨ 4. [แก้ไข] onChange ของ "ชื่อผู้แจ้ง"
+              onChange={(v) => {
+                setNewTicketData({ ...newTicketData, employee_id: v });
+
+                // ค้นหาข้อมูลพนักงานจาก ID ที่เลือก
+                const selectedEmp = allEmployeesData.find((e) => e.id === v);
+
+                // ตั้งค่าอีเมล (เช็คก่อนว่า .Email มีอยู่จริง)
+                if (selectedEmp && selectedEmp.Email) {
+                  setSelectedEmployeeEmail(selectedEmp.Email.email);
+                } else {
+                  setSelectedEmployeeEmail(""); // ถ้าไม่เจอให้เคลียร์ค่า
+                }
+              }}
               placeholder="เลือกชื่อของคุณ หรือพิมพ์เพื่อค้นหา"
             />
+
+            {selectedEmployeeEmail && (
+              <div className="space-y-2 mt-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  อีเมลปัจจุบัน
+                </label>
+                <InputText
+                  value={selectedEmployeeEmail}
+                  disabled
+                  className="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                />
+
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    id="incorrectEmail"
+                    checked={showCorrectEmailInput}
+                    onChange={(e) => setShowCorrectEmailInput(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-[#1976d2]"
+                  />
+                  <label
+                    htmlFor="incorrectEmail"
+                    className="text-sm text-gray-700 cursor-pointer select-none"
+                  >
+                    อีเมลนี้ไม่ถูกต้อง
+                  </label>
+                </div>
+
+                {showCorrectEmailInput && (
+                  <div className="animate-fadeIn">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      อีเมลที่ถูกต้อง
+                    </label>
+                    <InputText
+                      type="email"
+                      placeholder="กรอกอีเมลใหม่"
+                      className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2]"
+                      onChange={(e) =>
+                        setNewTicketData({
+                          ...newTicketData,
+                          corrected_email: e.target.value,
+                        })
+                      }
+                    />
+                    <small className="text-xs text-gray-500">
+                      ระบบจะบันทึกอีเมลนี้เพื่อแทนค่าที่ถูกต้อง
+                    </small>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -411,7 +482,7 @@ const PublicTicketPage = () => {
                   })
                 }
                 rows={5}
-                 // ✨ [ปรับแก้] ปรับ Padding
+                // ✨ [ปรับแก้] ปรับ Padding
                 className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
                 autoResize
               />

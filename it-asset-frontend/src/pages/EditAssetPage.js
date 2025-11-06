@@ -1,4 +1,4 @@
-// src/pages/EditAssetPage.js
+// ✅ UPDATED FILE — src/pages/EditAssetPage.js
 
 import React, { useState, useEffect } from "react";
 import api from "../api";
@@ -34,7 +34,6 @@ function EditAssetPage() {
           windows: api.get("/windows_versions"),
           office: api.get("/office_versions"),
           antivirus: api.get("/antivirus_programs"),
-          // ✨ FIX: เปลี่ยน Endpoint เป็น /special-programs
           special_program: api.get("/special-programs"),
           employees: api.get("/employees"),
         };
@@ -59,7 +58,6 @@ function EditAssetPage() {
           windows: responseData.windows.map((item) => item.name),
           office: responseData.office.map((item) => item.name),
           antivirus: responseData.antivirus.map((item) => item.name),
-          // ✨ FIX: เก็บข้อมูลทั้ง object เพื่อให้ฟอร์มใช้ id และ name ได้
           special_program: responseData.special_program,
           user_name: responseData.employees.map((emp) => emp.name),
         };
@@ -72,9 +70,11 @@ function EditAssetPage() {
           start_date: asset.start_date
             ? new Date(asset.start_date).toISOString().split("T")[0]
             : "",
-          // Ensure these arrays exist even if the asset has none
-          specialPrograms: asset.specialPrograms || [], 
+          specialPrograms: asset.specialPrograms || [],
           assignedIps: asset.assignedIps || [],
+          // ✅ เพิ่มค่า default ถ้าไม่มีใน DB
+          pa: asset.pa || "",
+          prt: asset.prt || "",
         });
 
         setError(null);

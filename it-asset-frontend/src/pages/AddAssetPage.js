@@ -1,5 +1,3 @@
-// src/pages/AddAssetPage.js
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AssetForm from "../components/AssetForm";
@@ -17,16 +15,18 @@ function AddAssetPage() {
     device_id: "",
     mac_address_lan: "",
     mac_address_wifi: "",
-    wifi_status: "N/A",
+    wifi_status: "",
     windows_product_key: "",
     office_product_key: "",
-    start_date: new Date().toISOString().split("T")[0],
+    start_date: "",
     end_date: null,
     fin_asset_ref_no: "",
     remark: "",
     status: "Enable",
     specialPrograms: [],
     ip_ids: [],
+
+    // ✅ Hardware / general info
     category: "",
     subcategory: "",
     brand: "",
@@ -40,6 +40,10 @@ function AddAssetPage() {
     user_name: "",
     department: "",
     location: "",
+
+    // ✅ Newly added fields for Printer (always visible)
+    pa: "",
+    prt: "",
   });
 
   useEffect(() => {
@@ -61,7 +65,6 @@ function AddAssetPage() {
           windows: api.get("/windows_versions"),
           office: api.get("/office_versions"),
           antivirus: api.get("/antivirus_programs"),
-          // ✨ FIX: เปลี่ยน Endpoint เป็น /special-programs
           special_program: api.get("/special-programs"),
           employees: api.get("/employees"),
         };
@@ -71,7 +74,7 @@ function AddAssetPage() {
           acc[key] = responses[index].data;
           return acc;
         }, {});
-        
+
         const fetchedMasterData = {
           model: responseData.model.map(item => item.name),
           cpu: responseData.cpu.map(item => item.name),
@@ -86,11 +89,10 @@ function AddAssetPage() {
           windows: responseData.windows.map(item => item.name),
           office: responseData.office.map(item => item.name),
           antivirus: responseData.antivirus.map(item => item.name),
-          // ✨ FIX: เก็บข้อมูลทั้ง object เพื่อให้ฟอร์มใช้ id และ name ได้
           special_program: responseData.special_program,
           user_name: responseData.employees.map(emp => emp.name),
         };
-        
+
         setMasterData(fetchedMasterData);
 
       } catch (error) {
