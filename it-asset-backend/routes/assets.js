@@ -497,13 +497,12 @@ router.post("/clone-and-replace", async (req, res) => {
       where: { name: "Enable" },
       transaction: t,
     });
+
     if (!replacedStatus || !enabledStatus) {
       await t.rollback();
-      return res
-        .status(500)
-        .json({
-          error: "Could not find required statuses 'Replaced' or 'Enable'.",
-        });
+      return res.status(500).json({
+        error: "Could not find required statuses 'Replaced' or 'Enable'.",
+      });
     }
 
     const dataToCopy = {
@@ -511,42 +510,59 @@ router.post("/clone-and-replace", async (req, res) => {
       status_id: enabledStatus.id,
     };
 
-    // --- ส่วนของการ "ย้าย" (คัดลอก และ ล้างค่า) ---
+    // ✅ ------- Transfer (copy + clear old) ---------
+
     if (transferOptions.employee_data) {
       dataToCopy.employee_id = oldAsset.employee_id;
       dataToCopy.user_id = oldAsset.user_id;
       oldAsset.employee_id = null;
       oldAsset.user_id = null;
     }
+
     if (transferOptions.department_id) {
       dataToCopy.department_id = oldAsset.department_id;
       oldAsset.department_id = null;
     }
+
     if (transferOptions.location_id) {
       dataToCopy.location_id = oldAsset.location_id;
       oldAsset.location_id = null;
     }
+
     if (transferOptions.office_config) {
       dataToCopy.office_version_id = oldAsset.office_version_id;
       dataToCopy.office_product_key = oldAsset.office_product_key;
       oldAsset.office_version_id = null;
       oldAsset.office_product_key = null;
     }
+
     if (transferOptions.antivirus_program_id) {
       dataToCopy.antivirus_program_id = oldAsset.antivirus_program_id;
       oldAsset.antivirus_program_id = null;
     }
 
-    // --- สร้าง Asset ใหม่พร้อมข้อมูลที่คัดลอกมา ---
+    // ✅ NEW: PA / PRT transfer support
+    if (transferOptions.pa) {
+      dataToCopy.pa = oldAsset.pa ?? null;
+      oldAsset.pa = null; // clear old
+    }
+
+    if (transferOptions.prt) {
+      dataToCopy.prt = oldAsset.prt ?? null;
+      oldAsset.prt = null; // clear old
+    }
+
+    // ✅ ------- Create new asset with copied fields ---------
     const newAsset = await Asset.create(dataToCopy, { transaction: t });
 
-    // --- ย้ายข้อมูลตารางเชื่อม (IP & Special Programs) ---
+    // ✅ ------- Move join-table data ---------
     if (transferOptions.ip_assignments) {
       await AssetIpAssignment.update(
         { asset_id: newAsset.id },
         { where: { asset_id: oldAssetId }, transaction: t }
       );
     }
+
     if (transferOptions.special_programs) {
       await AssetSpecialProgram.update(
         { asset_id: newAsset.id },
@@ -554,11 +570,9 @@ router.post("/clone-and-replace", async (req, res) => {
       );
     }
 
-    // --- อัปเดต Asset เก่า ---
+    // ✅ ------- Update old asset status + remark ---------
     oldAsset.status_id = replacedStatus.id;
-    const replacementNote = `\n--- Replaced on ${new Date().toLocaleDateString()} by ${
-      newAsset.asset_name
-    }. ---`;
+    const replacementNote = `\n--- Replaced on ${new Date().toLocaleDateString()} by ${newAsset.asset_name}. ---`;
     oldAsset.remark = (oldAsset.remark || "") + replacementNote;
     await oldAsset.save({ transaction: t });
 
@@ -567,18 +581,18 @@ router.post("/clone-and-replace", async (req, res) => {
     const finalNewAsset = await Asset.findByPk(newAsset.id, {
       include: getAssetAssociations(),
     });
-    res
-      .status(200)
-      .json({
-        message: "Asset cloned and replaced successfully",
-        newAsset: flattenAsset(finalNewAsset),
-      });
+
+    res.status(200).json({
+      message: "Asset cloned and replaced successfully",
+      newAsset: flattenAsset(finalNewAsset),
+    });
   } catch (error) {
     await t.rollback();
     console.error("Asset clone and replace failed:", error);
     res.status(500).json({ error: "An internal error occurred." });
   }
 });
+
 
 /**
  * =========================================
@@ -668,37 +682,99 @@ router.delete("/:id", async (req, res) => {
 /**
  * =========================================
  * ✨ [C] Bulk Create assets from JSON (for CSV import)
+ *      รองรับ ip_addresses & special_programs
  * =========================================
  */
 router.post("/upload", async (req, res) => {
   const assetsData = req.body; // คาดหวังข้อมูลที่เป็น Array of objects
+
   if (!Array.isArray(assetsData) || assetsData.length === 0) {
-    return res
-      .status(400)
-      .json({
-        error: "Invalid data format. Expecting a non-empty array of assets.",
-      });
+    return res.status(400).json({
+      error: "Invalid data format. Expecting a non-empty array of assets.",
+    });
   }
 
   const transaction = await sequelize.transaction();
   try {
     const createdAssets = [];
-    // เราประมวลผลทีละรายการ เพราะ resolveFks เป็น async และต้อง await ทีละแถว
-    for (const asset of assetsData) {
-      const fkIds = await resolveFks(asset);
+
+    for (const row of assetsData) {
+      // ดึง field พิเศษออกมาก่อน ที่เหลือคือ assetData ปกติ
+      const { ip_addresses, special_programs, ...assetData } = row;
+
+      // ✅ แมป FK จากชื่อ → id (category, brand, model, ฯลฯ)
+      const fkIds = await resolveFks(assetData);
+
+      // ✅ สร้าง Asset หลัก
       const newAsset = await Asset.create(
-        { ...asset, ...fkIds },
+        { ...assetData, ...fkIds },
         { transaction }
       );
       createdAssets.push(newAsset);
+
+      // ✅ 1) Map IP Address → AssetIpAssignment
+      // ip_addresses รูปแบบ: "10.10.10.5 | 10.10.10.6"
+      if (ip_addresses) {
+        const ipList = String(ip_addresses)
+          .split("|")
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+        for (const ip of ipList) {
+          const ipRow = await IpPool.findOne({
+            where: { ip_address: ip },
+            transaction,
+          });
+          if (ipRow) {
+            await AssetIpAssignment.create(
+              {
+                asset_id: newAsset.id,
+                ip_id: ipRow.id,
+              },
+              { transaction }
+            );
+          }
+        }
+      }
+
+      // ✅ 2) Map Special Programs → AssetSpecialProgram
+      // special_programs รูปแบบ: "AutoCAD 2023:ABC-123 | UiPath Studio:U-999999"
+      if (special_programs) {
+        const spList = String(special_programs)
+          .split("|")
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+        for (const sp of spList) {
+          const [programNameRaw, licenseKeyRaw] = sp.split(":");
+          const programName = (programNameRaw || "").trim();
+          const licenseKey = (licenseKeyRaw || "").trim();
+
+          if (!programName) continue;
+
+          const progRow = await SpecialProgram.findOne({
+            where: { name: programName },
+            transaction,
+          });
+
+          if (progRow) {
+            await AssetSpecialProgram.create(
+              {
+                asset_id: newAsset.id,
+                program_id: progRow.id,
+                license_key: licenseKey || null,
+              },
+              { transaction }
+            );
+          }
+        }
+      }
     }
 
     await transaction.commit();
-    res
-      .status(201)
-      .json({
-        message: `${createdAssets.length} assets imported successfully.`,
-      });
+    res.status(201).json({
+      message: `${createdAssets.length} assets imported successfully (including IP & Special Programs where matched).`,
+    });
   } catch (error) {
     await transaction.rollback();
     console.error("CRITICAL ERROR ON BULK CREATE ASSET:", error);
@@ -710,6 +786,7 @@ router.post("/upload", async (req, res) => {
     });
   }
 });
+
 
 
 /**

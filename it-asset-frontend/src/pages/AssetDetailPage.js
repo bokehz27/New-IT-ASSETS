@@ -104,12 +104,18 @@ function AssetDetailPage() {
 
   const handleReplaceSuccess = (newAsset) => {
     setReplaceModalOpen(false);
-    alert(`Asset ${asset.asset_name} replaced by ${newAsset.asset_name} successfully!`);
+    alert(
+      `Asset ${asset.asset_name} replaced by ${newAsset.asset_name} successfully!`
+    );
     navigate(`/asset/${newAsset.id}`);
   };
 
   const handleDelete = async () => {
-    if (window.confirm(`Are you sure you want to delete this asset: ${asset.asset_name}?`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to delete this asset: ${asset.asset_name}?`
+      )
+    ) {
       try {
         await api.delete(`/assets/${assetId}`);
         toast.success("Asset deleted successfully!");
@@ -121,8 +127,14 @@ function AssetDetailPage() {
     }
   };
 
-  if (loading) return <div className="text-center p-10 text-slate-500">Loading...</div>;
-  if (error) return <div className="text-center p-10 text-red-600 bg-red-50 rounded-lg">{error}</div>;
+  if (loading)
+    return <div className="text-center p-10 text-slate-500">Loading...</div>;
+  if (error)
+    return (
+      <div className="text-center p-10 text-red-600 bg-red-50 rounded-lg">
+        {error}
+      </div>
+    );
   if (!asset) return <div className="text-center p-10">No asset found.</div>;
 
   return (
@@ -167,12 +179,19 @@ function AssetDetailPage() {
       {/* ========== CONTENT GRID ========== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-
           {/* ✅ Hardware */}
           <ConditionalCard title="Hardware Specifications">
-            <DetailItem label="Brand / Model" value={`${asset.brand || ""} ${asset.model || ""}`.trim()} />
+            <DetailItem
+              label="Brand / Model"
+              value={`${asset.brand || ""} ${asset.model || ""}`.trim()}
+            />
             <DetailItem label="Serial Number" value={asset.serial_number} />
-            <DetailItem label="Category" value={`${asset.category || ""} / ${asset.subcategory || ""}`.trim()} />
+            <DetailItem
+              label="Category"
+              value={`${asset.category || ""} / ${
+                asset.subcategory || ""
+              }`.trim()}
+            />
             <DetailItem label="CPU" value={asset.cpu} />
             <DetailItem label="Memory (RAM)" value={asset.ram} />
             <DetailItem label="Hard Disk" value={asset.storage} />
@@ -187,8 +206,14 @@ function AssetDetailPage() {
           {/* ✅ Network */}
           <ConditionalCard title="Network Information">
             <DetailItem label="Device ID" value={asset.device_id} />
-            <DetailItem label="Mac Address - LAN" value={asset.mac_address_lan} />
-            <DetailItem label="Mac Address - WiFi" value={asset.mac_address_wifi} />
+            <DetailItem
+              label="Mac Address - LAN"
+              value={asset.mac_address_lan}
+            />
+            <DetailItem
+              label="Mac Address - WiFi"
+              value={asset.mac_address_wifi}
+            />
             <DetailItem label="Wifi Status" value={asset.wifi_status} />
 
             {asset.assignedIps?.length > 0 && (
@@ -205,23 +230,34 @@ function AssetDetailPage() {
           {/* ✅ Software */}
           <ConditionalCard title="Software Information">
             <DetailItem label="Windows" value={asset.windows_version} />
-            <DetailItem label="Windows Product Key" value={asset.windows_product_key} />
+            <DetailItem
+              label="Windows Product Key"
+              value={asset.windows_product_key}
+            />
             <DetailItem label="Microsoft Office" value={asset.office_version} />
-            <DetailItem label="Office Product Key" value={asset.office_product_key} />
+            <DetailItem
+              label="Office Product Key"
+              value={asset.office_product_key}
+            />
             <DetailItem label="Antivirus" value={asset.antivirus} />
 
             {asset.specialPrograms?.length > 0 && (
               <DetailItem label="Special Programs">
-                <ul className="list-disc list-inside space-y-1">
+                <div className="flex flex-wrap gap-2 mt-1">
                   {asset.specialPrograms.map((prog) => (
-                    <li key={prog.id}>
-                      {prog.program_name}
+                    <span
+                      key={prog.id}
+                      className="px-3 py-1 rounded-md bg-blue-50 border border-blue-200 text-sm text-slate-800 inline-block"
+                    >
+                      <span className="font-medium">{prog.program_name}</span>
                       {prog.license_key && (
-                        <span className="text-slate-500 ml-2">(Key: {prog.license_key})</span>
+                        <span className="text-slate-500 ml-1">
+                          (Key: {prog.license_key})
+                        </span>
                       )}
-                    </li>
+                    </span>
                   ))}
-                </ul>
+                </div>
               </DetailItem>
             )}
           </ConditionalCard>
@@ -239,7 +275,10 @@ function AssetDetailPage() {
                   </div>
                   <div className="ml-4 flex-shrink-0">
                     <a
-                      href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${asset.bitlocker_csv_file}`}
+                      href={`${process.env.REACT_APP_API_URL.replace(
+                        "/api",
+                        ""
+                      )}${asset.bitlocker_csv_file}`}
                       target="_blank"
                       rel="noreferrer"
                       className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"
@@ -258,7 +297,10 @@ function AssetDetailPage() {
           <ConditionalCard title="Configuration and Location">
             <DetailItem label="User" value={asset.user_name} />
             <DetailItem label="User ID" value={asset.user_id} />
-            <DetailItem label="Department / Division" value={asset.department} />
+            <DetailItem
+              label="Department / Division"
+              value={asset.department}
+            />
             <DetailItem label="Location" value={asset.location} />
           </ConditionalCard>
 
@@ -271,7 +313,10 @@ function AssetDetailPage() {
                   : ""
               }
             />
-            <DetailItem label="Ref. FIN Asset No." value={asset.fin_asset_ref_no} />
+            <DetailItem
+              label="Ref. FIN Asset No."
+              value={asset.fin_asset_ref_no}
+            />
           </ConditionalCard>
 
           {asset.remark && (

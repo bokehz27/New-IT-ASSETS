@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 import Papa from "papaparse";
-import { toast } from 'react-toastify'; // ✨ 1. Import toast เข้ามาใช้
+import { toast } from "react-toastify";
 
 function ImportAssetsPage() {
   const [file, setFile] = useState(null);
   const [previewData, setPreviewData] = useState([]);
   const [headers, setHeaders] = useState([]);
-  const [parsedData, setParsedData] = useState([]); // ✨ 2. State ใหม่สำหรับเก็บข้อมูลทั้งหมด
+  const [parsedData, setParsedData] = useState([]);
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
 
@@ -17,24 +17,23 @@ function ImportAssetsPage() {
     if (selectedFile) {
       setFile(selectedFile);
 
-      // ✨ 3. แก้ไข Papa.parse ให้อ่านไฟล์ทั้งหมด
       Papa.parse(selectedFile, {
         header: true,
         skipEmptyLines: true,
         complete: (results) => {
           if (results.errors.length > 0) {
-              toast.error("Error parsing CSV file. Please check the format.");
-              console.error("CSV Parsing Errors:", results.errors);
-              // เคลียร์ค่าทั้งหมดถ้าไฟล์ผิดพลาด
-              setFile(null);
-              setHeaders([]);
-              setPreviewData([]);
-              setParsedData([]);
-              return;
+            toast.error("Error parsing CSV file. Please check the format.");
+            console.error("CSV Parsing Errors:", results.errors);
+            setFile(null);
+            setHeaders([]);
+            setPreviewData([]);
+            setParsedData([]);
+            return;
           }
+
           setHeaders(results.meta.fields);
-          setPreviewData(results.data.slice(0, 5)); // แสดงแค่ 5 แถวแรก
-          setParsedData(results.data); // เก็บข้อมูลทั้งหมดไว้ใน state
+          setPreviewData(results.data.slice(0, 5));
+          setParsedData(results.data);
         },
       });
     }
@@ -45,18 +44,19 @@ function ImportAssetsPage() {
       toast.error("Please select a valid CSV file to upload.");
       return;
     }
+
     setUploading(true);
 
     try {
-      // ✨ 4. เปลี่ยนจากการส่ง FormData เป็นการส่ง JSON Array ไปที่ Endpoint ใหม่
       const res = await api.post("/assets/upload", parsedData);
       toast.success(res.data.message || "Assets imported successfully!");
       setPreviewData([]);
       setFile(null);
       setParsedData([]);
-      setTimeout(() => navigate("/assets"), 2000); // กลับไปหน้า Asset List
+      setTimeout(() => navigate("/assets"), 2000);
     } catch (err) {
-      const errorMsg = err.response?.data?.error || "An error occurred during import.";
+      const errorMsg =
+        err.response?.data?.error || "An error occurred during import.";
       toast.error(errorMsg);
       console.error(err);
     } finally {
@@ -64,11 +64,14 @@ function ImportAssetsPage() {
     }
   };
 
-  // ✨ 5. อัปเดต Header ของ Template ให้ถูกต้อง
-  const csvTemplateHeaders = "asset_name,serial_number,category,subcategory,brand,model,cpu,ram,storage,device_id,mac_address_lan,mac_address_wifi,wifi_status,windows_version,windows_product_key,office_version,office_product_key,antivirus,user_name,user_id,department,location,status,start_date,fin_asset_ref_no,remark";
+  // ✅ UPDATED HEADER: เพิ่ม ip_addresses และ special_programs
+  const csvTemplateHeaders =
+    "asset_name,serial_number,category,subcategory,brand,model,cpu,ram,storage,device_id,mac_address_lan,mac_address_wifi,wifi_status,ip_addresses,pa,prt,windows_version,windows_product_key,office_version,office_product_key,antivirus,user_name,user_id,department,location,status,start_date,fin_asset_ref_no,remark,special_programs";
 
   const handleDownloadTemplate = () => {
-    const blob = new Blob([csvTemplateHeaders], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob([csvTemplateHeaders], {
+      type: "text/csv;charset=utf-8;",
+    });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
@@ -89,8 +92,21 @@ function ImportAssetsPage() {
         <p className="font-semibold">Instructions:</p>
         <ul className="list-disc list-inside mt-2 space-y-1">
           <li>The file must be in .csv format and encoded in UTF-8.</li>
-          <li>The first row (Header) must match the Template exactly. The order of columns is important.</li>
-          <li>For fields like Category, Brand, Model, etc., please use the exact name as it appears in the system.</li>
+          <li>The first row (Header) must match the Template exactly.</li>
+          <li>
+            For fields like Category, Brand, Model, etc., please use the exact
+            name as it appears in the system.
+          </li>
+          <li>
+            For <b>ip_addresses</b>, use format:
+            <br />
+            <code>10.10.10.5 | 10.10.10.6</code>
+          </li>
+          <li>
+            For <b>special_programs</b>, use format:
+            <br />
+            <code>Program A:KEY-123 | Program B:KEY-456</code>
+          </li>
           <li>
             <button
               onClick={handleDownloadTemplate}

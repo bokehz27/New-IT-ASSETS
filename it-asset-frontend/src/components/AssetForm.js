@@ -138,20 +138,27 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
   ];
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="p-4 md:p-6 space-y-6">
+    <form
+      onSubmit={handleSubmit(handleFormSubmit)}
+      className="p-4 md:p-6 space-y-6"
+    >
       <div className="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">
             {isEditing ? (
               <>
                 Edit device :{" "}
-                <span className="text-blue-600">{watch("asset_name") || "-"}</span>
+                <span className="text-blue-600">
+                  {watch("asset_name") || "-"}
+                </span>
               </>
             ) : (
               "Add device"
             )}
           </h2>
-          <p className="text-sm text-gray-500">Please complete all required fields.</p>
+          <p className="text-sm text-gray-500">
+            Please complete all required fields.
+          </p>
         </div>
         <div className="flex gap-2">
           <button
@@ -172,19 +179,36 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-
           {/* --- Hardware specifications --- */}
           <InfoCard title="Hardware specifications">
             <FormField label="Asset Name" error={errors.asset_name}>
-              <input type="text" {...register("asset_name", { required: "Asset Name is required." })} className="w-full" />
+              <input
+                type="text"
+                {...register("asset_name", {
+                  required: "Asset Name is required",
+                })}
+                className="w-full input-text"
+              />
+            </FormField>
+            <FormField label="Serial Number" error={errors.serial_number}>
+              <input
+                type="text"
+                {...register("serial_number")}
+                className="w-full input-text"
+              />
             </FormField>
 
             <FormField label="Category" error={errors.category}>
               <Controller
                 name="category"
                 control={control}
+                rules={{ required: "Category is required" }}
                 render={({ field }) => (
-                  <SearchableDropdown options={categoryOptions} value={field.value} onChange={field.onChange} />
+                  <SearchableDropdown
+                    options={categoryOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </FormField>
@@ -194,7 +218,11 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 name="subcategory"
                 control={control}
                 render={({ field }) => (
-                  <SearchableDropdown options={subcategoryOptions} value={field.value} onChange={field.onChange} />
+                  <SearchableDropdown
+                    options={subcategoryOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </FormField>
@@ -204,7 +232,11 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 name="brand"
                 control={control}
                 render={({ field }) => (
-                  <SearchableDropdown options={brandOptions} value={field.value} onChange={field.onChange} />
+                  <SearchableDropdown
+                    options={brandOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </FormField>
@@ -214,39 +246,102 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 name="model"
                 control={control}
                 render={({ field }) => (
-                  <SearchableDropdown options={modelOptions} value={field.value} onChange={field.onChange} />
+                  <SearchableDropdown
+                    options={modelOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </FormField>
 
-            <FormField label="Serial Number" error={errors.serial_number}>
-              <input type="text" {...register("serial_number")} className="w-full" />
+            {/* ✅ CPU / RAM / STORAGE */}
+            <FormField label="CPU" error={errors.cpu}>
+              <Controller
+                name="cpu"
+                control={control}
+                render={({ field }) => (
+                  <SearchableDropdown
+                    options={cpuOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
             </FormField>
 
-            
+            <FormField label="Memory (RAM)" error={errors.ram}>
+              <Controller
+                name="ram"
+                control={control}
+                render={({ field }) => (
+                  <SearchableDropdown
+                    options={ramOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </FormField>
+
+            <FormField label="Hard Disk" error={errors.storage}>
+              <Controller
+                name="storage"
+                control={control}
+                render={({ field }) => (
+                  <SearchableDropdown
+                    options={storageOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </FormField>
           </InfoCard>
 
           {/* --- Network information --- */}
           <InfoCard title="Network information">
             <FormField label="Device ID" error={errors.device_id}>
-              <input type="text" {...register("device_id")} className="w-full" />
+              <input
+                type="text"
+                {...register("device_id")}
+                className="w-full"
+              />
             </FormField>
             <FormField label="Mac Address - LAN" error={errors.mac_address_lan}>
-              <input type="text" {...register("mac_address_lan")} className="w-full" />
+              <input
+                type="text"
+                {...register("mac_address_lan")}
+                className="w-full"
+              />
             </FormField>
-            <FormField label="Mac Address - WiFi" error={errors.mac_address_wifi}>
-              <input type="text" {...register("mac_address_wifi")} className="w-full" />
+            <FormField
+              label="Mac Address - WiFi"
+              error={errors.mac_address_wifi}
+            >
+              <input
+                type="text"
+                {...register("mac_address_wifi")}
+                className="w-full"
+              />
             </FormField>
             <FormField label="Status WiFi" error={errors.wifi_status}>
               <Controller
                 name="wifi_status"
                 control={control}
                 render={({ field }) => (
-                  <SearchableDropdown options={wifiStatusOptions} value={field.value} onChange={field.onChange} />
+                  <SearchableDropdown
+                    options={wifiStatusOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </FormField>
-            <IpAssignmentForm initialAssignedIps={formData.assignedIps} onChange={setAssignedIpIds} />
+            <IpAssignmentForm
+              initialAssignedIps={formData.assignedIps}
+              onChange={setAssignedIpIds}
+            />
           </InfoCard>
 
           {/* --- Software Information --- */}
@@ -256,12 +351,23 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 name="windows_version"
                 control={control}
                 render={({ field }) => (
-                  <SearchableDropdown options={windowsOptions} value={field.value} onChange={field.onChange} />
+                  <SearchableDropdown
+                    options={windowsOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </FormField>
-            <FormField label="Windows Product Key" error={errors.windows_product_key}>
-              <input type="text" {...register("windows_product_key")} className="w-full" />
+            <FormField
+              label="Windows Product Key"
+              error={errors.windows_product_key}
+            >
+              <input
+                type="text"
+                {...register("windows_product_key")}
+                className="w-full"
+              />
             </FormField>
 
             <FormField label="Office" error={errors.office_version}>
@@ -269,26 +375,43 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 name="office_version"
                 control={control}
                 render={({ field }) => (
-                  <SearchableDropdown options={officeOptions} value={field.value} onChange={field.onChange} />
+                  <SearchableDropdown
+                    options={officeOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </FormField>
-            <FormField label="Office Product Key" error={errors.office_product_key}>
-              <input type="text" {...register("office_product_key")} className="w-full" />
+            <FormField
+              label="Office Product Key"
+              error={errors.office_product_key}
+            >
+              <input
+                type="text"
+                {...register("office_product_key")}
+                className="w-full"
+              />
             </FormField>
             <FormField label="Antivirus" error={errors.antivirus}>
               <Controller
                 name="antivirus"
                 control={control}
                 render={({ field }) => (
-                  <SearchableDropdown options={antivirusOptions} value={field.value} onChange={field.onChange} />
+                  <SearchableDropdown
+                    options={antivirusOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </FormField>
 
             {/* --- Special Programs Section --- */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Special Programs</label>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Special Programs
+              </label>
               {programFields.map((field, index) => (
                 <div key={field.id} className="flex gap-2 items-center mb-2">
                   <Controller
@@ -320,7 +443,9 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
               ))}
               <button
                 type="button"
-                onClick={() => appendProgram({ program_id: "", license_key: "" })}
+                onClick={() =>
+                  appendProgram({ program_id: "", license_key: "" })
+                }
                 className="bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:opacity-90"
               >
                 Add Program
@@ -333,7 +458,9 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
             {isEditing && formData.bitlocker_csv_file && !removeFile ? (
               <div className="flex justify-between items-center">
                 <a
-                  href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${formData.bitlocker_csv_file}`}
+                  href={`${process.env.REACT_APP_API_URL.replace("/api", "")}${
+                    formData.bitlocker_csv_file
+                  }`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-blue-600 hover:underline"
@@ -377,17 +504,14 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
 
         {/* --- RIGHT COLUMN --- */}
         <div className="lg:col-span-1 space-y-6">
-          
-
           <InfoCard title="For Printer">
-  <FormField label="PA">
-    <input type="text" {...register("pa")} className="w-full" />
-  </FormField>
-  <FormField label="PRT">
-    <input type="text" {...register("prt")} className="w-full" />
-  </FormField>
-</InfoCard>
-
+            <FormField label="PA">
+              <input type="text" {...register("pa")} className="w-full" />
+            </FormField>
+            <FormField label="PRT">
+              <input type="text" {...register("prt")} className="w-full" />
+            </FormField>
+          </InfoCard>
 
           {/* --- Configuration and location --- */}
           <InfoCard title="Configuration and location">
@@ -396,7 +520,11 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 name="user_name"
                 control={control}
                 render={({ field }) => (
-                  <SearchableDropdown options={userNameOptions} value={field.value} onChange={field.onChange} />
+                  <SearchableDropdown
+                    options={userNameOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </FormField>
@@ -410,7 +538,11 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 name="department"
                 control={control}
                 render={({ field }) => (
-                  <SearchableDropdown options={departmentOptions} value={field.value} onChange={field.onChange} />
+                  <SearchableDropdown
+                    options={departmentOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </FormField>
@@ -420,7 +552,11 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 name="location"
                 control={control}
                 render={({ field }) => (
-                  <SearchableDropdown options={locationOptions} value={field.value} onChange={field.onChange} />
+                  <SearchableDropdown
+                    options={locationOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </FormField>
@@ -433,21 +569,40 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 name="status"
                 control={control}
                 render={({ field }) => (
-                  <SearchableDropdown options={statusOptions} value={field.value} onChange={field.onChange} />
+                  <SearchableDropdown
+                    options={statusOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 )}
               />
             </FormField>
 
             <FormField label="Start Date" error={errors.start_date}>
-              <input type="date" {...register("start_date")} className="w-full" />
+              <input
+                type="date"
+                {...register("start_date")}
+                className="w-full"
+              />
             </FormField>
 
-            <FormField label="Ref. FIN Asset No." error={errors.fin_asset_ref_no}>
-              <input type="text" {...register("fin_asset_ref_no")} className="w-full" />
+            <FormField
+              label="Ref. FIN Asset No."
+              error={errors.fin_asset_ref_no}
+            >
+              <input
+                type="text"
+                {...register("fin_asset_ref_no")}
+                className="w-full"
+              />
             </FormField>
 
             <FormField label="Remark" error={errors.remark}>
-              <textarea {...register("remark")} className="w-full" rows="3"></textarea>
+              <textarea
+                {...register("remark")}
+                className="w-full"
+                rows="3"
+              ></textarea>
             </FormField>
           </InfoCard>
         </div>
