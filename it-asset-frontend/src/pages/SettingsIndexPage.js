@@ -216,17 +216,10 @@ findItem("Subcategories").config = {
   title: "Subcategory",
   dataColumns: [
     { key: "name", name: "Subcategory Name" },
-    { key: "category_id", name: "Category" },
   ],
-  relations: [
-    {
-      apiEndpoint: "categories",
-      foreignKey: "category_id",
-      displayField: "name",
-      label: "Category",
-    },
-  ],
+  // relations ไม่ต้องมีแล้ว เพราะไม่มี category_id
 };
+
 findItem("Models").config = {
   apiEndpoint: "models",
   title: "Model",

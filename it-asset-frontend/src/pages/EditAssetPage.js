@@ -75,6 +75,14 @@ function EditAssetPage() {
           // ✅ เพิ่มค่า default ถ้าไม่มีใน DB
           pa: asset.pa || "",
           prt: asset.prt || "",
+          maintenance_start_date: asset.maintenance_start_date
+            ? new Date(asset.maintenance_start_date).toISOString().split("T")[0]
+            : "",
+          maintenance_end_date: asset.maintenance_end_date
+            ? new Date(asset.maintenance_end_date).toISOString().split("T")[0]
+            : "",
+          // ราคา ถ้า null ให้เป็น "" เพื่อให้ input แสดงว่าง
+          maintenance_price: asset.maintenance_price ?? "",
         });
 
         setError(null);
@@ -92,8 +100,24 @@ function EditAssetPage() {
     if (!data) return;
 
     const payload = { ...data };
-    if (!payload.start_date || String(payload.start_date).trim() === "") {
-      payload.start_date = null;
+
+    // ---- ปรับค่่าวันที่ให้เป็น null ถ้าเว้นว่าง ----
+    const normalizeDate = (value) => {
+      if (!value || String(value).trim() === "") return null;
+      return value;
+    };
+
+    payload.start_date = normalizeDate(payload.start_date);
+    payload.maintenance_start_date = normalizeDate(
+      payload.maintenance_start_date
+    );
+    payload.maintenance_end_date = normalizeDate(payload.maintenance_end_date);
+
+    // ---- ปรับราคาให้เป็น null หรือ number ----
+    if (payload.maintenance_price === "" || payload.maintenance_price == null) {
+      payload.maintenance_price = null;
+    } else {
+      payload.maintenance_price = Number(payload.maintenance_price);
     }
 
     try {

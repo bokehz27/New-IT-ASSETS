@@ -36,6 +36,10 @@ const ReportPage = () => {
     { key: "office_product_key", label: "Office Key" },
     { key: "antivirus", label: "Antivirus" },
     { key: "remark", label: "Remark" },
+    // ✅ ใหม่: Maintenance fields
+    { key: "maintenance_start_date", label: "Maintenance Start Date" },
+    { key: "maintenance_end_date", label: "Maintenance End Date" },
+    { key: "maintenance_price", label: "Maintenance Price" },
     // ✅ เพิ่มฟิลด์ใหม่สำหรับ General Export
     { key: "pa", label: "PA" },
     { key: "prt", label: "PRT" },

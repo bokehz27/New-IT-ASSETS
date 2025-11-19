@@ -37,6 +37,9 @@ const Asset = sequelize.define(
     department_id: { type: DataTypes.INTEGER, allowNull: true },
     location_id: { type: DataTypes.INTEGER, allowNull: true },
     status_id: { type: DataTypes.INTEGER, allowNull: true },
+    maintenance_start_date: { type: DataTypes.DATEONLY, allowNull: true },
+    maintenance_end_date: { type: DataTypes.DATEONLY, allowNull: true },
+    maintenance_price: { type: DataTypes.DECIMAL(12, 2), allowNull: true },
   },
   {
     tableName: "assets",

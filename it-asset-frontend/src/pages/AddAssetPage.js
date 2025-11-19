@@ -40,10 +40,11 @@ function AddAssetPage() {
     user_name: "",
     department: "",
     location: "",
-
-    // ✅ Newly added fields for Printer (always visible)
     pa: "",
     prt: "",
+    maintenance_start_date: "",
+    maintenance_end_date: "",
+    maintenance_price: "",
   });
 
   useEffect(() => {
@@ -76,28 +77,29 @@ function AddAssetPage() {
         }, {});
 
         const fetchedMasterData = {
-          model: responseData.model.map(item => item.name),
-          cpu: responseData.cpu.map(item => item.name),
-          category: responseData.category.map(item => item.name),
-          subcategory: responseData.subcategory.map(item => item.name),
-          brand: responseData.brand.map(item => item.name),
-          ram: responseData.ram.map(item => item.size),
-          storage: responseData.storage.map(item => item.size),
-          department: responseData.department.map(item => item.name),
-          location: responseData.location.map(item => item.name),
-          status: responseData.status.map(item => item.name),
-          windows: responseData.windows.map(item => item.name),
-          office: responseData.office.map(item => item.name),
-          antivirus: responseData.antivirus.map(item => item.name),
+          model: responseData.model.map((item) => item.name),
+          cpu: responseData.cpu.map((item) => item.name),
+          category: responseData.category.map((item) => item.name),
+          subcategory: responseData.subcategory.map((item) => item.name),
+          brand: responseData.brand.map((item) => item.name),
+          ram: responseData.ram.map((item) => item.size),
+          storage: responseData.storage.map((item) => item.size),
+          department: responseData.department.map((item) => item.name),
+          location: responseData.location.map((item) => item.name),
+          status: responseData.status.map((item) => item.name),
+          windows: responseData.windows.map((item) => item.name),
+          office: responseData.office.map((item) => item.name),
+          antivirus: responseData.antivirus.map((item) => item.name),
           special_program: responseData.special_program,
-          user_name: responseData.employees.map(emp => emp.name),
+          user_name: responseData.employees.map((emp) => emp.name),
         };
 
         setMasterData(fetchedMasterData);
-
       } catch (error) {
         console.error("Failed to fetch initial data for the form:", error);
-        alert("Error: Could not load data for the form. Please check the API connection and refresh the page.");
+        alert(
+          "Error: Could not load data for the form. Please check the API connection and refresh the page."
+        );
       } finally {
         setLoading(false);
       }
@@ -114,16 +116,21 @@ function AddAssetPage() {
       if (file && newAssetId) {
         const formDataUpload = new FormData();
         formDataUpload.append("file", file);
-        await api.post(`/assets/${newAssetId}/upload-bitlocker`, formDataUpload, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post(
+          `/assets/${newAssetId}/upload-bitlocker`,
+          formDataUpload,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
       }
 
       alert("New asset added successfully!");
       navigate("/assets");
     } catch (error) {
       console.error("Error creating asset:", error);
-      const errorMessage = error.response?.data?.error || "Unable to add the asset.";
+      const errorMessage =
+        error.response?.data?.error || "Unable to add the asset.";
       alert(errorMessage);
     }
   };

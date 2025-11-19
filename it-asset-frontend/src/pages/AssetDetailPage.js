@@ -318,6 +318,21 @@ function AssetDetailPage() {
               value={asset.fin_asset_ref_no}
             />
           </ConditionalCard>
+          <ConditionalCard title="Maintenance">
+            <DetailItem
+              label="Start Maintenance"
+              value={asset.maintenance_start_date}
+            />
+            <DetailItem
+              label="End Maintenance"
+              value={asset.maintenance_end_date}
+            />
+            <DetailItem label="Maintenance Price">
+              {asset.maintenance_price != null
+                ? `${Number(asset.maintenance_price).toLocaleString()} ฿`
+                : ""}
+            </DetailItem>
+          </ConditionalCard>
 
           {asset.remark && (
             <ConditionalCard title="Remark">

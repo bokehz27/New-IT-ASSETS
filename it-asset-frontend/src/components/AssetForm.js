@@ -132,9 +132,10 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
   );
 
   const wifiStatusOptions = [
-    { value: "Registered", label: "Registered" },
-    { value: "Not Registered", label: "Not Registered" },
-    { value: "N/A", label: "N/A" },
+    { value: "Registered Nava-Korat", label: "Registered Nava-Korat" },
+    { value: "Registered Korat", label: "Registered Korat" },
+    { value: "Registered Nava", label: "Registered Nava" },
+    { value: "NONE", label: "NONE" },
   ];
 
   return (
@@ -603,6 +604,44 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
                 className="w-full"
                 rows="3"
               ></textarea>
+            </FormField>
+          </InfoCard>
+
+          <InfoCard title="Maintenance">
+            <FormField
+              label="Start Maintenance Date"
+              error={errors.maintenance_start_date}
+            >
+              <input
+                type="date"
+                {...register("maintenance_start_date")}
+                className="w-full input-text"
+              />
+            </FormField>
+
+            <FormField
+              label="End Maintenance Date"
+              error={errors.maintenance_end_date}
+            >
+              <input
+                type="date"
+                {...register("maintenance_end_date")}
+                className="w-full input-text"
+              />
+            </FormField>
+
+            <FormField
+              label="Maintenance Price (THB)"
+              error={errors.maintenance_price}
+            >
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                {...register("maintenance_price")}
+                className="w-full input-text"
+                placeholder="0.00"
+              />
             </FormField>
           </InfoCard>
         </div>

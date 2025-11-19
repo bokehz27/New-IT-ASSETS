@@ -80,6 +80,29 @@ const COLUMNS_MAP = {
   office_product_key: { header: "Office Key", getter: (a) => a.office_product_key || "" },
   antivirus: { header: "Antivirus", getter: (a) => a.antivirus || "" },
   remark: { header: "Remark", getter: (a) => a.remark || "" },
+  // ✅ ใหม่: Maintenance
+  maintenance_start_date: {
+    header: "Maintenance Start Date",
+    getter: (a) =>
+      a.maintenance_start_date
+        ? new Date(a.maintenance_start_date).toISOString().split("T")[0]
+        : "",
+  },
+  maintenance_end_date: {
+    header: "Maintenance End Date",
+    getter: (a) =>
+      a.maintenance_end_date
+        ? new Date(a.maintenance_end_date).toISOString().split("T")[0]
+        : "",
+  },
+  maintenance_price: {
+    header: "Maintenance Price",
+    // ถ้าไม่มีค่า → คืน "" ไม่ใช่ N/A
+    getter: (a) =>
+      a.maintenance_price != null && a.maintenance_price !== ""
+        ? String(a.maintenance_price)
+        : "",
+  },
   // ✅ ใหม่
   pa: { header: "PA", getter: (a) => a.pa || "" },
   prt: { header: "PRT", getter: (a) => a.prt || "" },
