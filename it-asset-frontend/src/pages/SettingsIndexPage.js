@@ -178,27 +178,28 @@ const groupedCategories = [
           { key: "site", name: "Site / Location" },
         ],
       },
+{
+  name: "IP Pools",
+  type: "relational",
+  icon: <FiMap />,
+  config: {
+    apiEndpoint: "ip-pools",
+    title: "IP Address Pool",
+    dataColumns: [
+      { key: "ip_address", name: "IP Address" },
+      { key: "vlan_id", name: "VLAN" },
+    ],
+    relations: [
       {
-        name: "IP Pools",
-        type: "relational",
-        icon: <FiMap />,
-        config: {
-          apiEndpoint: "ip-pools",
-          title: "IP Address Pool",
-          dataColumns: [
-            { key: "ip_address", name: "IP Address" },
-            { key: "vlan_id", name: "VLAN" },
-          ],
-          relations: [
-            {
-              apiEndpoint: "vlans",
-              foreignKey: "vlan_id",
-              displayField: "name",
-              label: "VLAN",
-            },
-          ],
-        },
+        apiEndpoint: "vlans",
+        foreignKey: "vlan_id",
+        // แก้ตรงนี้จาก "name" ให้เป็นฟังก์ชัน
+        displayField: (item) => `${item.name} - ${item.site}`,
+        label: "VLAN",
       },
+    ],
+  },
+},
     ],
   },
 ];

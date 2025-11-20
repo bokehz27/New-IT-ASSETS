@@ -31,9 +31,28 @@ function ImportAssetsPage() {
             return;
           }
 
+          const cleaned = results.data.map((row) => {
+            const obj = { ...row };
+            Object.keys(obj).forEach((k) => {
+              if (obj[k] !== null && String(obj[k]).trim() === "") {
+                obj[k] = null;
+              }
+            });
+            return obj;
+          });
+
+          // *** สำคัญ: กรองแถวที่ว่างทุกคอลัมน์ออก ***
+          const filtered = cleaned.filter((row) =>
+            Object.values(row).some(
+              (v) => v !== null && String(v).trim() !== ""
+            )
+          );
+
           setHeaders(results.meta.fields);
-          setPreviewData(results.data.slice(0, 5));
-          setParsedData(results.data);
+          // ดูตัวอย่างจากข้อมูลที่ถูกกรองแล้ว
+          setPreviewData(filtered.slice(0, 5));
+          // ใช้ filtered เป็นตัวจริงที่จะส่งไป backend
+          setParsedData(filtered);
         },
       });
     }

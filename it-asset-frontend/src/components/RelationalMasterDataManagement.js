@@ -1,26 +1,31 @@
 // src/components/RelationalMasterDataManagement.js
 
-import React, { useState, useEffect, useRef } from 'react';
-import axios from '../api';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect, useRef } from "react";
+import axios from "../api";
+import { toast } from "react-toastify";
 
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { Toolbar } from 'primereact/toolbar';
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Button } from "primereact/button";
+import { Dialog } from "primereact/dialog";
+import { InputText } from "primereact/inputtext";
+import { Toolbar } from "primereact/toolbar";
 
-import SearchableDropdown from './SearchableDropdown';
+import SearchableDropdown from "./SearchableDropdown";
 
-const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relations = [] }) => {
+const RelationalMasterDataManagement = ({
+  apiEndpoint,
+  title,
+  dataColumns,
+  relations = [],
+}) => {
   const [data, setData] = useState([]);
   const [processedData, setProcessedData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
   const [formData, setFormData] = useState({});
   const [relationalData, setRelationalData] = useState({});
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [globalFilter, setGlobalFilter] = useState("");
   const dt = useRef(null);
 
   useEffect(() => {
@@ -30,16 +35,31 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
   }, [apiEndpoint]);
 
   useEffect(() => {
-    if (data.length > 0 && Object.keys(relationalData).length > 0 && relations.length > 0) {
-      const processed = data.map(item => {
+    if (
+      data.length > 0 &&
+      Object.keys(relationalData).length > 0 &&
+      relations.length > 0
+    ) {
+      const processed = data.map((item) => {
         const newItem = { ...item };
-        relations.forEach(relation => {
+        relations.forEach((relation) => {
           const relatedItems = relationalData[relation.foreignKey] || [];
-          const foundItem = relatedItems.find(rel => rel.id === item[relation.foreignKey]);
-          newItem[`${relation.foreignKey}_display`] = foundItem ? foundItem[relation.displayField] : 'N/A';
+          const foundItem = relatedItems.find(
+            (rel) => rel.id === item[relation.foreignKey]
+          );
+
+          if (foundItem) {
+            newItem[`${relation.foreignKey}_display`] =
+              typeof relation.displayField === "function"
+                ? relation.displayField(foundItem)
+                : foundItem[relation.displayField];
+          } else {
+            newItem[`${relation.foreignKey}_display`] = "N/A";
+          }
         });
         return newItem;
       });
+
       setProcessedData(processed);
     } else if (data.length > 0) {
       setProcessedData(data);
@@ -58,7 +78,9 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
   const fetchRelationalData = async () => {
     if (relations.length === 0) return;
     try {
-      const promises = relations.map(relation => axios.get(`/${relation.apiEndpoint}`));
+      const promises = relations.map((relation) =>
+        axios.get(`/${relation.apiEndpoint}`)
+      );
       const responses = await Promise.all(promises);
       const newRelationalData = {};
       relations.forEach((relation, index) => {
@@ -66,15 +88,17 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
       });
       setRelationalData(newRelationalData);
     } catch (error) {
-      toast.error('Failed to fetch related data for dropdowns.');
+      toast.error("Failed to fetch related data for dropdowns.");
     }
   };
 
   const handleInputChange = (valueOrEvent, name) => {
-    const val = (valueOrEvent && valueOrEvent.target) ? valueOrEvent.target.value : valueOrEvent;
-    setFormData({ ...formData, [name]: val || '' });
+    const val =
+      valueOrEvent && valueOrEvent.target
+        ? valueOrEvent.target.value
+        : valueOrEvent;
+    setFormData({ ...formData, [name]: val || "" });
   };
-
 
   const handleSubmit = async () => {
     try {
@@ -93,7 +117,7 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
   };
 
   const handleDelete = async (item) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
+    if (window.confirm("Are you sure you want to delete this item?")) {
       try {
         await axios.delete(`/${apiEndpoint}/${item.id}`);
         toast.success(`${title} deleted successfully!`);
@@ -107,7 +131,7 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
   const openModal = (item = null) => {
     setCurrentItem(item);
     const initialFormData = dataColumns.reduce((acc, col) => {
-      acc[col.key] = item && item[col.key] ? item[col.key] : '';
+      acc[col.key] = item && item[col.key] ? item[col.key] : "";
       return acc;
     }, {});
     setFormData(item ? { ...initialFormData, ...item } : initialFormData);
@@ -135,16 +159,39 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
     <div className="flex items-center gap-2">
       <div className="relative">
         <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-        <InputText type="search" value={globalFilter} onChange={(e) => setGlobalFilter(e.target.value)} placeholder="Search..." className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition" />
+        <InputText
+          type="search"
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          placeholder="Search..."
+          className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
+        />
       </div>
-      <Button label="Export" icon="pi pi-upload" className="p-button-sm p-button-outlined p-button-secondary" onClick={exportCSV} />
+      <Button
+        label="Export"
+        icon="pi pi-upload"
+        className="p-button-sm p-button-outlined p-button-secondary"
+        onClick={exportCSV}
+      />
     </div>
   );
-  
+
   const actionBodyTemplate = (rowData) => (
     <div className="flex gap-2 justify-center">
-      <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-button-sm" tooltip="Edit" tooltipOptions={{ position: 'top' }} onClick={() => openModal(rowData)} />
-      <Button icon="pi pi-trash" className="p-button-rounded p-button-danger p-button-sm" tooltip="Delete" tooltipOptions={{ position: 'top' }} onClick={() => handleDelete(rowData)} />
+      <Button
+        icon="pi pi-pencil"
+        className="p-button-rounded p-button-success p-button-sm"
+        tooltip="Edit"
+        tooltipOptions={{ position: "top" }}
+        onClick={() => openModal(rowData)}
+      />
+      <Button
+        icon="pi pi-trash"
+        className="p-button-rounded p-button-danger p-button-sm"
+        tooltip="Delete"
+        tooltipOptions={{ position: "top" }}
+        onClick={() => handleDelete(rowData)}
+      />
     </div>
   );
 
@@ -170,49 +217,60 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
         {`Manage ${title}`}
       </h1>
 
-      <Toolbar className="mb-4 p-2" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
-      
-      <DataTable 
-        ref={dt} 
-        value={processedData} 
-        paginator rows={10} 
-        rowsPerPageOptions={[10, 20, 50, 100]} 
-        dataKey="id" 
-        size="small" 
-        stripedRows 
-        showGridlines 
-        globalFilter={globalFilter} 
-        globalFilterFields={dataColumns.map(col => relations.some(r => r.foreignKey === col.key) ? `${col.key}_display` : col.key)} 
-        emptyMessage={`No ${title} found.`} 
+      <Toolbar
+        className="mb-4 p-2"
+        left={leftToolbarTemplate}
+        right={rightToolbarTemplate}
+      ></Toolbar>
+
+      <DataTable
+        ref={dt}
+        value={processedData}
+        paginator
+        rows={10}
+        rowsPerPageOptions={[10, 20, 50, 100]}
+        dataKey="id"
+        size="small"
+        stripedRows
+        showGridlines
+        globalFilter={globalFilter}
+        globalFilterFields={dataColumns.map((col) =>
+          relations.some((r) => r.foreignKey === col.key)
+            ? `${col.key}_display`
+            : col.key
+        )}
+        emptyMessage={`No ${title} found.`}
         className="datatable-hover-effect text-sm text-gray-800" // ✨ [ปรับแก้] เพิ่มสีตัวอักษรหลัก
       >
-        {dataColumns.map(col => {
-          const isRelation = relations.some(r => r.foreignKey === col.key);
-          return <Column 
-                    key={col.key} 
-                    field={isRelation ? `${col.key}_display` : col.key} 
-                    header={col.name} 
-                    sortable 
-                    style={{ minWidth: '12rem' }}
-                    bodyClassName="text-gray-800" // ✨ [ปรับแก้] เพิ่มสีตัวอักษรใน Cell
-                    headerClassName="text-sm text-gray-800 font-semibold" // ✨ [ปรับแก้] เพิ่มสไตล์ให้ Header
-                  />;
+        {dataColumns.map((col) => {
+          const isRelation = relations.some((r) => r.foreignKey === col.key);
+          return (
+            <Column
+              key={col.key}
+              field={isRelation ? `${col.key}_display` : col.key}
+              header={col.name}
+              sortable
+              style={{ minWidth: "12rem" }}
+              bodyClassName="text-gray-800" // ✨ [ปรับแก้] เพิ่มสีตัวอักษรใน Cell
+              headerClassName="text-sm text-gray-800 font-semibold" // ✨ [ปรับแก้] เพิ่มสไตล์ให้ Header
+            />
+          );
         })}
-        <Column 
-          body={actionBodyTemplate} 
-          style={{ width: '8rem', textAlign: 'center' }} 
-          header="Actions" 
+        <Column
+          body={actionBodyTemplate}
+          style={{ width: "8rem", textAlign: "center" }}
+          header="Actions"
           headerClassName="text-sm text-gray-800 font-semibold" // ✨ [ปรับแก้] เพิ่มสไตล์ให้ Header
         />
       </DataTable>
 
       <Dialog
         visible={isModalOpen}
-        style={{ width: '450px' }}
+        style={{ width: "450px" }}
         footer={modalFooter}
         onHide={closeModal}
         className="shadow-xl rounded-xl overflow-hidden"
-        headerStyle={{ display: 'none' }}
+        headerStyle={{ display: "none" }}
         contentStyle={{ padding: 0 }}
       >
         <div className="flex flex-col">
@@ -223,32 +281,46 @@ const RelationalMasterDataManagement = ({ apiEndpoint, title, dataColumns, relat
           </div>
 
           <div className="p-6 space-y-4">
-            {dataColumns.map(col => {
-              const relation = relations.find(r => r.foreignKey === col.key);
+            {dataColumns.map((col) => {
+              const relation = relations.find((r) => r.foreignKey === col.key);
 
               return (
                 <div key={col.key}>
-                  <label htmlFor={col.key} className="block text-sm font-medium text-gray-700 mb-1">{col.name}</label>
+                  <label
+                    htmlFor={col.key}
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    {col.name}
+                  </label>
                   {relation ? (
                     <SearchableDropdown
                       idPrefix={`sdd-rel-${col.key}`}
-                      options={(relationalData[col.key] || []).map(opt => ({ value: opt.id, label: opt[relation.displayField] }))}
-                      value={formData[col.key] || ''}
+                      options={(relationalData[col.key] || []).map((opt) => ({
+                        value: opt.id,
+                        label:
+                          typeof relation.displayField === "function"
+                            ? relation.displayField(opt)
+                            : opt[relation.displayField],
+                      }))}
+                      value={formData[col.key] || ""}
                       onChange={(value) => handleInputChange(value, col.key)}
                       placeholder={`Select ${col.name}`}
                     />
-                  ) : col.key === 'status' ? (
+                  ) : col.key === "status" ? (
                     <SearchableDropdown
                       idPrefix="sdd-status"
-                      options={[{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }]}
-                      value={formData.status || ''}
-                      onChange={(value) => handleInputChange(value, 'status')}
+                      options={[
+                        { value: "Active", label: "Active" },
+                        { value: "Inactive", label: "Inactive" },
+                      ]}
+                      value={formData.status || ""}
+                      onChange={(value) => handleInputChange(value, "status")}
                       placeholder="Select Status"
                     />
                   ) : (
                     <InputText
                       id={col.key}
-                      value={formData[col.key] || ''}
+                      value={formData[col.key] || ""}
                       onChange={(e) => handleInputChange(e, col.key)}
                       className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition sm:text-sm"
                       required

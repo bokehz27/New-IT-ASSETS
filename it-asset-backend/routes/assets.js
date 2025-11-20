@@ -93,6 +93,12 @@ const flattenAsset = (asset) => {
         }))
         .filter((ip) => ip.id && ip.ip_address) || [],
 
+    ip_addresses:
+      flat.ipAssignments
+        ?.map((a) => a.IpPool?.ip_address)
+        .filter(Boolean)
+        .join(" | ") || null,
+
     specialPrograms:
       flat.specialPrograms?.map((p) => ({
         id: p.id,
@@ -213,8 +219,14 @@ router.get("/reports/assets/export-simple", async (req, res) => {
       allAssets.forEach((asset) => {
         const rowData = {};
         selectedFields.forEach((field) => {
-          if (field === "ip_address" && Array.isArray(asset.assignedIps) && asset.assignedIps.length > 0) {
-            rowData[field] = asset.assignedIps.map((ip) => ip.ip_address).join(" / ");
+          if (
+            field === "ip_address" &&
+            Array.isArray(asset.assignedIps) &&
+            asset.assignedIps.length > 0
+          ) {
+            rowData[field] = asset.assignedIps
+              .map((ip) => ip.ip_address)
+              .join(" / ");
           } else {
             rowData[field] = asset[field] || "N/A";
           }
@@ -222,7 +234,7 @@ router.get("/reports/assets/export-simple", async (req, res) => {
         assetSheet.addRow(rowData);
       });
     }
-    
+
     // ✨ FIX: เพิ่ม Logic การสร้าง Sheet "Special Programs" กลับมา
     if (export_special_programs === "true") {
       const spSheet = workbook.addWorksheet("Special Programs");
@@ -232,13 +244,13 @@ router.get("/reports/assets/export-simple", async (req, res) => {
         { header: "LICENSE KEY", key: "license_key", width: 40 },
       ];
 
-      allAssets.forEach(asset => {
+      allAssets.forEach((asset) => {
         if (asset.specialPrograms && asset.specialPrograms.length > 0) {
-          asset.specialPrograms.forEach(prog => {
+          asset.specialPrograms.forEach((prog) => {
             spSheet.addRow({
               asset_name: asset.asset_name,
               program_name: prog.program_name,
-              license_key: prog.license_key
+              license_key: prog.license_key,
             });
           });
         }
@@ -252,11 +264,11 @@ router.get("/reports/assets/export-simple", async (req, res) => {
         { header: "IT ASSET", key: "asset_name", width: 25 },
         { header: "BITLOCKER FILE PATH", key: "file_path", width: 80 },
       ];
-      allAssets.forEach(asset => {
+      allAssets.forEach((asset) => {
         if (asset.bitlocker_csv_file) {
           blSheet.addRow({
             asset_name: asset.asset_name,
-            file_path: asset.bitlocker_csv_file
+            file_path: asset.bitlocker_csv_file,
           });
         }
       });
@@ -267,16 +279,20 @@ router.get("/reports/assets/export-simple", async (req, res) => {
     }
 
     // ✨ FIX: ตั้งค่า Headers และเขียนไฟล์กลับไปเป็น .xlsx
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="assets_report_${new Date().toISOString().slice(0, 10)}.xlsx"`
+      `attachment; filename="assets_report_${new Date()
+        .toISOString()
+        .slice(0, 10)}.xlsx"`
     );
-    
+
     await workbook.xlsx.write(res);
 
     res.end();
-
   } catch (error) {
     console.error("Error exporting asset report:", error);
     res.status(500).json({ error: "Failed to generate report." });
@@ -572,7 +588,9 @@ router.post("/clone-and-replace", async (req, res) => {
 
     // ✅ ------- Update old asset status + remark ---------
     oldAsset.status_id = replacedStatus.id;
-    const replacementNote = `\n--- Replaced on ${new Date().toLocaleDateString()} by ${newAsset.asset_name}. ---`;
+    const replacementNote = `\n--- Replaced on ${new Date().toLocaleDateString()} by ${
+      newAsset.asset_name
+    }. ---`;
     oldAsset.remark = (oldAsset.remark || "") + replacementNote;
     await oldAsset.save({ transaction: t });
 
@@ -592,7 +610,6 @@ router.post("/clone-and-replace", async (req, res) => {
     res.status(500).json({ error: "An internal error occurred." });
   }
 });
-
 
 /**
  * =========================================
@@ -685,8 +702,31 @@ router.delete("/:id", async (req, res) => {
  *      รองรับ ip_addresses & special_programs
  * =========================================
  */
+function normalizeDate(value) {
+  if (!value) return null;               // undefined, null, "" => null
+
+  const v = String(value).trim();
+  if (!v) return null;
+
+  // กันเคส "Invalid date" หรือ 1900-01-00, 0000-00-00
+  if (
+    v.toLowerCase().includes("invalid") ||
+    v.endsWith("-00") ||
+    v === "0000-00-00"
+  ) {
+    return null;
+  }
+
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return null;
+
+  // คืนแบบ YYYY-MM-DD ให้ตรงกับ DATEONLY
+  return d.toISOString().slice(0, 10);
+}
+
+
 router.post("/upload", async (req, res) => {
-  const assetsData = req.body; // คาดหวังข้อมูลที่เป็น Array of objects
+  let assetsData = req.body; // 👈 เปลี่ยนเป็น let
 
   if (!Array.isArray(assetsData) || assetsData.length === 0) {
     return res.status(400).json({
@@ -694,22 +734,49 @@ router.post("/upload", async (req, res) => {
     });
   }
 
+  // กันพวกแถวว่างทั้งแถว
+  assetsData = assetsData.filter((row) =>
+    Object.values(row || {}).some(
+      (v) => v !== null && String(v).trim() !== ""
+    )
+  );
+
+  if (assetsData.length === 0) {
+    return res.status(400).json({
+      error: "No valid asset rows found in the file.",
+    });
+  }
+
   const transaction = await sequelize.transaction();
   try {
     const createdAssets = [];
 
-    for (const row of assetsData) {
-      // ดึง field พิเศษออกมาก่อน ที่เหลือคือ assetData ปกติ
-      const { ip_addresses, special_programs, ...assetData } = row;
+for (const row of assetsData) {
+  const { ip_addresses, special_programs, ...assetData } = row;
 
-      // ✅ แมป FK จากชื่อ → id (category, brand, model, ฯลฯ)
-      const fkIds = await resolveFks(assetData);
+  // 1) แปลง string ว่างทุกช่องให้เป็น null ก่อน
+  Object.keys(assetData).forEach((key) => {
+    if (assetData[key] === "") {
+      assetData[key] = null;
+    }
+  });
 
-      // ✅ สร้าง Asset หลัก
-      const newAsset = await Asset.create(
-        { ...assetData, ...fkIds },
-        { transaction }
-      );
+  // 2) จัดการ field วันที่โดยเฉพาะ
+  ["start_date", "end_date", "maintenance_start_date", "maintenance_end_date"]
+    .forEach((field) => {
+      if (field in assetData) {
+        assetData[field] = normalizeDate(assetData[field]);
+      }
+    });
+
+  // 3) แมป FK
+  const fkIds = await resolveFks(assetData);
+
+  // 4) สร้าง Asset
+  const newAsset = await Asset.create(
+    { ...assetData, ...fkIds },
+    { transaction }
+  );
       createdAssets.push(newAsset);
 
       // ✅ 1) Map IP Address → AssetIpAssignment
@@ -787,8 +854,6 @@ router.post("/upload", async (req, res) => {
   }
 });
 
-
-
 /**
  * =========================================
  * [R] Get all Windows Versions for dropdown
@@ -817,7 +882,6 @@ router.get("/meta/office-versions", async (req, res) => {
   }
 });
 
-
 /**
  * =========================================
  * [R] Generate Asset Report by Software Version
@@ -827,17 +891,19 @@ router.get("/reports/by-version", async (req, res) => {
   const { type, versionId } = req.query; // type can be 'windows' or 'office'
 
   if (!type || !versionId) {
-    return res.status(400).json({ error: "Report type and version ID are required." });
+    return res
+      .status(400)
+      .json({ error: "Report type and version ID are required." });
   }
 
   try {
     let whereClause = {};
     let versionInfo;
-    
-    if (type === 'windows') {
+
+    if (type === "windows") {
       whereClause = { windows_version_id: versionId };
       versionInfo = await WindowsVersion.findByPk(versionId);
-    } else if (type === 'office') {
+    } else if (type === "office") {
       whereClause = { office_version_id: versionId };
       versionInfo = await OfficeVersion.findByPk(versionId);
     } else {
@@ -851,35 +917,41 @@ router.get("/reports/by-version", async (req, res) => {
     const assetsRaw = await Asset.findAll({
       where: whereClause,
       include: getAssetAssociations(),
-      order: [['asset_name', 'ASC']]
+      order: [["asset_name", "ASC"]],
     });
     const assets = assetsRaw.map(flattenAsset);
-    
+
     // --- Generate Excel File ---
     const workbook = new exceljs.Workbook();
     const sheetName = versionInfo.name.substring(0, 30); // Excel sheet name limit is 31 chars
     const worksheet = workbook.addWorksheet(sheetName);
 
     worksheet.columns = [
-      { header: 'ASSET NAME', key: 'asset_name', width: 25 },
-      { header: 'SERIAL NUMBER', key: 'serial_number', width: 25 },
-      { header: 'USER NAME', key: 'user_name', width: 30 },
-      { header: 'DEPARTMENT', key: 'department', width: 20 },
-      { header: 'LOCATION', key: 'location', width: 30 },
-      { header: 'START DATE', key: 'start_date', width: 15 },
+      { header: "ASSET NAME", key: "asset_name", width: 25 },
+      { header: "SERIAL NUMBER", key: "serial_number", width: 25 },
+      { header: "USER NAME", key: "user_name", width: 30 },
+      { header: "DEPARTMENT", key: "department", width: 20 },
+      { header: "LOCATION", key: "location", width: 30 },
+      { header: "START DATE", key: "start_date", width: 15 },
     ];
 
     worksheet.addRows(assets);
 
-    const safeFileName = versionInfo.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    const fileName = `${type}_report_${safeFileName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const safeFileName = versionInfo.name
+      .replace(/[^a-z0-9]/gi, "_")
+      .toLowerCase();
+    const fileName = `${type}_report_${safeFileName}_${new Date()
+      .toISOString()
+      .slice(0, 10)}.xlsx`;
 
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
     res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
-    
+
     await workbook.xlsx.write(res);
     res.end();
-
   } catch (error) {
     console.error("Failed to generate version report:", error);
     res.status(500).json({ error: "Failed to generate version report" });

@@ -213,20 +213,21 @@ export default function SearchableDropdown({
         </button>
 
         {/* -------- Dropdown menu via Portal (z-index fixed) -------- */}
-        {open &&
-          !disabled &&
-          createPortal(
-            <div
-              ref={menuRef}
-              className="fixed rounded border border-gray-200 bg-white shadow-lg"
-              style={{
-                top: menuStyle.top,
-                left: menuStyle.left,
-                width: menuStyle.width,
-                maxHeight: menuStyle.maxHeight,
-                overflow: "hidden",
-                zIndex: menuZIndex, // ✅ สูงกว่า modal/backdrop
-              }}
+{open &&
+  !disabled &&
+  createPortal(
+    <div
+      ref={menuRef}
+      className="fixed rounded border border-gray-200 bg-white shadow-lg"
+      style={{
+        top: menuStyle.top,
+        left: menuStyle.left,
+        width: menuStyle.width,
+        // ❌ ไม่ต้อง limit maxHeight ที่กล่องนอกแล้ว
+        // maxHeight: menuStyle.maxHeight,
+        // overflow: "hidden",
+        zIndex: menuZIndex,
+      }}
             >
               <div className="p-2 border-b bg-white sticky top-0">
                 <input
@@ -244,11 +245,11 @@ export default function SearchableDropdown({
               </div>
 
               <ul
-                id={listId}
-                role="listbox"
-                className="py-1 overflow-auto"
-                style={{ maxHeight: menuStyle.maxHeight }}
-                onKeyDown={handleKeyDown}
+        id={listId}
+        role="listbox"
+        className="py-1 overflow-auto"
+        style={{ maxHeight: menuStyle.maxHeight }}  // ✅ limit แค่ list ข้างใน
+        onKeyDown={handleKeyDown}
               >
                 {filtered.length === 0 && (
                   <li className="px-3 py-2 text-sm text-gray-500 select-none">

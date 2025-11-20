@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const Rack = require("../models/Rack");
 const Switch = require("../models/Switch");
+const SwitchPort = require("../models/SwitchPort");
 
 router.get("/", async (req, res) => {
   try {
@@ -22,6 +23,62 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch racks" });
   }
 });
+
+// GET next LAN Cable ID สำหรับ Rack นั้น ๆ
+router.get("/:rackId/next-lan-id", async (req, res) => {
+  try {
+    const { rackId } = req.params;
+
+    // ดึง switch ทุกตัวใน rack นี้ พร้อมพอร์ต (เอาเฉพาะ lanCableId ก็พอ)
+    const switches = await Switch.findAll({
+      where: { rackId },
+      include: [
+        {
+          model: SwitchPort,
+          attributes: ["lanCableId"],
+        },
+      ],
+    });
+
+    // ถ้าไม่มี switch เลย ให้เริ่มที่ 1
+    if (!switches || switches.length === 0) {
+      return res.json({ nextLanId: 1 });
+    }
+
+    let maxLanIdNumber = 0;
+
+    switches.forEach((sw) => {
+      // Sequelize จะผูกชื่อ association เป็น sw.SwitchPorts
+      (sw.SwitchPorts || []).forEach((port) => {
+        const raw = port.lanCableId;
+        if (!raw) return;
+
+        // ดึงเฉพาะตัวเลขออกมาจากข้อความ (เผื่อมี "8 P-3 3M." แบบในฐานข้อมูล)
+        const matches = raw.match(/\d+/g);
+        if (!matches) return;
+
+        matches.forEach((part) => {
+          const num = parseInt(part, 10);
+          if (!isNaN(num) && num > maxLanIdNumber) {
+            maxLanIdNumber = num;
+          }
+        });
+      });
+    });
+
+    // ถ้าใน rack นี้ยังไม่มีเลขเลย maxLanIdNumber จะยังเป็น 0 → next = 1
+    const nextLanId = maxLanIdNumber + 1;
+
+    return res.json({ nextLanId });
+  } catch (error) {
+    console.error("Error calculating next LAN ID:", error);
+    res.status(500).json({
+      error: "Failed to calculate next LAN ID",
+      details: error.message,
+    });
+  }
+});
+
 
 // POST a new rack
 router.post("/", async (req, res) => {

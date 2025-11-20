@@ -155,30 +155,48 @@ const SwitchListItem = ({ sw, onEdit, onDelete }) => (
   </div>
 );
 
-const RackCard = ({ rack, onEditSwitch, onDeleteSwitch }) => (
-  <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
-    <div className="flex items-center gap-3 p-4 border-b border-slate-200 bg-slate-50">
-      <RackIcon className="h-5 w-5 text-slate-500" />
-      <h3 className="font-bold text-slate-800 truncate">{rack.name}</h3>
+const RackCard = ({ rack, onEditSwitch, onDeleteSwitch }) => {
+  const [nextLanId, setNextLanId] = useState(null);
+
+  useEffect(() => {
+    api
+      .get(`/racks/${rack.id}/next-lan-id`)
+      .then((res) => setNextLanId(res.data.nextLanId))
+      .catch(() => setNextLanId(null));
+  }, [rack.id]);
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
+      <div className="flex items-center gap-3 p-4 border-b border-slate-200 bg-slate-50">
+        <RackIcon className="h-5 w-5 text-slate-500" />
+        <h3 className="font-bold text-slate-800 truncate">{rack.name}</h3>
+
+        {nextLanId !== null && (
+          <span className="ml-auto text-xs text-slate-600">
+            Next LAN ID: <strong>{nextLanId}</strong>
+          </span>
+        )}
+      </div>
+
+      <div className="p-2 space-y-1">
+        {rack.Switches && rack.Switches.length > 0 ? (
+          rack.Switches.map((sw) => (
+            <SwitchListItem
+              key={sw.id}
+              sw={sw}
+              onEdit={onEditSwitch}
+              onDelete={onDeleteSwitch}
+            />
+          ))
+        ) : (
+          <div className="text-center py-8 px-4 text-sm text-slate-500">
+            <p>No devices in this rack.</p>
+          </div>
+        )}
+      </div>
     </div>
-    <div className="p-2 space-y-1">
-      {rack.Switches && rack.Switches.length > 0 ? (
-        rack.Switches.map((sw) => (
-          <SwitchListItem
-            key={sw.id}
-            sw={sw}
-            onEdit={onEditSwitch}
-            onDelete={onDeleteSwitch}
-          />
-        ))
-      ) : (
-        <div className="text-center py-8 px-4 text-sm text-slate-500">
-          <p>No devices in this rack.</p>
-        </div>
-      )}
-    </div>
-  </div>
-);
+  );
+};
 
 const RackRow = ({ rack, onEditSwitch, onDeleteSwitch }) => (
   <div className="bg-white border border-slate-200 rounded-lg">
