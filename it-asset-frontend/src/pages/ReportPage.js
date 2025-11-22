@@ -101,6 +101,14 @@ const ReportPage = () => {
     [presets]
   );
 
+  const allMainFieldKeys = useMemo(
+    () =>
+      availableFields
+        .filter((f) => !f.key.startsWith("export_")) // ตัด export_* ออก
+        .map((f) => f.key),
+    [availableFields]
+  );
+
   const savePresetsToLocalStorage = (updatedPresets) => {
     localStorage.setItem("reportPresets", JSON.stringify(updatedPresets));
   };
@@ -228,23 +236,31 @@ const ReportPage = () => {
     }
     setIsGenerating(true);
     try {
-      const response = await api.get("/assets/reports/by-version", {
+      const response = await api.get("/assets/reports/assets/export-simple", {
         params: {
-          type: reportType,
-          versionId: selectedVersionId,
-          // ✅ ส่ง flags สำหรับคอลัมน์ PA/PRT ใน Version Report
-          include_pa: includePA,
-          include_prt: includePRT,
+          // ใช้ฟิลด์เดียวกับ General Report ทั้งชุด
+          fields: allMainFieldKeys.join(","),
+
+          // ไม่ส่ง sheet พิเศษ (ถ้าอยากได้ก็เพิ่ม true ตรงนี้)
+          export_special_programs: false,
+          export_bitlocker_keys: false,
+
+          // filter ตามเวอร์ชัน
+          filter_type: reportType, // "windows" หรือ "office"
+          filter_version_id: selectedVersionId,
         },
         responseType: "blob",
       });
+
       const contentDisposition = response.headers["content-disposition"];
       let filename = `${reportType}_report.xlsx`;
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
-        if (filenameMatch && filenameMatch.length === 2)
+        if (filenameMatch && filenameMatch.length === 2) {
           filename = filenameMatch[1];
+        }
       }
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;

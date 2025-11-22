@@ -139,13 +139,19 @@ function AssetListPage() {
   }, [assets]);
 
   const filteredAssets = useMemo(() => {
-    return assets.filter((a) => {
-      const sOk = statusFilter === "All" || a.status === statusFilter;
-      const cOk = categoryFilter === "All" || a.category === categoryFilter;
-      const dOk =
-        departmentFilter === "All" || a.department === departmentFilter;
-      return sOk && cOk && dOk;
-    });
+    return assets
+      .filter((a) => {
+        const sOk = statusFilter === "All" || a.status === statusFilter;
+        const cOk = categoryFilter === "All" || a.category === categoryFilter;
+        const dOk =
+          departmentFilter === "All" || a.department === departmentFilter;
+        return sOk && cOk && dOk;
+      })
+      .sort((a, b) => {
+        const dateA = a.start_date ? new Date(a.start_date) : 0;
+        const dateB = b.start_date ? new Date(b.start_date) : 0;
+        return dateB - dateA; // ⬅ เรียงใหม่ล่าสุดก่อน
+      });
   }, [assets, statusFilter, categoryFilter, departmentFilter]);
 
   const leftToolbarTemplate = () => (

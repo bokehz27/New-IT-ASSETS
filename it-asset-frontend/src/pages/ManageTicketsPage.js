@@ -682,214 +682,215 @@ const ManageTicketsPage = () => {
     </div>
 
     {/* ==================== Section: Asset ==================== */}
-    <div className="p-6 space-y-6">
-      <section className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <h4 className="text-base font-semibold text-gray-700 mb-4 border-b pb-2">
-          ข้อมูลอุปกรณ์ (Asset)
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SearchableDropdown
-            label="อุปกรณ์ (Asset)"
-            idPrefix="sdd-asset"
-            options={assets}
-            value={currentTicket?.asset_id}
-            onChange={(v) =>
-              setCurrentTicket({ ...currentTicket, asset_id: v })
-            }
-            placeholder="เลือกอุปกรณ์"
-          />
-          <SearchableDropdown
-            label="ประเภทการซ่อม"
-            idPrefix="sdd-repair"
-            options={repairTypes}
-            value={currentTicket?.repair_type}
-            onChange={(v) =>
-              setCurrentTicket({ ...currentTicket, repair_type: v })
-            }
-            placeholder="เลือกประเภท"
-          />
-        </div>
-      </section>
-
-      {/* ==================== Section: Issue / Solution ==================== */}
-      <section className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <h4 className="text-base font-semibold text-gray-700 mb-4 border-b pb-2">
-          รายละเอียดปัญหาและวิธีแก้
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* ปัญหา */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
-              ปัญหา (Issue Description)
-            </label>
-            <InputTextarea
-              value={currentTicket?.issue_description || ""}
-              onChange={(e) =>
-                setCurrentTicket({
-                  ...currentTicket,
-                  issue_description: e.target.value,
-                })
-              }
-              rows={5}
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#1976d2]"
-              autoResize
-            />
-            <div>
-              <label className="block text-sm text-gray-500 mb-1">
-                แนบไฟล์ปัญหา (ถ้ามี)
-              </label>
-              <input
-                type="file"
-                onChange={(e) => setIssueAttachment(e.target.files[0])}
-                className="block w-full text-sm text-gray-600 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
-            </div>
-          </div>
-
-          {/* วิธีแก้ */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
-              วิธีแก้ปัญหา (Solution)
-            </label>
-            <InputTextarea
-              value={currentTicket?.solution || ""}
-              onChange={(e) =>
-                setCurrentTicket({
-                  ...currentTicket,
-                  solution: e.target.value,
-                })
-              }
-              rows={5}
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500"
-              autoResize
-            />
-            <div>
-              <label className="block text-sm text-gray-500 mb-1">
-                แนบไฟล์วิธีแก้ (ถ้ามี)
-              </label>
-              <input
-                type="file"
-                onChange={(e) => setSolutionAttachment(e.target.files[0])}
-                className="block w-full text-sm text-gray-600 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== Section: Reporter ==================== */}
-      <section className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <h4 className="text-base font-semibold text-gray-700 mb-4 border-b pb-2">
-          ข้อมูลผู้แจ้ง (Requester)
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <SearchableDropdown
-            label="ชื่อผู้แจ้ง (Reported By)"
-            idPrefix="sdd-employee"
-            options={employees}
-            value={currentTicket?.employee_id}
-            onChange={(value) => {
-              setCurrentTicket({ ...currentTicket, employee_id: value });
-              const selectedEmp = allEmployeesData.find(
-                (e) => e.id === value
-              );
-              if (selectedEmp && selectedEmp.Email) {
-                setSelectedEmployeeEmail(selectedEmp.Email.email);
-              } else {
-                setSelectedEmployeeEmail("");
-              }
-            }}
-            placeholder="เลือกผู้แจ้ง"
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email ปัจจุบัน
-            </label>
-            <InputText
-              value={
-                selectedEmployeeEmail ||
-                currentTicket?.Employee?.Email?.email ||
-                ""
-              }
-              readOnly
-              className="w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
-            />
-          </div>
-
-          {currentTicket?.id && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                อีเมลที่แก้ไข (Corrected Email)
-              </label>
-              <InputText
-                type="email"
-                value={currentTicket?.corrected_email || ""}
-                onChange={(e) =>
-                  setCurrentTicket({
-                    ...currentTicket,
-                    corrected_email: e.target.value,
-                  })
-                }
-                placeholder=""
-                className="w-full p-2 border border-blue-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#1976d2]"
-              />
-              <small className="text-xs text-gray-500">
-                ถ้ามีการกรอกอีเมลใหม่จากผู้แจ้ง ระบบจะแสดงที่นี่
-              </small>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              เบอร์ภายใน (4 หลัก)
-            </label>
-            <InputText
-              value={currentTicket?.internal_phone || ""}
-              onChange={(e) =>
-                setCurrentTicket({
-                  ...currentTicket,
-                  internal_phone: e.target.value,
-                })
-              }
-              maxLength={4}
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#1976d2]"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== Section: Handler ==================== */}
-      <section className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-        <h4 className="text-base font-semibold text-gray-700 mb-4 border-b pb-2">
-          การดำเนินการ (Handler Info)
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <SearchableDropdown
-            label="ผู้ดำเนินการ (Handled By)"
-            idPrefix="sdd-handler"
-            options={users}
-            value={currentTicket?.handled_by}
-            onChange={(v) =>
-              setCurrentTicket({ ...currentTicket, handled_by: v })
-            }
-            placeholder="เลือกผู้ดำเนินการ"
-          />
-          <SearchableDropdown
-            label="สถานะ (Status)"
-            idPrefix="sdd-status"
-            options={statuses.map((s) => ({ label: s, value: s }))}
-            value={currentTicket?.status}
-            onChange={(v) =>
-              setCurrentTicket({ ...currentTicket, status: v })
-            }
-            placeholder="เลือกสถานะ"
-          />
-        </div>
-      </section>
+<div className="p-6 space-y-6">
+  <section className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+    <h4 className="text-base font-semibold text-gray-700 mb-4 border-b pb-2">
+      Asset Detail
+    </h4>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <SearchableDropdown
+        label="Asset"
+        idPrefix="sdd-asset"
+        options={assets}
+        value={currentTicket?.asset_id}
+        onChange={(v) =>
+          setCurrentTicket({ ...currentTicket, asset_id: v })
+        }
+        placeholder="Select Asset"
+      />
+      <SearchableDropdown
+        label="Repair Type"
+        idPrefix="sdd-repair"
+        options={repairTypes}
+        value={currentTicket?.repair_type}
+        onChange={(v) =>
+          setCurrentTicket({ ...currentTicket, repair_type: v })
+        }
+        placeholder="Select Repair Type"
+      />
     </div>
-  </div>
+  </section>
+
+  {/* ==================== Section: Issue / Solution ==================== */}
+  <section className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+    <h4 className="text-base font-semibold text-gray-700 mb-4 border-b pb-2">
+      Issue Details & Solution
+    </h4>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Issue */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-700">
+          Issue Description
+        </label>
+        <InputTextarea
+          value={currentTicket?.issue_description || ""}
+          onChange={(e) =>
+            setCurrentTicket({
+              ...currentTicket,
+              issue_description: e.target.value,
+            })
+          }
+          rows={5}
+          className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#1976d2]"
+          autoResize
+        />
+        <div>
+          <label className="block text-sm text-gray-500 mb-1">
+            Attach Issue File (optional)
+          </label>
+          <input
+            type="file"
+            onChange={(e) => setIssueAttachment(e.target.files[0])}
+            className="block w-full text-sm text-gray-600 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+        </div>
+      </div>
+
+      {/* Solution */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-700">
+          Solution
+        </label>
+        <InputTextarea
+          value={currentTicket?.solution || ""}
+          onChange={(e) =>
+            setCurrentTicket({
+              ...currentTicket,
+              solution: e.target.value,
+            })
+          }
+          rows={5}
+          className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-green-500"
+          autoResize
+        />
+        <div>
+          <label className="block text-sm text-gray-500 mb-1">
+            Attach Solution File (optional)
+          </label>
+          <input
+            type="file"
+            onChange={(e) => setSolutionAttachment(e.target.files[0])}
+            className="block w-full text-sm text-gray-600 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ==================== Section: Reporter ==================== */}
+  <section className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+    <h4 className="text-base font-semibold text-gray-700 mb-4 border-b pb-2">
+      Requester Information
+    </h4>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <SearchableDropdown
+        label="Reporter (Reported By)"
+        idPrefix="sdd-employee"
+        options={employees}
+        value={currentTicket?.employee_id}
+        onChange={(value) => {
+          setCurrentTicket({ ...currentTicket, employee_id: value });
+          const selectedEmp = allEmployeesData.find(
+            (e) => e.id === value
+          );
+          if (selectedEmp && selectedEmp.Email) {
+            setSelectedEmployeeEmail(selectedEmp.Email.email);
+          } else {
+            setSelectedEmployeeEmail("");
+          }
+        }}
+        placeholder="Select Reporter"
+      />
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Current Email
+        </label>
+        <InputText
+          value={
+            selectedEmployeeEmail ||
+            currentTicket?.Employee?.Email?.email ||
+            ""
+          }
+          readOnly
+          className="w-full p-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
+        />
+      </div>
+
+      {currentTicket?.id && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Corrected Email
+          </label>
+          <InputText
+            type="email"
+            value={currentTicket?.corrected_email || ""}
+            onChange={(e) =>
+              setCurrentTicket({
+                ...currentTicket,
+                corrected_email: e.target.value,
+              })
+            }
+            placeholder=""
+            className="w-full p-2 border border-blue-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#1976d2]"
+          />
+          <small className="text-xs text-gray-500">
+            If a new email was provided by the requester, it will be shown here.
+          </small>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Internal Phone (4 digits)
+        </label>
+        <InputText
+          value={currentTicket?.internal_phone || ""}
+          onChange={(e) =>
+            setCurrentTicket({
+              ...currentTicket,
+              internal_phone: e.target.value,
+            })
+          }
+          maxLength={4}
+          className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#1976d2]"
+        />
+      </div>
+    </div>
+  </section>
+
+  {/* ==================== Section: Handler ==================== */}
+  <section className="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+    <h4 className="text-base font-semibold text-gray-700 mb-4 border-b pb-2">
+      Handler Information
+    </h4>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <SearchableDropdown
+        label="Handled By"
+        idPrefix="sdd-handler"
+        options={users}
+        value={currentTicket?.handled_by}
+        onChange={(v) =>
+          setCurrentTicket({ ...currentTicket, handled_by: v })
+        }
+        placeholder="Select Handler"
+      />
+      <SearchableDropdown
+        label="Status"
+        idPrefix="sdd-status"
+        options={statuses.map((s) => ({ label: s, value: s }))}
+        value={currentTicket?.status}
+        onChange={(v) =>
+          setCurrentTicket({ ...currentTicket, status: v })
+        }
+        placeholder="Select Status"
+      />
+    </div>
+  </section>
+</div>
+</div>
 </Dialog>
+
 
     </div>
   );

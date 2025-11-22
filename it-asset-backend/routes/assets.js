@@ -27,6 +27,9 @@ const AssetIpAssignment = require("../models/AssetIpAssignment");
 const IpPool = require("../models/IpPool");
 const SpecialProgram = require("../models/SpecialProgram");
 const AssetSpecialProgram = require("../models/AssetSpecialProgram");
+const AssetCompletenessRule = require("../models/AssetCompletenessRule");
+
+
 
 Asset.belongsTo(Employee, { foreignKey: "employee_id" });
 Employee.hasMany(Asset, { foreignKey: "employee_id" });
@@ -194,10 +197,26 @@ router.post(
  */
 router.get("/reports/assets/export-simple", async (req, res) => {
   try {
-    const { fields, export_special_programs, export_bitlocker_keys } =
-      req.query;
+    const {
+      fields,
+      export_special_programs,
+      export_bitlocker_keys,
+      filter_type, // NEW: "windows" หรือ "office"
+      filter_version_id, // NEW: id ของ version
+    } = req.query;
+
+    // NEW: whereClause สำหรับกรองตามเวอร์ชัน
+    let whereClause = {};
+    if (filter_type && filter_version_id) {
+      if (filter_type === "windows") {
+        whereClause.windows_version_id = filter_version_id;
+      } else if (filter_type === "office") {
+        whereClause.office_version_id = filter_version_id;
+      }
+    }
 
     const allAssetsRaw = await Asset.findAll({
+      where: whereClause, // 👈 เพิ่ม where เข้าไป
       include: getAssetAssociations(),
       order: [["asset_name", "ASC"]],
     });
@@ -235,7 +254,7 @@ router.get("/reports/assets/export-simple", async (req, res) => {
       });
     }
 
-    // ✨ FIX: เพิ่ม Logic การสร้าง Sheet "Special Programs" กลับมา
+    // ส่วน Special Programs + BitLocker ด้านล่างใช้ได้เหมือนเดิม
     if (export_special_programs === "true") {
       const spSheet = workbook.addWorksheet("Special Programs");
       spSheet.columns = [
@@ -257,7 +276,6 @@ router.get("/reports/assets/export-simple", async (req, res) => {
       });
     }
 
-    // ✨ FIX: เพิ่ม Logic การสร้าง Sheet "BitLocker Info" กลับมา
     if (export_bitlocker_keys === "true") {
       const blSheet = workbook.addWorksheet("BitLocker Info");
       blSheet.columns = [
@@ -278,7 +296,6 @@ router.get("/reports/assets/export-simple", async (req, res) => {
       return res.status(400).json({ error: "No fields selected for export." });
     }
 
-    // ✨ FIX: ตั้งค่า Headers และเขียนไฟล์กลับไปเป็น .xlsx
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -291,7 +308,6 @@ router.get("/reports/assets/export-simple", async (req, res) => {
     );
 
     await workbook.xlsx.write(res);
-
     res.end();
   } catch (error) {
     console.error("Error exporting asset report:", error);
@@ -703,7 +719,7 @@ router.delete("/:id", async (req, res) => {
  * =========================================
  */
 function normalizeDate(value) {
-  if (!value) return null;               // undefined, null, "" => null
+  if (!value) return null; // undefined, null, "" => null
 
   const v = String(value).trim();
   if (!v) return null;
@@ -724,7 +740,6 @@ function normalizeDate(value) {
   return d.toISOString().slice(0, 10);
 }
 
-
 router.post("/upload", async (req, res) => {
   let assetsData = req.body; // 👈 เปลี่ยนเป็น let
 
@@ -736,9 +751,7 @@ router.post("/upload", async (req, res) => {
 
   // กันพวกแถวว่างทั้งแถว
   assetsData = assetsData.filter((row) =>
-    Object.values(row || {}).some(
-      (v) => v !== null && String(v).trim() !== ""
-    )
+    Object.values(row || {}).some((v) => v !== null && String(v).trim() !== "")
   );
 
   if (assetsData.length === 0) {
@@ -751,32 +764,36 @@ router.post("/upload", async (req, res) => {
   try {
     const createdAssets = [];
 
-for (const row of assetsData) {
-  const { ip_addresses, special_programs, ...assetData } = row;
+    for (const row of assetsData) {
+      const { ip_addresses, special_programs, ...assetData } = row;
 
-  // 1) แปลง string ว่างทุกช่องให้เป็น null ก่อน
-  Object.keys(assetData).forEach((key) => {
-    if (assetData[key] === "") {
-      assetData[key] = null;
-    }
-  });
+      // 1) แปลง string ว่างทุกช่องให้เป็น null ก่อน
+      Object.keys(assetData).forEach((key) => {
+        if (assetData[key] === "") {
+          assetData[key] = null;
+        }
+      });
 
-  // 2) จัดการ field วันที่โดยเฉพาะ
-  ["start_date", "end_date", "maintenance_start_date", "maintenance_end_date"]
-    .forEach((field) => {
-      if (field in assetData) {
-        assetData[field] = normalizeDate(assetData[field]);
-      }
-    });
+      // 2) จัดการ field วันที่โดยเฉพาะ
+      [
+        "start_date",
+        "end_date",
+        "maintenance_start_date",
+        "maintenance_end_date",
+      ].forEach((field) => {
+        if (field in assetData) {
+          assetData[field] = normalizeDate(assetData[field]);
+        }
+      });
 
-  // 3) แมป FK
-  const fkIds = await resolveFks(assetData);
+      // 3) แมป FK
+      const fkIds = await resolveFks(assetData);
 
-  // 4) สร้าง Asset
-  const newAsset = await Asset.create(
-    { ...assetData, ...fkIds },
-    { transaction }
-  );
+      // 4) สร้าง Asset
+      const newAsset = await Asset.create(
+        { ...assetData, ...fkIds },
+        { transaction }
+      );
       createdAssets.push(newAsset);
 
       // ✅ 1) Map IP Address → AssetIpAssignment
@@ -955,6 +972,252 @@ router.get("/reports/by-version", async (req, res) => {
   } catch (error) {
     console.error("Failed to generate version report:", error);
     res.status(500).json({ error: "Failed to generate version report" });
+  }
+});
+
+/**
+ * =========================================
+ * [R] Get all Categories for dashboard / rules
+ * =========================================
+ */
+router.get("/meta/categories", async (req, res) => {
+  try {
+    const categories = await Category.findAll({
+      attributes: ["id", "name"],
+      order: [["name", "ASC"]],
+    });
+    res.json(categories);
+  } catch (error) {
+    console.error("Error fetching categories meta:", error);
+    res.status(500).json({ error: "Failed to fetch categories." });
+  }
+});
+
+// Helper: แปลง required_fields จากรูปแบบที่เก็บใน DB -> array
+function normalizeRequiredFields(value) {
+  if (Array.isArray(value)) return value;
+
+  if (value == null) return [];
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    // 1) ลอง parse เป็น JSON ก่อน เช่น '["asset_name","model"]'
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+      // ถ้า parse ไม่ได้ จะไปใช้แบบ comma-separated ต่อ
+    }
+
+    // 2) รองรับรูปแบบเก่าแบบ "asset_name,serial_number,..."
+    return trimmed
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+// =========================
+// COMPLETENESS RULES (Default + Per Category)
+// =========================
+router.get("/meta/completeness-rules", async (req, res) => {
+  try {
+    const rows = await AssetCompletenessRule.findAll();
+
+    // default: category_id = null
+    const defaultRow = rows.find((r) => r.category_id === null);
+
+    const categoryRules = rows
+      .filter((r) => r.category_id !== null)
+      .map((r) => ({
+        id: r.id,
+        category_id: r.category_id,
+        // getter ใน model จะคืน array อยู่แล้ว
+        required_fields: Array.isArray(r.required_fields)
+          ? r.required_fields
+          : [],
+      }));
+
+    res.json({
+      default_required_fields: defaultRow && Array.isArray(defaultRow.required_fields)
+        ? defaultRow.required_fields
+        : [],
+      category_rules: categoryRules,
+    });
+  } catch (error) {
+    console.error("Error fetching completeness rules:", error);
+    res.status(500).json({ error: "Failed to fetch completeness rules." });
+  }
+});
+
+router.put("/meta/completeness-rules", async (req, res) => {
+  try {
+    const { category_id, required_fields } = req.body;
+
+    if (!Array.isArray(required_fields)) {
+      return res
+        .status(400)
+        .json({ error: "required_fields must be an array." });
+    }
+
+    const isDefault = category_id === null || category_id === undefined;
+    const whereClause = isDefault ? { category_id: null } : { category_id };
+
+    // default ห้ามว่าง
+    if (isDefault && required_fields.length === 0) {
+      return res.status(400).json({
+        error: "Default rule ต้องมีฟิลด์บังคับอย่างน้อย 1 ฟิลด์",
+      });
+    }
+
+    // ถ้าเป็น Category และ required_fields = [] → ลบ rule (ให้ fallback ไปใช้ default)
+    if (!isDefault && required_fields.length === 0) {
+      await AssetCompletenessRule.destroy({ where: whereClause });
+      return res.json({
+        id: null,
+        category_id,
+        required_fields: [],
+        deleted: true,
+      });
+    }
+
+    let rule = await AssetCompletenessRule.findOne({ where: whereClause });
+
+    if (rule) {
+      // เซฟ array ตรง ๆ → ให้ model set() แปลงเป็น JSON ให้
+      rule.required_fields = required_fields;
+      await rule.save();
+    } else {
+      rule = await AssetCompletenessRule.create({
+        category_id: isDefault ? null : category_id,
+        required_fields,
+      });
+    }
+
+    res.json({
+      id: rule.id,
+      category_id: rule.category_id,
+      required_fields: rule.required_fields || [],
+    });
+  } catch (error) {
+    console.error("Error saving completeness rule:", error);
+    res.status(500).json({ error: "Failed to save completeness rule." });
+  }
+});
+
+
+
+// =========================
+// INCOMPLETE ASSET STATS (ใช้กติกาแยกตาม Category โดยอัตโนมัติ)
+// =========================
+router.get("/stats/incomplete-assets", async (req, res) => {
+  try {
+    // ถ้าไม่มี Default rule ใน DB ให้ fallback เป็นชุดนี้
+    const fallbackDefaultRequired = [
+      "asset_name",
+      "serial_number",
+      "user_name",
+      "department",
+      "location",
+    ];
+
+    // โหลดกติกาจากตาราง asset_completeness_rules
+    const ruleRows = await AssetCompletenessRule.findAll();
+
+    let defaultRule = fallbackDefaultRequired;
+    const categoryRuleMap = {};
+
+    ruleRows.forEach((row) => {
+      const fields = Array.isArray(row.required_fields)
+        ? row.required_fields
+        : [];
+
+      if (row.category_id == null) {
+        // default rule
+        if (fields.length > 0) {
+          defaultRule = fields;
+        }
+      } else if (fields.length > 0) {
+        // rule เฉพาะ category
+        categoryRuleMap[String(row.category_id)] = fields;
+      }
+    });
+
+    // ดึง asset ทั้งหมด (ทุก Category)
+    const allAssetsRaw = await Asset.findAll({
+      include: getAssetAssociations(),
+    });
+
+    const allAssets = allAssetsRaw.map(flattenAsset);
+
+    const incompleteAssets = [];
+    const countsByField = {};
+
+    const isEmpty = (value) => {
+      if (value === null || value === undefined) return true;
+      if (typeof value === "string" && value.trim() === "") return true;
+      if (Array.isArray(value) && value.length === 0) return true;
+      return false;
+    };
+
+    allAssets.forEach((asset) => {
+      const catId = asset.category_id || null;
+      const key = catId != null ? String(catId) : null;
+
+      // rule สำหรับ asset ตัวนี้:
+      //  - ถ้ามี rule ของ category นั้น → ใช้อันนั้น
+      //  - ถ้าไม่มีกติกาเฉพาะ → ใช้ defaultRule
+      const ruleForThisAsset =
+        (key &&
+          categoryRuleMap[key] &&
+          categoryRuleMap[key].length > 0 &&
+          categoryRuleMap[key]) ||
+        defaultRule ||
+        [];
+
+      const missing = [];
+
+      ruleForThisAsset.forEach((fieldKey) => {
+        if (!Object.prototype.hasOwnProperty.call(countsByField, fieldKey)) {
+          countsByField[fieldKey] = 0;
+        }
+
+        const value = asset[fieldKey];
+        if (isEmpty(value)) {
+          missing.push(fieldKey);
+        }
+      });
+
+      if (missing.length > 0) {
+        missing.forEach((fieldKey) => {
+          countsByField[fieldKey] = (countsByField[fieldKey] || 0) + 1;
+        });
+
+        incompleteAssets.push({
+          id: asset.id,
+          asset_name: asset.asset_name,
+          category_id: asset.category_id || null,
+          category_name: asset.category || null,
+          missing_fields: missing,
+        });
+      }
+    });
+
+    return res.json({
+      total_assets: allAssets.length,
+      incomplete_count: incompleteAssets.length,
+      counts_by_field: countsByField,
+      assets: incompleteAssets.slice(0, 50),
+    });
+  } catch (error) {
+    console.error("Error generating incomplete asset stats:", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to generate incomplete-asset stats." });
   }
 });
 
