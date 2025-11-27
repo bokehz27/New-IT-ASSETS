@@ -1,15 +1,29 @@
 // src/components/FaqFormModal.js
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../api";
+import SearchableDropdown from "../components/SearchableDropdown";
 
 // --- Helpers ---
-const API_HOST = (process.env.REACT_APP_API_URL || "http://172.18.1.61:5000/api").replace(/\/api\/?$/, "");
-function toAbsoluteFileURL(u) { if (!u || /^https?:\/\//i.test(u)) return u || ""; return `${API_HOST}${u.startsWith("/") ? u : `/${u}`}`; }
-function getFileName(u) { if (!u) return ""; return u.split("/").pop() || ""; }
+const API_HOST = (
+  process.env.REACT_APP_API_URL || "http://172.18.1.61:5000/api"
+).replace(/\/api\/?$/, "");
+function toAbsoluteFileURL(u) {
+  if (!u || /^https?:\/\//i.test(u)) return u || "";
+  return `${API_HOST}${u.startsWith("/") ? u : `/${u}`}`;
+}
+function getFileName(u) {
+  if (!u) return "";
+  return u.split("/").pop() || "";
+}
 // --- End Helpers ---
 
 function FaqFormModal({ mode, faqId, onSuccess, onCancel }) {
-  const [formData, setFormData] = useState({ question: "", category: "", answer: "", videoUrl: "" });
+  const [formData, setFormData] = useState({
+    question: "",
+    category: "",
+    answer: "",
+    videoUrl: "",
+  });
   const [pdfFile, setPdfFile] = useState(null);
   const [links, setLinks] = useState({ pdf: "" });
   const [removePdf, setRemovePdf] = useState(false);
@@ -38,7 +52,9 @@ function FaqFormModal({ mode, faqId, onSuccess, onCancel }) {
     }
   }, [mode, faqId]);
 
-  useEffect(() => { fetchFaqData() }, [fetchFaqData]);
+  useEffect(() => {
+    fetchFaqData();
+  }, [fetchFaqData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -70,8 +86,9 @@ function FaqFormModal({ mode, faqId, onSuccess, onCancel }) {
       setSubmitting(false);
     }
   };
-  
-  const inputClassName = "w-full p-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition sm:text-sm";
+
+  const inputClassName =
+    "w-full p-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition sm:text-sm";
 
   return (
     <div className="fixed inset-0 bg-slate-900/70 flex justify-center items-center z-[9990]">
@@ -89,39 +106,129 @@ function FaqFormModal({ mode, faqId, onSuccess, onCancel }) {
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Question <span className="text-red-500">*</span></label>
-              <input type="text" value={formData.question} onChange={(e) => setFormData({ ...formData, question: e.target.value })} className={inputClassName} />
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Question <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.question}
+                onChange={(e) =>
+                  setFormData({ ...formData, question: e.target.value })
+                }
+                className={inputClassName}
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-              <input type="text" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className={inputClassName} placeholder="e.g., Hardware, Software" />
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Category
+              </label>
+
+              <SearchableDropdown
+                idPrefix="category"
+                placeholder="Select category"
+                value={formData.category}
+                onChange={(v) => setFormData({ ...formData, category: v })}
+                options={[
+                  {
+                    value: "Internet",
+                    label: "Internet",
+                  },
+                  {
+                    value: "Share file",
+                    label: "Share file",
+                  },
+                  {
+                    value: "Conference",
+                    label: "Conference",
+                  },
+                ]}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Answer / Description
+              </label>
+              <textarea
+                rows="5"
+                value={formData.answer}
+                onChange={(e) =>
+                  setFormData({ ...formData, answer: e.target.value })
+                }
+                className={inputClassName}
+              ></textarea>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Answer / Description</label>
-              <textarea rows="5" value={formData.answer} onChange={(e) => setFormData({ ...formData, answer: e.target.value })} className={inputClassName}></textarea>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Video Guide (URL)
+              </label>
+              <input
+                type="text"
+                value={formData.videoUrl}
+                onChange={(e) =>
+                  setFormData({ ...formData, videoUrl: e.target.value })
+                }
+                className={inputClassName}
+                placeholder="e.g., https://www.youtube.com/watch?v=..."
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Video Guide (URL)</label>
-              <input type="text" value={formData.videoUrl} onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })} className={inputClassName} placeholder="e.g., https://www.youtube.com/watch?v=..." />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">PDF Document</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                PDF Document
+              </label>
               <div className="flex items-center gap-3">
-                <label htmlFor="faq-pdf-file" className="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                <label
+                  htmlFor="faq-pdf-file"
+                  className="cursor-pointer rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                >
                   Select PDF
                 </label>
-                <input type="file" id="faq-pdf-file" accept=".pdf" className="hidden" onChange={(e) => { setPdfFile(e.target.files?.[0]); if (e.target.files?.[0]) setRemovePdf(false); }} />
-                <span className="text-sm text-slate-500">{pdfFile?.name || getFileName(links.pdf) || "No file selected"}</span>
-                {links.pdf && <a href={toAbsoluteFileURL(links.pdf)} target="_blank" rel="noreferrer" className="text-blue-600 text-sm underline">View</a>}
+                <input
+                  type="file"
+                  id="faq-pdf-file"
+                  accept=".pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    setPdfFile(e.target.files?.[0]);
+                    if (e.target.files?.[0]) setRemovePdf(false);
+                  }}
+                />
+                <span className="text-sm text-slate-500">
+                  {pdfFile?.name ||
+                    getFileName(links.pdf) ||
+                    "No file selected"}
+                </span>
+                {links.pdf && (
+                  <a
+                    href={toAbsoluteFileURL(links.pdf)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-600 text-sm underline"
+                  >
+                    View
+                  </a>
+                )}
               </div>
             </div>
-            
+
             <div className="flex justify-end items-center gap-3 pt-4">
-              {message && <p className="text-red-600 font-semibold text-sm mr-auto">{message}</p>}
-              <button type="button" onClick={onCancel} className="px-4 py-2 font-semibold text-sm bg-white text-slate-700 border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50">
+              {message && (
+                <p className="text-red-600 font-semibold text-sm mr-auto">
+                  {message}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-4 py-2 font-semibold text-sm bg-white text-slate-700 border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50"
+              >
                 Cancel
               </button>
-              <button type="submit" disabled={submitting} className="bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white px-5 py-2 rounded-lg text-sm font-semibold shadow hover:opacity-90 disabled:opacity-70">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white px-5 py-2 rounded-lg text-sm font-semibold shadow hover:opacity-90 disabled:opacity-70"
+              >
                 {submitting ? "Saving..." : "Save"}
               </button>
             </div>

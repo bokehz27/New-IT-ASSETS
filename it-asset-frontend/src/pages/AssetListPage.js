@@ -170,7 +170,7 @@ function AssetListPage() {
       <InputText
         type="search"
         value={globalFilter}
-        onChange={(e) => setGlobalFilter(e.target.value)}
+        onChange={(e) => setGlobalFilter(e.target.value.trim())}
         placeholder="Search assets..."
         className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1976d2] focus:border-[#1976d2] transition"
       />
@@ -366,6 +366,7 @@ function AssetListPage() {
           showGridlines
           globalFilter={globalFilter}
           globalFilterFields={[
+            "serial_number", 
             "asset_name",
             "category",
             "location",

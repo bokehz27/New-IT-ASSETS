@@ -5,7 +5,7 @@ import { useAuth } from "./context/AuthContext";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
-import './index.css';
+import "./index.css";
 
 // Layouts
 import SettingsLayout from "./components/layout/SettingsLayout";
@@ -37,6 +37,7 @@ import AppHeader from "./components/layout/AppHeader";
 
 import ManageTicketsPage from "./pages/ManageTicketsPage";
 import PublicTicketPage from "./pages/PublicTicketPage";
+import { Navigate } from "react-router-dom";
 
 function App() {
   const { user } = useAuth();
@@ -48,10 +49,15 @@ function App() {
         <main className="container mx-auto p-4 sm:p-6 lg:p-8">
           <Routes>
             {/* Public Routes */}
-            <Route path="/faq" element={<PublicFaqPage />} />{" "}
+            <Route path="/faq" element={<PublicFaqPage />} />
+            {!user && (
+              <Route path="/" element={<Navigate to="/faq" replace />} />
+            )}
+
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<AdminManagementPage />} />
             <Route path="/report-issue" element={<PublicTicketPage />} />
+
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<DashboardPage />} />

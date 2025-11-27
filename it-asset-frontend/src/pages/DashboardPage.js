@@ -15,58 +15,57 @@ const DashboardPage = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
 
   // ฟิลด์ที่ใช้เช็กความสมบูรณ์ (ต้อง match กับ flattenAsset)
-const [availableFields] = useState([
-  // ===================== Asset Identity =====================
-  { key: "asset_name", label: "IT Asset" },
-  { key: "serial_number", label: "Serial Number" },
-  { key: "device_id", label: "Device ID" },
-  { key: "fin_asset_ref_no", label: "Financial Asset Ref No." },
-  { key: "pa", label: "PA" },
-  { key: "prt", label: "PRT" },
+  const [availableFields] = useState([
+    // ===================== Asset Identity =====================
+    { key: "asset_name", label: "IT Asset" },
+    { key: "serial_number", label: "Serial Number" },
+    { key: "device_id", label: "Device ID" },
+    { key: "fin_asset_ref_no", label: "Financial Asset Ref No." },
+    { key: "pa", label: "PA" },
+    { key: "prt", label: "PRT" },
 
-  // ===================== Hardware & Spec =====================
-  { key: "category", label: "Category" },
-  { key: "subcategory", label: "Subcategory" },
-  { key: "brand", label: "Brand" },
-  { key: "model", label: "Model" },
-  { key: "cpu", label: "CPU" },
-  { key: "ram", label: "RAM" },
-  { key: "storage", label: "Storage" },
+    // ===================== Hardware & Spec =====================
+    { key: "category", label: "Category" },
+    { key: "subcategory", label: "Subcategory" },
+    { key: "brand", label: "Brand" },
+    { key: "model", label: "Model" },
+    { key: "cpu", label: "CPU" },
+    { key: "ram", label: "RAM" },
+    { key: "storage", label: "Storage" },
 
-  // ===================== Network =====================
-  { key: "ip_address", label: "IP Address" },          // มาจาก join ตาราง IP
-  { key: "mac_address_lan", label: "MAC Address (LAN)" },
-  { key: "mac_address_wifi", label: "MAC Address (WiFi)" },
-  { key: "wifi_status", label: "WiFi Status" },
+    // ===================== Network =====================
+    { key: "ip_address", label: "IP Address" }, // มาจาก join ตาราง IP
+    { key: "mac_address_lan", label: "MAC Address (LAN)" },
+    { key: "mac_address_wifi", label: "MAC Address (WiFi)" },
+    { key: "wifi_status", label: "WiFi Status" },
 
-  // ===================== Software & License =====================
-  { key: "windows_version", label: "Windows Version" },
-  { key: "windows_product_key", label: "Windows Product Key" },
-  { key: "office_version", label: "Office Version" },
-  { key: "office_product_key", label: "Office Product Key" },
-  { key: "bitlocker_csv_file", label: "BitLocker CSV File" },
-  { key: "antivirus", label: "Antivirus" },
+    // ===================== Software & License =====================
+    { key: "windows_version", label: "Windows Version" },
+    { key: "windows_product_key", label: "Windows Product Key" },
+    { key: "office_version", label: "Office Version" },
+    { key: "office_product_key", label: "Office Product Key" },
+    { key: "bitlocker_csv_file", label: "BitLocker CSV File" },
+    { key: "antivirus", label: "Antivirus" },
 
-  // ===================== User & Organization =====================
-  { key: "user_id", label: "User Login" },
-  { key: "user_name", label: "User Name" },           // field display จาก join employee/user
-  { key: "department", label: "Department" },
-  { key: "location", label: "Location" },
+    // ===================== User & Organization =====================
+    { key: "user_id", label: "User Login" },
+    { key: "user_name", label: "User Name" }, // field display จาก join employee/user
+    { key: "department", label: "Department" },
+    { key: "location", label: "Location" },
 
-  // ===================== Lifecycle & Maintenance =====================
-  { key: "status", label: "Status" },
-  { key: "start_date", label: "Start / Purchase Date" },
-  { key: "end_date", label: "End / Warranty Date" },
-  { key: "maintenance_start_date", label: "Maintenance Start Date" },
-  { key: "maintenance_end_date", label: "Maintenance End Date" },
-  { key: "maintenance_price", label: "Maintenance Price" },
+    // ===================== Lifecycle & Maintenance =====================
+    { key: "status", label: "Status" },
+    { key: "start_date", label: "Start / Purchase Date" },
+    { key: "end_date", label: "End / Warranty Date" },
+    { key: "maintenance_start_date", label: "Maintenance Start Date" },
+    { key: "maintenance_end_date", label: "Maintenance End Date" },
+    { key: "maintenance_price", label: "Maintenance Price" },
 
-  // ===================== Other Info =====================
-  { key: "remark", label: "Remark" },
-  { key: "createdAt", label: "Created At" },
-  { key: "updatedAt", label: "Updated At" },
-]);
-
+    // ===================== Other Info =====================
+    { key: "remark", label: "Remark" },
+    { key: "createdAt", label: "Created At" },
+    { key: "updatedAt", label: "Updated At" },
+  ]);
 
   // กติกาจริง ๆ ที่ดึงจาก backend
   const [defaultRequiredFields, setDefaultRequiredFields] = useState([]);
@@ -279,29 +278,27 @@ const [availableFields] = useState([
   const handleSaveAllRules = async () => {
     setSettingsError("");
 
+    // ยังใช้ default rule อยู่ (สำหรับ fallback / ใช้กับ asset ที่ไม่มี rule เฉพาะ)
     if (!settingsDefaultRequired.length) {
       setSettingsError("Default rule ต้องมีฟิลด์บังคับอย่างน้อย 1 ฟิลด์");
       return;
     }
 
-    // ตรวจสอบ Category ที่ตั้ง custom ว่ามีอย่างน้อย 1 ฟิลด์
+    // ✅ ทุก Category ต้องมีฟิลด์บังคับอย่างน้อย 1 ฟิลด์
     for (const c of categories) {
-      const useDefault = settingsUseDefaultByCategory[c.id];
-      if (!useDefault) {
-        const fields = settingsRulesByCategory[c.id] || [];
-        if (!fields.length) {
-          setSettingsError(
-            `Category "${c.name}" เลือกโหมดกำหนดเอง แต่ยังไม่ได้เลือกฟิลด์บังคับ`
-          );
-          return;
-        }
+      const fields = settingsRulesByCategory[c.id] || [];
+      if (!fields.length) {
+        setSettingsError(
+          `Category "${c.name}" ต้องมีฟิลด์บังคับอย่างน้อย 1 ฟิลด์`
+        );
+        return;
       }
     }
 
     try {
       const requests = [];
 
-      // เซฟ default rule
+      // ✅ เซฟ Default rule (ไว้เป็น fallback)
       requests.push(
         api.put("/assets/meta/completeness-rules", {
           category_id: null,
@@ -309,32 +306,21 @@ const [availableFields] = useState([
         })
       );
 
-      // เซฟแต่ละ Category
+      // ✅ เซฟกติกาของทุก Category เป็น custom rule ตาม fields ที่เลือก
       categories.forEach((c) => {
-        const useDefault = settingsUseDefaultByCategory[c.id];
         const fields = settingsRulesByCategory[c.id] || [];
 
-        if (useDefault) {
-          // ส่ง [] เพื่อให้ backend ลบ rule → fallback ไปใช้ default
-          requests.push(
-            api.put("/assets/meta/completeness-rules", {
-              category_id: c.id,
-              required_fields: [],
-            })
-          );
-        } else {
-          requests.push(
-            api.put("/assets/meta/completeness-rules", {
-              category_id: c.id,
-              required_fields: fields,
-            })
-          );
-        }
+        requests.push(
+          api.put("/assets/meta/completeness-rules", {
+            category_id: c.id,
+            required_fields: fields,
+          })
+        );
       });
 
       await Promise.all(requests);
 
-      // โหลดกติกาใหม่มาเก็บใน stateหลัก
+      // โหลดกติกาใหม่มาเก็บใน state หลัก
       const ruleRes = await api.get("/assets/meta/completeness-rules");
       const { default_required_fields, category_rules } = ruleRes.data || {};
       setDefaultRequiredFields(
@@ -344,7 +330,7 @@ const [availableFields] = useState([
 
       setIsSettingsOpen(false);
 
-      // ถ้า Category filter ตอนนี้ตรงกับ Category ที่เราเพิ่งตั้งค่า ก็รันคำนวณใหม่
+      // รันคำนวณใหม่ตามกติกาที่เพิ่งบันทึก
       await handleCheckCompleteness();
     } catch (e) {
       console.error("Failed to save completeness rules", e);
@@ -355,334 +341,197 @@ const [availableFields] = useState([
   };
 
   const renderSettingsModal = () => {
-  if (!isSettingsOpen) return null;
+    if (!isSettingsOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 px-3 md:px-4">
-      <div className="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-900/5">
-        {/* Header */}
-        <div className="relative border-b border-slate-200 bg-gradient-to-r from-sky-600 via-sky-500 to-sky-400 px-4 py-3.5 text-white">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-sky-900/30 px-2.5 py-1 text-[10px] font-medium tracking-wide uppercase">
-                <Settings2 className="h-3 w-3" />
-                Completeness Rules
+    return (
+      <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 px-3 md:px-4">
+        <div className="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-900/5">
+          {/* Header */}
+          <div className="relative border-b border-slate-200 bg-gradient-to-r from-sky-600 via-sky-500 to-sky-400 px-4 py-3.5 text-white">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-sky-900/30 px-2.5 py-1 text-[10px] font-medium tracking-wide uppercase">
+                  <Settings2 className="h-3 w-3" />
+                  Completeness Rules
+                </div>
+                <h2 className="mt-1 text-sm font-semibold">
+                  ตั้งค่าเงื่อนไขความสมบูรณ์ของข้อมูล Asset
+                </h2>
+                <p className="mt-0.5 text-[11px] text-sky-50/90">
+                  กำหนดฟิลด์บังคับสำหรับทุก Category และตั้งค่ากติกาเฉพาะราย
+                  Category ได้ในหน้าต่างเดียว
+                </p>
               </div>
-              <h2 className="mt-1 text-sm font-semibold">
-                ตั้งค่าเงื่อนไขความสมบูรณ์ของข้อมูล Asset
-              </h2>
-              <p className="mt-0.5 text-[11px] text-sky-50/90">
-                กำหนดฟิลด์บังคับสำหรับทุก Category
-                และตั้งค่ากติกาเฉพาะราย Category ได้ในหน้าต่างเดียว
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <div className="inline-flex items-center gap-1 rounded-full bg-sky-900/30 px-2.5 py-1 text-[10px]">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-                ใช้งานอยู่ใน Dashboard นี้
+              <div className="flex flex-col items-end gap-1">
+                <div className="inline-flex items-center gap-1 rounded-full bg-sky-900/30 px-2.5 py-1 text-[10px]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                  ใช้งานอยู่ใน Dashboard นี้
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="mt-1 rounded-full bg-sky-900/40 p-1.5 text-sky-50 hover:bg-sky-900/70"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsSettingsOpen(false)}
-                className="mt-1 rounded-full bg-sky-900/40 p-1.5 text-sky-50 hover:bg-sky-900/70"
-              >
-                <X className="h-4 w-4" />
-              </button>
             </div>
           </div>
-        </div>
 
-        {/* Body */}
-        <div className="flex flex-col gap-4 px-4 py-4 text-xs md:flex-row md:gap-5">
-          {/* ซ้าย: Default rule */}
-          <div className="w-full md:w-[35%]">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5">
+          {/* Body */}
+          <div className="flex flex-col gap-4 px-4 py-4 text-xs">
+            {/* ขวา: Category rules */}
+            <div className="w-full">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div>
                   <p className="text-[11px] font-semibold text-slate-800">
-                    Default rule (ทุก Category)
+                    กติกาต่อ Category
                   </p>
                   <p className="mt-0.5 text-[11px] text-slate-500">
-                    Category ที่ไม่ได้ตั้งกติกาเฉพาะ
-                    จะใช้ฟิลด์ชุดนี้เป็นฟิลด์บังคับ
+                    เลือกว่าแต่ละ Category จะใช้ Default rule หรือกำหนดฟิลด์เอง
                   </p>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-slate-600 shadow-sm">
-                    เลือกแล้ว{" "}
-                    <span className="ml-1 text-sky-600">
-                      {settingsDefaultRequired.length}
-                    </span>{" "}
-                    ฟิลด์
-                  </span>
+                <div className="hidden text-[10px] text-slate-500 md:block">
+                  รวมทั้งหมด{" "}
+                  <span className="font-semibold text-slate-700">
+                    {categories.length}
+                  </span>{" "}
+                  Category
                 </div>
               </div>
 
-              <div className="mb-2 flex flex-wrap gap-1">
-                {/* Quick presets (ตัวเลือกเร็ว ๆ) */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSettingsDefaultRequired([
-                      "asset_name",
-                      "serial_number",
-                      "user_name",
-                      "department",
-                      "location",
-                    ])
-                  }
-                  className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] text-slate-600 hover:border-sky-300 hover:text-sky-700"
-                >
-                  Template: พื้นฐาน
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSettingsDefaultRequired([
-                      "asset_name",
-                      "serial_number",
-                      "user_name",
-                      "department",
-                      "location",
-                      "cpu",
-                      "ram",
-                      "storage",
-                      "windows_version",
-                      "office_version",
-                    ])
-                  }
-                  className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] text-slate-600 hover:border-sky-300 hover:text-sky-700"
-                >
-                  Template: PC/Laptop
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSettingsDefaultRequired(
-                      availableFields.map((f) => f.key)
-                    )
-                  }
-                  className="rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] text-rose-600 hover:border-rose-300"
-                >
-                  เลือกทุกฟิลด์
-                </button>
-              </div>
+              <div className="max-h-[60vh] overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50/60">
+                {categories.map((c) => {
+                  const fields = settingsRulesByCategory[c.id] || [];
+                  const expanded = settingsExpandedCategories.includes(c.id);
+                  const selectedCount = fields.length;
 
-              <div className="mt-1 max-h-72 space-y-1.5 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2">
-                {availableFields.map((field) => {
-                  const checked = settingsDefaultRequired.includes(field.key);
                   return (
-                    <label
-                      key={field.key}
-                      className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 transition hover:bg-slate-50 ${
-                        checked ? "bg-sky-50/70 border border-sky-100" : ""
-                      }`}
+                    <div
+                      key={c.id}
+                      className="border-b border-slate-100 last:border-b-0"
                     >
-                      <input
-                        type="checkbox"
-                        className="h-3 w-3 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-                        checked={checked}
-                        onChange={() => toggleSettingsDefaultField(field.key)}
-                      />
-                      <span className="text-slate-700">{field.label}</span>
-                      <span className="ml-auto text-[10px] text-slate-400">
-                        {field.key}
-                      </span>
-                    </label>
+                      <div className="flex flex-col gap-2 px-3 py-2.5 md:flex-row md:items-center md:justify-between">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-[12px] font-medium text-slate-800">
+                              {c.name}
+                            </p>
+                            <span className="inline-flex items-center rounded-full bg-slate-900/5 px-2 py-[2px] text-[10px] text-slate-600">
+                              Custom rule
+                            </span>
+                          </div>
+
+                          <p className="mt-0.5 text-[11px] text-slate-500">
+                            ฟิลด์บังคับที่ใช้การตรวจสอบ{" "}
+                            <span className="font-semibold text-sky-700">
+                              {selectedCount} ฟิลด์
+                            </span>
+                          </p>
+
+                          {fields.length > 0 && (
+                            <p className="mt-1 line-clamp-1 text-[11px] text-slate-500">
+                              ตัวอย่างฟิลด์:{" "}
+                              <span className="font-medium">
+                                {fields
+                                  .slice(0, 4)
+                                  .map(
+                                    (key) =>
+                                      availableFields.find((f) => f.key === key)
+                                        ?.label || key
+                                  )
+                                  .join(", ")}
+                                {fields.length > 4 ? " …" : ""}
+                              </span>
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => toggleSettingsCategoryExpand(c.id)}
+                            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] text-slate-600 shadow-sm hover:bg-slate-100"
+                          >
+                            {expanded ? "ซ่อนรายละเอียด" : "กำหนดฟิลด์"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* ส่วนกำหนดฟิลด์ */}
+                      {expanded && (
+                        <div className="border-t border-slate-100 bg-white px-3 py-2.5">
+                          <p className="mb-1 text-[11px] text-slate-600">
+                            เลือกฟิลด์บังคับสำหรับ Category นี้
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {availableFields.map((field) => {
+                              const checked = fields.includes(field.key);
+                              return (
+                                <button
+                                  key={field.key}
+                                  type="button"
+                                  onClick={() =>
+                                    toggleSettingsCategoryField(c.id, field.key)
+                                  }
+                                  className={`inline-flex items-center rounded-full border px-2.5 py-[3px] text-[11px] transition ${
+                                    checked
+                                      ? "border-sky-500 bg-sky-50 text-sky-700"
+                                      : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"
+                                  }`}
+                                >
+                                  <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+                                  {field.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
             </div>
-
-            <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2 text-[10px] text-slate-500">
-              <p className="font-medium text-slate-600">หมายเหตุ</p>
-              <ul className="mt-1 list-disc pl-4 space-y-0.5">
-                <li>
-                  ถ้า Category ไหนไม่ได้ตั้งกติกา จะใช้ Default rule นี้โดยอัตโนมัติ
-                </li>
-                <li>
-                  คุณสามารถเปลี่ยนเป็นแบบกำหนดเองต่อ Category
-                  ได้ทางด้านขวา
-                </li>
-              </ul>
-            </div>
           </div>
 
-          {/* ขวา: Category rules */}
-          <div className="w-full md:w-[65%]">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <div>
-                <p className="text-[11px] font-semibold text-slate-800">
-                  กติกาต่อ Category
-                </p>
-                <p className="mt-0.5 text-[11px] text-slate-500">
-                  เลือกว่าแต่ละ Category จะใช้ Default rule หรือกำหนดฟิลด์เอง
-                </p>
-              </div>
-              <div className="hidden text-[10px] text-slate-500 md:block">
-                รวมทั้งหมด{" "}
-                <span className="font-semibold text-slate-700">
-                  {categories.length}
-                </span>{" "}
-                Category
-              </div>
+          {/* Error & Footer buttons */}
+          {settingsError && (
+            <div className="px-4 pb-1 text-[11px] text-rose-600">
+              {settingsError}
             </div>
+          )}
 
-            <div className="max-h-[60vh] overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50/60">
-              {categories.map((c) => {
-                const useDefault = settingsUseDefaultByCategory[c.id];
-                const fields = settingsRulesByCategory[c.id] || [];
-                const expanded = settingsExpandedCategories.includes(c.id);
-
-                const selectedCount = useDefault
-                  ? settingsDefaultRequired.length
-                  : fields.length;
-
-                return (
-                  <div
-                    key={c.id}
-                    className="border-b border-slate-100 last:border-b-0"
-                  >
-                    <div className="flex flex-col gap-2 px-3 py-2.5 md:flex-row md:items-center md:justify-between">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="truncate text-[12px] font-medium text-slate-800">
-                            {c.name}
-                          </p>
-                          <span className="inline-flex items-center rounded-full bg-slate-900/5 px-2 py-[2px] text-[10px] text-slate-600">
-                            {useDefault ? "ใช้ Default" : "Custom rule"}
-                          </span>
-                        </div>
-
-                        <p className="mt-0.5 text-[11px] text-slate-500">
-                          ฟิลด์บังคับที่ใช้การตรวจสอบ{" "}
-                          <span className="font-semibold text-sky-700">
-                            {selectedCount} ฟิลด์
-                          </span>
-                        </p>
-
-                        {!useDefault && fields.length > 0 && (
-                          <p className="mt-1 line-clamp-1 text-[11px] text-slate-500">
-                            ตัวอย่างฟิลด์:{" "}
-                            <span className="font-medium">
-                              {fields
-                                .slice(0, 4)
-                                .map(
-                                  (key) =>
-                                    availableFields.find(
-                                      (f) => f.key === key
-                                    )?.label || key
-                                )
-                                .join(", ")}
-                              {fields.length > 4 ? " …" : ""}
-                            </span>
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <select
-                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] text-slate-800 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-                          value={useDefault ? "default" : "custom"}
-                          onChange={(e) =>
-                            setCategoryUseMode(c.id, e.target.value === "default")
-                          }
-                        >
-                          <option value="default">ใช้ Default</option>
-                          <option value="custom">กำหนดเอง</option>
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => toggleSettingsCategoryExpand(c.id)}
-                          className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] text-slate-600 shadow-sm hover:bg-slate-100"
-                        >
-                          {expanded ? "ซ่อนรายละเอียด" : "กำหนดฟิลด์"}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* ส่วนกำหนดฟิลด์ */}
-                    {expanded && !useDefault && (
-                      <div className="border-t border-slate-100 bg-white px-3 py-2.5">
-                        <p className="mb-1 text-[11px] text-slate-600">
-                          เลือกฟิลด์บังคับสำหรับ Category นี้
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {availableFields.map((field) => {
-                            const checked = fields.includes(field.key);
-                            return (
-                              <button
-                                key={field.key}
-                                type="button"
-                                onClick={() =>
-                                  toggleSettingsCategoryField(c.id, field.key)
-                                }
-                                className={`inline-flex items-center rounded-full border px-2.5 py-[3px] text-[11px] transition ${
-                                  checked
-                                    ? "border-sky-500 bg-sky-50 text-sky-700"
-                                    : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"
-                                }`}
-                              >
-                                <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-current opacity-70" />
-                                {field.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {expanded && useDefault && (
-                      <div className="border-t border-slate-100 bg-white px-3 py-2.5 text-[11px] text-slate-500">
-                        Category นี้ใช้ฟิลด์บังคับจาก Default rule ด้านซ้าย
-                        ({settingsDefaultRequired.length} ฟิลด์)
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+          <div className="flex items-center justify-between gap-2 border-t border-slate-200 px-4 py-3">
+            <p className="hidden text-[11px] text-slate-500 md:block">
+              การเปลี่ยนแปลงนี้จะมีผลต่อการคำนวณ{" "}
+              <span className="font-medium text-slate-700">
+                Data completeness
+              </span>{" "}
+              บน Dashboard ทันที
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsSettingsOpen(false)}
+                className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAllRules}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-sky-700"
+              >
+                <Settings2 className="h-3.5 w-3.5" />
+                บันทึกกติกาทั้งหมด
+              </button>
             </div>
-          </div>
-        </div>
-
-        {/* Error & Footer buttons */}
-        {settingsError && (
-          <div className="px-4 pb-1 text-[11px] text-rose-600">
-            {settingsError}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between gap-2 border-t border-slate-200 px-4 py-3">
-          <p className="hidden text-[11px] text-slate-500 md:block">
-            การเปลี่ยนแปลงนี้จะมีผลต่อการคำนวณ{" "}
-            <span className="font-medium text-slate-700">
-              Data completeness
-            </span>{" "}
-            บน Dashboard ทันที
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIsSettingsOpen(false)}
-              className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
-            >
-              ยกเลิก
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveAllRules}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-sky-700"
-            >
-              <Settings2 className="h-3.5 w-3.5" />
-              บันทึกกติกาทั้งหมด
-            </button>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
-
+    );
+  };
 
   // ---------- RENDER MAIN DASHBOARD ----------
 
@@ -797,44 +646,6 @@ const [availableFields] = useState([
             </div>
           </div>
         </div>
-
-        {/* Card 3: Category filter */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
-                Category filter
-              </p>
-              <p className="mt-2 text-sm font-semibold text-slate-900">
-                {selectedCategoryId === "all"
-                  ? "ทุก Category"
-                  : categories.find(
-                      (c) => String(c.id) === String(selectedCategoryId)
-                    )?.name || "เลือก Category"}
-              </p>
-              <p className="mt-1 text-[11px] text-slate-500">
-                ใช้กรองการคำนวณความสมบูรณ์ของข้อมูลใน Dashboard
-              </p>
-            </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50">
-              <SlidersHorizontal className="h-5 w-5 text-slate-500" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <select
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-              value={selectedCategoryId}
-              onChange={(e) => setSelectedCategoryId(e.target.value)}
-            >
-              <option value="all">ทุก Category</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
       </div>
 
       {/* Detail & table section */}
@@ -935,9 +746,7 @@ const [availableFields] = useState([
                       {stats.assets && stats.assets.length > 0 ? (
                         stats.assets.map((a) => (
                           <tr key={a.id} className="hover:bg-slate-50/60">
-                            <td className="px-3 py-2 text-slate-600">
-                              {a.id}
-                            </td>
+                            <td className="px-3 py-2 text-slate-600">{a.id}</td>
                             <td className="px-3 py-2 text-slate-800">
                               {a.asset_name ? (
                                 <Link
@@ -959,9 +768,8 @@ const [availableFields] = useState([
                                 <div className="flex flex-wrap gap-1">
                                   {a.missing_fields.map((key) => {
                                     const label =
-                                      availableFields.find(
-                                        (f) => f.key === key
-                                      )?.label || key;
+                                      availableFields.find((f) => f.key === key)
+                                        ?.label || key;
                                     return (
                                       <span
                                         key={key}
@@ -1007,6 +815,5 @@ const [availableFields] = useState([
     </div>
   );
 };
-
 
 export default DashboardPage;
