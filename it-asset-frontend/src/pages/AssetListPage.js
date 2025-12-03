@@ -41,31 +41,37 @@ const FilterSummaryButtons = ({
 }) => {
   return (
     <div className="flex flex-wrap items-center gap-2 mb-4">
-      {Object.entries(data).map(([name, count]) => {
-        const isAllButton = name === "All";
-        const isActive = activeFilter === name;
-        const currentConfig = isAllButton
-          ? config.All
-          : config[name] || config.Default;
-        const styles = currentConfig.styles;
-        const Icon = currentConfig.icon;
+      {Object.entries(data)
+        .sort((a, b) => {
+          if (a[0] === "All") return -1;
+          if (b[0] === "All") return 1;
+          return a[0].localeCompare(b[0]);
+        })
+        .map(([name, count]) => {
+          const isAllButton = name === "All";
+          const isActive = activeFilter === name;
+          const currentConfig = isAllButton
+            ? config.All
+            : config[name] || config.Default;
+          const styles = currentConfig.styles;
+          const Icon = currentConfig.icon;
 
-        return (
-          <button
-            key={name}
-            onClick={() => onFilterChange(name)}
-            className={`
+          return (
+            <button
+              key={name}
+              onClick={() => onFilterChange(name)}
+              className={`
                 flex items-center gap-2 pl-3 pr-2 py-1.5 
                 border rounded-full text-xs font-semibold tracking-wide 
                 transition-all duration-200 ease-in-out
                 focus:outline-none focus:ring-2 focus:ring-offset-2
                 ${isActive ? styles.active : styles.base}
               `}
-          >
-            {Icon && <Icon size={12} className="mr-0" />}
-            <span className="leading-none">{name}</span>
-            <span
-              className={`
+            >
+              {Icon && <Icon size={12} className="mr-0" />}
+              <span className="leading-none">{name}</span>
+              <span
+                className={`
                   flex items-center justify-center 
                   min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold
                   transition-colors duration-200
@@ -75,12 +81,12 @@ const FilterSummaryButtons = ({
                       : `${styles.countBg} ${styles.countText}`
                   }
                 `}
-            >
-              {count}
-            </span>
-          </button>
-        );
-      })}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
     </div>
   );
 };
@@ -359,14 +365,14 @@ function AssetListPage() {
           dataKey="id"
           paginator
           rows={10}
-          rowsPerPageOptions={[10, 20, 50]}
+          rowsPerPageOptions={[10, 20, 50, 100]}
           loading={loading}
           rowHover
           size="small"
           showGridlines
           globalFilter={globalFilter}
           globalFilterFields={[
-            "serial_number", 
+            "serial_number",
             "asset_name",
             "category",
             "location",
