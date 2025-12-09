@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const sequelize = require("./config/database");
 require('./models');
+require("./cron");
+
 const path = require('path');
 
 const authRoutes = require("./routes/auth");
@@ -39,12 +41,21 @@ const vlanRoutes = require('./routes/vlans');
 const ipRoutes = require('./routes/ips');
 const specialProgramRoutes = require('./routes/special_programs');
 const ipPoolRoutes = require('./routes/ip-pools');
+const vendorRoutes = require("./routes/vendors");
+const backupRoutes = require("./routes/backups");
+
+
 
 
 
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",  // หรือ origin ที่คุณเปิด frontend
+    credentials: true,
+  })
+);
 
 // เพิ่ม limit ขนาด body (เช่น 50MB)
 app.use(express.json({ limit: '50mb' }));
@@ -92,6 +103,11 @@ app.use('/api/ip-pools', ipPoolRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/api/vendors", authMiddleware, vendorRoutes);
+app.use("/api/backups",backupRoutes);
+
+
+
 
 
 

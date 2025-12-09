@@ -243,21 +243,27 @@ function AssetDetailPage() {
 
             {asset.specialPrograms?.length > 0 && (
               <DetailItem label="Special Programs">
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {asset.specialPrograms.map((prog) => (
-                    <span
-                      key={prog.id}
-                      className="px-3 py-1 rounded-md bg-blue-50 border border-blue-200 text-sm text-slate-800 inline-block"
-                    >
-                      <span className="font-medium">{prog.program_name}</span>
-                      {prog.license_key && (
-                        <span className="text-slate-500 ml-1">
-                          (Key: {prog.license_key})
-                        </span>
-                      )}
-                    </span>
-                  ))}
-                </div>
+                <table className="min-w-full text-xs sm:text-sm">
+                  <tbody className="divide-y divide-slate-100">
+                    {asset.specialPrograms
+                      .slice()
+                      .sort((a, b) =>
+                        a.program_name.localeCompare(b.program_name, "en", {
+                          sensitivity: "base",
+                        })
+                      )
+                      .map((prog) => (
+                        <tr key={prog.id}>
+                          <td className="py-1.5 pr-4 font-medium text-slate-800">
+                            {prog.program_name}
+                          </td>
+                          <td className="py-1.5 text-slate-500">
+                            {prog.license_key || "-"}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
               </DetailItem>
             )}
           </ConditionalCard>

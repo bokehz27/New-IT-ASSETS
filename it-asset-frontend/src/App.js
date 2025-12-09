@@ -29,6 +29,8 @@ import ReportPage from "./pages/ReportPage";
 import PublicFaqPage from "./pages/PublicFaqPage";
 import FaqManagementPage from "./pages/FaqManagementPage";
 import SettingsIndexPage from "./pages/SettingsIndexPage";
+import BackupManagerPage from "./pages/BackupManagerPage";
+
 
 // Protected Route
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -37,6 +39,7 @@ import AppHeader from "./components/layout/AppHeader";
 
 import ManageTicketsPage from "./pages/ManageTicketsPage";
 import PublicTicketPage from "./pages/PublicTicketPage";
+import VendorManagementPage from "./pages/VendorManagementPage";
 import { Navigate } from "react-router-dom";
 
 function App() {
@@ -81,7 +84,10 @@ function App() {
               />
               <Route path="/manage-faq" element={<FaqManagementPage />} />
               <Route path="/manage-tickets" element={<ManageTicketsPage />} />
+              <Route path="/vendors" element={<VendorManagementPage />} />
+              <Route path="/backups" element={<BackupManagerPage />} />
             </Route>
+            
             {/* ✨ 2. อัปเดตเฉพาะ Route ภายใต้ /settings ✨ */}
             <Route
               path="/settings"
