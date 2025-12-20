@@ -171,7 +171,7 @@ const AppHeader = () => {
     { to: "/assets", text: "Asset List" },
     { to: "/manage-tickets", text: "Manage Tickets" },
     { to: "/report", text: "Report" },
-    { to: "/add-data", text: "Manage Data" },
+    { to: "/add-data", text: "Management" },
   ];
 
   return (

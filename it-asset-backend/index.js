@@ -52,10 +52,11 @@ const backupRoutes = require("./routes/backups");
 const app = express();
 app.use(
   cors({
-    origin: "http://localhost:3000",  // หรือ origin ที่คุณเปิด frontend
+    origin: ["http://localhost:3000", "http://172.18.1.61:3000"],
     credentials: true,
   })
 );
+
 
 // เพิ่ม limit ขนาด body (เช่น 50MB)
 app.use(express.json({ limit: '50mb' }));

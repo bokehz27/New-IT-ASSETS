@@ -9,6 +9,16 @@ import {
 import api from "../api";
 import { Link } from "react-router-dom";
 
+// ===== Button styles (match ReportPage) =====
+const btnGradientBlue =
+  "bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white font-bold py-2 px-4 rounded-lg shadow hover:opacity-90 transition inline-flex items-center gap-2";
+
+const btnGradientGreen =
+  "bg-gradient-to-r from-green-600 to-green-500 text-white font-bold py-2 px-6 rounded-lg shadow hover:opacity-90 transition inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed";
+
+const btnGhost =
+  "text-slate-600 font-semibold py-2 px-4 rounded-lg hover:bg-slate-100 transition";
+
 const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -67,7 +77,7 @@ const DashboardPage = () => {
     { key: "updatedAt", label: "Updated At" },
   ]);
 
-  // กติกาจริง ๆ ที่ดึงจาก backend
+  // เงื่อนไขจริง ๆ ที่ดึงจาก backend
   const [defaultRequiredFields, setDefaultRequiredFields] = useState([]);
   const [categoryRules, setCategoryRules] = useState([]); // [{category_id, required_fields: []}]
   const [stats, setStats] = useState(null);
@@ -95,7 +105,7 @@ const DashboardPage = () => {
     []
   );
 
-  // โหลด Categories + กติกาจาก backend
+  // โหลด Categories + เงื่อนไขจาก backend
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -119,7 +129,7 @@ const DashboardPage = () => {
     fetchData();
   }, []);
 
-  // หากติกาที่ใช้จริงสำหรับ Category หนึ่ง ๆ
+  // หาเงื่อนไขที่ใช้จริงสำหรับ Category หนึ่ง ๆ
   const getRuleForCategory = (categoryId) => {
     const baseRule =
       Array.isArray(defaultRequiredFields) && defaultRequiredFields.length
@@ -141,7 +151,7 @@ const DashboardPage = () => {
     return baseRule;
   };
 
-  // auto-run รอบแรกเมื่อโหลดกติกาเสร็จ
+  // auto-run รอบแรกเมื่อโหลดเงื่อนไขเสร็จ
   const [hasInitRun, setHasInitRun] = useState(false);
   useEffect(() => {
     if (!hasInitRun && (defaultRequiredFields.length || categoryRules.length)) {
@@ -219,7 +229,7 @@ const DashboardPage = () => {
         rulesByCat[c.id] = found.required_fields;
         useDefaultByCat[c.id] = false;
       } else {
-        // ยังไม่มีกติกาเฉพาะ → ใช้ default
+        // ยังไม่มีเงื่อนไขเฉพาะ → ใช้ default
         rulesByCat[c.id] = initialDefault;
         useDefaultByCat[c.id] = true;
       }
@@ -306,7 +316,7 @@ const DashboardPage = () => {
         })
       );
 
-      // ✅ เซฟกติกาของทุก Category เป็น custom rule ตาม fields ที่เลือก
+      // ✅ เซฟเงื่อนไขของทุก Category เป็น custom rule ตาม fields ที่เลือก
       categories.forEach((c) => {
         const fields = settingsRulesByCategory[c.id] || [];
 
@@ -320,7 +330,7 @@ const DashboardPage = () => {
 
       await Promise.all(requests);
 
-      // โหลดกติกาใหม่มาเก็บใน state หลัก
+      // โหลดเงื่อนไขใหม่มาเก็บใน state หลัก
       const ruleRes = await api.get("/assets/meta/completeness-rules");
       const { default_required_fields, category_rules } = ruleRes.data || {};
       setDefaultRequiredFields(
@@ -330,12 +340,12 @@ const DashboardPage = () => {
 
       setIsSettingsOpen(false);
 
-      // รันคำนวณใหม่ตามกติกาที่เพิ่งบันทึก
+      // รันคำนวณใหม่ตามเงื่อนไขที่เพิ่งบันทึก
       await handleCheckCompleteness();
     } catch (e) {
       console.error("Failed to save completeness rules", e);
       setSettingsError(
-        "บันทึกกติกาความสมบูรณ์ไม่สำเร็จ กรุณาตรวจสอบ API /assets/completeness-rules"
+        "บันทึกเงื่อนไขความสมบูรณ์ไม่สำเร็จ กรุณาตรวจสอบ API /assets/completeness-rules"
       );
     }
   };
@@ -358,7 +368,7 @@ const DashboardPage = () => {
                   ตั้งค่าเงื่อนไขความสมบูรณ์ของข้อมูล Asset
                 </h2>
                 <p className="mt-0.5 text-[11px] text-sky-50/90">
-                  กำหนดฟิลด์บังคับสำหรับทุก Category และตั้งค่ากติกาเฉพาะราย
+                  กำหนดฟิลด์บังคับสำหรับทุก Category และตั้งค่าเงื่อนไขเฉพาะราย
                   Category ได้ในหน้าต่างเดียว
                 </p>
               </div>
@@ -385,7 +395,7 @@ const DashboardPage = () => {
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div>
                   <p className="text-[11px] font-semibold text-slate-800">
-                    กติกาต่อ Category
+                    เงื่อนไขต่อ Category
                   </p>
                   <p className="mt-0.5 text-[11px] text-slate-500">
                     เลือกว่าแต่ละ Category จะใช้ Default rule หรือกำหนดฟิลด์เอง
@@ -514,17 +524,18 @@ const DashboardPage = () => {
               <button
                 type="button"
                 onClick={() => setIsSettingsOpen(false)}
-                className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
+                className={btnGhost}
               >
                 ยกเลิก
               </button>
+
               <button
                 type="button"
                 onClick={handleSaveAllRules}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-sky-700"
+                className={btnGradientBlue}
               >
-                <Settings2 className="h-3.5 w-3.5" />
-                บันทึกกติกาทั้งหมด
+                <Settings2 className="h-4 w-4" />
+                บันทึกเงื่อนไขทั้งหมด
               </button>
             </div>
           </div>
@@ -551,7 +562,7 @@ const DashboardPage = () => {
           <div className="mt-2 inline-flex flex-wrap items-center gap-2 text-[11px]">
             <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-sky-700">
               <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
-              ฟิลด์บังคับจากกติกาล่าสุด
+              ฟิลด์บังคับจากเงื่อนไขล่าสุด
             </span>
             <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">
               Category:{" "}
@@ -568,52 +579,64 @@ const DashboardPage = () => {
           <button
             type="button"
             onClick={openSettings}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+            className={btnGradientBlue}
           >
             <Settings2 className="h-4 w-4" />
             ตั้งค่าเงื่อนไขความสมบูรณ์
           </button>
-          <button
-            type="button"
-            onClick={handleCheckCompleteness}
-            disabled={isLoading}
-            className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {isLoading ? (
-              "กำลังคำนวณ..."
-            ) : (
-              <>
-                <AlertTriangle className="h-4 w-4" />
-                ตรวจสอบตอนนี้
-              </>
-            )}
-          </button>
+
+          {/*<button
+  type="button"
+  onClick={handleCheckCompleteness}
+  disabled={isLoading}
+  className={btnGradientGreen}
+>
+  {isLoading ? "กำลังคำนวณ..." : <>
+    <AlertTriangle className="h-4 w-4" />
+    ตรวจสอบตอนนี้
+  </>}
+</button> */}
         </div>
       </div>
 
       {/* Summary strip */}
       <div className="mb-6 grid gap-4 lg:grid-cols-3">
         {/* Card 1: Incomplete assets */}
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="absolute right-[-40px] top-[-40px] h-32 w-32 rounded-full bg-amber-50" />
+        {/* Card 1: Incomplete assets (Critical style) */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-600 via-rose-500 to-red-500 p-4 text-white shadow-sm">
+          {/* soft overlay */}
+          <div className="absolute inset-0 opacity-15 mix-blend-soft-light" />
+
           <div className="relative flex items-start justify-between gap-3">
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-rose-50/90">
                 Assets with incomplete data
               </p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">
-                {incompleteCount}
+
+              <p className="mt-2 text-3xl font-semibold">{incompleteCount}</p>
+
+              <p className="mt-1 text-[11px] text-rose-50/90">
+                จำนวน Asset ที่ข้อมูลไม่ครบตามฟิลด์บังคับ
               </p>
-              <p className="mt-1 text-xs text-slate-500">
-                จำนวน Asset ที่มีฟิลด์บังคับเป็นค่าว่าง จากกติกาปัจจุบัน
-              </p>
+
+              {totalAssets > 0 && (
+                <p className="mt-1 text-[11px] text-rose-100/90">
+                  คิดเป็น{" "}
+                  <span className="font-semibold">
+                    {Math.round((incompleteCount / totalAssets) * 100)}%
+                  </span>{" "}
+                  ของทั้งหมด
+                </p>
+              )}
             </div>
+
             <div className="flex flex-col items-end gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-50">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
+                <AlertTriangle className="h-5 w-5 text-white" />
               </div>
-              <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-[3px] text-[10px] font-medium text-amber-700">
-                ควรตามเก็บข้อมูล
+
+              <span className="inline-flex items-center rounded-full bg-white/20 px-2 py-[3px] text-[10px] font-medium text-white">
+                ต้องแก้ไขด่วน
               </span>
             </div>
           </div>
@@ -807,7 +830,7 @@ const DashboardPage = () => {
             ยังไม่ได้คำนวณความสมบูรณ์ของข้อมูล
             <br />
             <span className="text-slate-400">
-              กด "ตรวจสอบตอนนี้" เพื่อคำนวณจากกติกาปัจจุบัน
+              กด "ตรวจสอบตอนนี้" เพื่อคำนวณจากเงื่อนไขปัจจุบัน
             </span>
           </div>
         )}
