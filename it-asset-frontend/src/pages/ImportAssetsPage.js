@@ -119,12 +119,12 @@ function ImportAssetsPage() {
           <li>
             For <b>ip_addresses</b>, use format:
             <br />
-            <code>10.10.10.5 | 10.10.10.6</code>
+            <code>172.18.1.100 | 172.18.4.200</code>
           </li>
           <li>
             For <b>special_programs</b>, use format:
             <br />
-            <code>Program A:KEY-123 | Program B:KEY-456</code>
+            <code>AutoCad 2026:KEY-123 | Nice Lable:KEY-456</code>
           </li>
           <li>
             <button

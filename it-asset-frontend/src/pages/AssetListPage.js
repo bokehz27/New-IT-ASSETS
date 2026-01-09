@@ -380,7 +380,8 @@ function AssetListPage() {
             "user_id",
             "user_name",
             "status",
-            "ip_addresses", // ✅ ให้ search จาก IP ด้วย
+            "ip_addresses",
+            "fin_asset_ref_no"
           ]}
           emptyMessage="No assets found."
           className="shadow-md rounded-lg overflow-hidden border border-gray-200 text-gray-800 datatable-hover-effect"

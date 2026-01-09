@@ -375,8 +375,8 @@ const ManageTicketsPage = () => {
     };
 
     // ดึงค่าวันที่และเวลาออกมาเป็นข้อความ
-    const formattedDate = date.toLocaleDateString("th-TH", dateOptions);
-    const formattedTime = date.toLocaleTimeString("th-TH", timeOptions);
+    const formattedDate = date.toLocaleDateString("en-US", dateOptions);
+    const formattedTime = date.toLocaleTimeString("en-US", timeOptions);
 
     // ส่งค่า JSX กลับไปแสดงผล โดยให้เวลาอยู่บรรทัดใหม่และเป็นสีเทา
     return (
