@@ -3,24 +3,15 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
-// --- SVG Icons & Avatar Component (เหมือนเดิม) ---
-const UserIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-6 w-6"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    {" "}
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-    />{" "}
-  </svg>
-);
+const AVATAR_COLORS = [
+  "#2563EB", // blue
+  "#16A34A", // green
+  "#DC2626", // red
+  "#9333EA", // purple
+  "#EA580C", // orange
+  "#0D9488", // teal
+];
+
 const MenuIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -109,15 +100,15 @@ const LogoutIcon = () => (
 const Avatar = ({ username }) => {
   if (!username) return null;
   const initial = username[0].toUpperCase();
-  const generateColor = (str) => {
+  const getColorFromUsername = (username) => {
     let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < username.length; i++) {
+      hash = username.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const c = (hash & 0x00ffffff).toString(16).toUpperCase();
-    return "#" + "00000".substring(0, 6 - c.length) + c;
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
   };
-  const bgColor = generateColor(username);
+
+  const bgColor = getColorFromUsername(username);
   return (
     <div
       className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm" // ปรับ Avatar เล็กน้อย

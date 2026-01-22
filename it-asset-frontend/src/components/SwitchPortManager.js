@@ -110,7 +110,10 @@ function SwitchPortManager({ switchId }) {
                       title={tooltipText}
                     >
                       {port.notes && <NoteIcon />}
-                      <div className="port-slot-number">{port.portNumber}</div>
+                      <div className="port-slot-number">
+  P{port.portNumber}
+</div>
+
                       <div className="port-slot-info">
                         {port.lanCableId || "----"}
                       </div>

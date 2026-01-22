@@ -155,6 +155,13 @@ function AssetDetailPage() {
         </div>
 
         <div className="flex items-center gap-2 self-end md:self-center">
+          <Link
+            to={`/asset/history/${asset.asset_name}`}
+            className="inline-flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:bg-slate-700"
+          >
+            History
+          </Link>
+
           <button
             onClick={() => setReplaceModalOpen(true)}
             className="bg-gradient-to-r from-[#0d47a1] to-[#2196f3] text-white px-4 py-2 rounded-lg text-sm font-semibold shadow hover:opacity-90"
