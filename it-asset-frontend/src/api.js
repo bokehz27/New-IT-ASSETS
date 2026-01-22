@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 
 // สร้าง instance ของ axios พร้อมกำหนดค่าเริ่มต้น
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: "/api",
 });
 
 // แนบ Token ไปทุก request

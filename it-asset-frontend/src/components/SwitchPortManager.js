@@ -1,131 +1,163 @@
-// src/components/SwitchPortManager.js
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import api from "../api";
 import EditPortModal from "./EditPortModal";
 
-// Note Icon Component
-const NoteIcon = () => (
-  <div className="port-slot-note-icon" title="This port has notes">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-5 w-5"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-    >
-      <path
-        fillRule="evenodd"
-        d="M5 5a3 3 0 013-3h8a3 3 0 013 3v8a3 3 0 01-3 3H8a3 3 0 01-3-3V5zm3 0a1 1 0 000 2h8a1 1 0 100-2H8z"
-        clipRule="evenodd"
-      />
-    </svg>
-  </div>
-);
+/* =========================
+   Status Style
+========================= */
+const STATUS_STYLE = {
+  Up: "border-emerald-500 bg-emerald-100 text-emerald-700",
+  "Up Link": "border-blue-500 bg-blue-100 text-blue-700",
+  Down: "border-red-500 bg-red-100 text-red-700",
+  Disabled: "border-gray-300 bg-gray-100 text-gray-400",
+};
 
+/* =========================
+   Compact Port Slot
+========================= */
+const PortSlot = ({ port, onClick }) => {
+  return (
+    <div
+      onClick={onClick}
+      title={port.notes || ""}
+      className={`
+        relative w-[56px] h-[56px]
+        border rounded-md
+        cursor-pointer select-none
+        transition hover:shadow-md hover:-translate-y-[1px]
+        ${STATUS_STYLE[port.status] || STATUS_STYLE.Disabled}
+      `}
+    >
+      {/* Port Number (Top-Left) */}
+      <div className="absolute top-[2px] left-[4px] text-[9px] font-bold opacity-70">
+        P{port.portNumber}
+      </div>
+
+      {/* Note Icon (Top-Right) */}
+      {port.notes && (
+        <div className="absolute top-[2px] right-[4px] text-[10px] text-yellow-500">
+          📝
+        </div>
+      )}
+
+      {/* LAN Cable No (Main) */}
+      <div className="flex h-full items-center justify-center px-1">
+        <div
+          className="text-[13px] font-extrabold leading-none truncate max-w-[48px]"
+          title={port.lanCableId || ""}
+        >
+          {port.lanCableId || "—"}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* =========================
+   Main Component
+========================= */
 function SwitchPortManager({ switchId }) {
   const [ports, setPorts] = useState([]);
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingPort, setEditingPort] = useState(null);
-  const [portRows, setPortRows] = useState([]);
 
-  const getStatusClass = (status) => {
-    switch (status) {
-      case "Up":
-        return "status-up";
-      case "Up Link":
-        return "status-uplink";
-      case "Down":
-        return "status-down";
-      case "Disabled":
-      default:
-        return "status-disabled";
-    }
-  };
-
+  /* =========================
+     Fetch Ports
+  ========================= */
   const fetchPorts = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/switches/${switchId}/ports`);
-      const sortedPorts = response.data.sort(
+      const res = await api.get(`/switches/${switchId}/ports`);
+
+      const sorted = [...res.data].sort(
         (a, b) => a.portNumber - b.portNumber
       );
 
-      // --- LOGIC REVERT: กลับไปใช้การแบ่งกลุ่มแบบเลขคู่/เลขคี่ ---
-      const oddPorts = sortedPorts.filter((p) => p.portNumber % 2 !== 0);
-      const evenPorts = sortedPorts.filter((p) => p.portNumber % 2 === 0);
+      // Switch style: Top = Odd, Bottom = Even
+      const odd = sorted.filter((p) => p.portNumber % 2 !== 0);
+      const even = sorted.filter((p) => p.portNumber % 2 === 0);
 
-      const rows = [];
-      if (oddPorts.length > 0) rows.push(oddPorts);
-      if (evenPorts.length > 0) rows.push(evenPorts);
-      setPortRows(rows);
-
-      setPorts(sortedPorts);
+      setPorts(sorted);
+      setRows([odd, even]);
       setError(null);
-    } catch (err) {
-      setError("Failed to load ports for this asset.");
+    } catch {
+      setError("Failed to load ports.");
     } finally {
       setLoading(false);
     }
   }, [switchId]);
 
   useEffect(() => {
-    if (switchId) {
-      fetchPorts();
-    }
+    if (switchId) fetchPorts();
   }, [switchId, fetchPorts]);
 
-  const handleSavePort = async (portId, dataToUpdate) => {
+  /* =========================
+     Save
+  ========================= */
+  const handleSavePort = async (portId, data) => {
     try {
-      await api.put(`/ports/${portId}`, dataToUpdate);
+      await api.put(`/ports/${portId}`, data);
       setEditingPort(null);
       fetchPorts();
-    } catch (err) {
-      alert("Failed to save port details.");
+    } catch {
+      alert("Save failed");
     }
   };
 
-  if (loading) return <div className="text-center p-4">Loading ports...</div>;
-  if (error) return <div className="text-center p-4 text-red-600">{error}</div>;
+  /* =========================
+     Render
+  ========================= */
+  if (loading)
+    return <div className="p-4 text-center text-gray-500">Loading…</div>;
+
+  if (error)
+    return (
+      <div className="p-4 text-center text-red-600 font-semibold">
+        {error}
+      </div>
+    );
 
   return (
-    <div className="card">
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-bold">Switch Port Status</h2>
+    <div className="rounded-xl bg-white shadow p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-bold tracking-wide">
+          Switch Port Layout
+        </h2>
+
+        {/* Legend */}
+        <div className="flex gap-3 text-[10px] font-semibold">
+          <span className="text-emerald-600">● UP</span>
+          <span className="text-blue-600">● UPLINK</span>
+          <span className="text-red-600">● DOWN</span>
+          <span className="text-gray-400">● DISABLED</span>
+        </div>
       </div>
 
+      {/* Switch Panel */}
       {ports.length === 0 ? (
-        <p className="p-6 text-gray-500">No ports found for this device.</p>
+        <div className="text-center text-gray-500 text-sm">
+          No ports found
+        </div>
       ) : (
-        <div className="p-4">
-          <div className="switch-panel">
-            {portRows.map((row, rowIndex) => (
-              <div key={rowIndex} className="port-row">
-                {row.map((port) => {
-                  const tooltipText = port.notes || "";
-                  return (
-                    <div
-                      key={port.id}
-                      onClick={() => setEditingPort(port)}
-                      className={`port-slot ${getStatusClass(port.status)}`}
-                      title={tooltipText}
-                    >
-                      {port.notes && <NoteIcon />}
-                      <div className="port-slot-number">
-  P{port.portNumber}
-</div>
-
-                      <div className="port-slot-info">
-                        {port.lanCableId || "----"}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+        <div className="space-y-2">
+          {rows.map((row, idx) => (
+            <div key={idx} className="flex gap-1 justify-center">
+              {row.map((port) => (
+                <PortSlot
+                  key={port.id}
+                  port={port}
+                  onClick={() => setEditingPort(port)}
+                />
+              ))}
+            </div>
+          ))}
         </div>
       )}
 
+      {/* Edit Modal */}
       {editingPort && (
         <EditPortModal
           port={editingPort}

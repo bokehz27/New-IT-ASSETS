@@ -586,7 +586,7 @@ const ManageTicketsPage = () => {
           value={filteredTickets}
           dataKey="id"
           paginator
-          rows={10}
+          rows={20}
           size="small"
           rowHover // ✨ เพิ่ม prop นี้
           showGridlines

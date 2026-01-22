@@ -364,8 +364,8 @@ function AssetListPage() {
           value={filteredAssets}
           dataKey="id"
           paginator
-          rows={10}
-          rowsPerPageOptions={[10, 20, 50, 100]}
+          rows={50}
+          rowsPerPageOptions={[50, 100]}
           loading={loading}
           rowHover
           size="small"
