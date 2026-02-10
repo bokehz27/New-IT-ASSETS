@@ -381,7 +381,9 @@ function AssetListPage() {
             "user_name",
             "status",
             "ip_addresses",
-            "fin_asset_ref_no"
+            "fin_asset_ref_no",
+            "prt",
+            "pa"
           ]}
           emptyMessage="No assets found."
           className="shadow-md rounded-lg overflow-hidden border border-gray-200 text-gray-800 datatable-hover-effect"
