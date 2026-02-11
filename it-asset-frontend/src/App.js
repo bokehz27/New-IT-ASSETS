@@ -30,6 +30,8 @@ import PublicFaqPage from "./pages/PublicFaqPage";
 import FaqManagementPage from "./pages/FaqManagementPage";
 import SettingsIndexPage from "./pages/SettingsIndexPage";
 import BackupManagerPage from "./pages/BackupManagerPage";
+import PasswordVaultPage from "./pages/PasswordVaultPage";
+
 
 
 // Protected Route
@@ -87,6 +89,7 @@ function App() {
               <Route path="/vendors" element={<VendorManagementPage />} />
               <Route path="/backups" element={<BackupManagerPage />} />
             </Route>
+            <Route path="/passwords" element={<PasswordVaultPage />} />
             
             {/* ✨ 2. อัปเดตเฉพาะ Route ภายใต้ /settings ✨ */}
             <Route

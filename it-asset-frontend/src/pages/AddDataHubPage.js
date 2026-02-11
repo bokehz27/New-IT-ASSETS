@@ -324,78 +324,144 @@ function AddDataHubPage() {
         </div>
 
         {/* Group X: Database Backup */}
-<div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
-  {/* Header */}
-  <div className="p-5 bg-gradient-to-r from-[#0d47a1] to-[#1565c0] flex items-center gap-4">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-6 w-6 text-white"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M3 7l9-4 9 4M3 7l9 4 9-4"
-      />
-    </svg>
-    <h2 className="text-xl font-bold text-white">Database Backup</h2>
-  </div>
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="p-5 bg-gradient-to-r from-[#0d47a1] to-[#1565c0] flex items-center gap-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M3 7l9-4 9 4M3 7l9 4 9-4"
+              />
+            </svg>
+            <h2 className="text-xl font-bold text-white">Database Backup</h2>
+          </div>
 
-  {/* Items */}
-  <div className="divide-y divide-slate-100 flex-grow">
+          {/* Items */}
+          <div className="divide-y divide-slate-100 flex-grow">
+            <Link
+              to="/backups"
+              className="group flex items-center justify-between p-5 hover:bg-slate-50 transition duration-150"
+            >
+              <div className="flex items-center gap-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-slate-600 group-hover:text-blue-700"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
 
-    <Link
-      to="/backups"
-      className="group flex items-center justify-between p-5 hover:bg-slate-50 transition duration-150"
-    >
-      <div className="flex items-center gap-4">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 text-slate-600 group-hover:text-blue-700"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 4v16m8-8H4"
-          />
-        </svg>
+                <div>
+                  <h3 className="font-semibold text-slate-800 group-hover:text-blue-700">
+                    Backup Manager
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    View, download, delete, and run database backups.
+                  </p>
+                </div>
+              </div>
 
-        <div>
-          <h3 className="font-semibold text-slate-800 group-hover:text-blue-700">
-            Backup Manager
-          </h3>
-          <p className="text-sm text-slate-500">
-            View, download, delete, and run database backups.
-          </p>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-slate-400 group-hover:text-blue-700"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </Link>
+          </div>
         </div>
-      </div>
 
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5 text-slate-400 group-hover:text-blue-700"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M9 5l7 7-7 7"
-        />
-      </svg>
-    </Link>
+        {/* Group X: Password Vault */}
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="p-5 bg-gradient-to-r from-[#0d47a1] to-[#1e88e5] flex items-center gap-4">
+            {/* Icon */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5
+           9 6.343 9 8s1.343 3 3 3z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 21h14a2 2 0 002-2v-5a4 4 0 00-4-4H7a4 4 0 00-4 4v5a2 2 0 002 2z"
+              />
+            </svg>
 
-  </div>
-</div>
+            <h2 className="text-xl font-bold text-white">Password Vault</h2>
+          </div>
 
+          {/* Items */}
+          <div className="divide-y divide-slate-100 flex-grow">
+            <Link
+              to="/passwords"
+              className="group flex items-center justify-between p-5 hover:bg-slate-50 transition duration-150"
+            >
+              <div className="flex items-center gap-4">
+                {/* Small Icon */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-slate-600 group-hover:text-blue-700"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 15v2m6-6V9a6 6 0 10-12 0v2m1 10h10a2 2 0 002-2v-6a2 2 0 00-2-2H7a2 2 0 00-2 2v6a2 2 0 002 2z"
+                  />
+                </svg>
+
+                <div>
+                  <h3 className="font-semibold text-slate-800 group-hover:text-blue-700">
+                    Manage Passwords
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    Store department login credentials and last updated records.
+                  </p>
+                </div>
+              </div>
+
+              {/* Arrow */}
+              <ChevronRightIcon />
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

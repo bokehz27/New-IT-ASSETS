@@ -43,6 +43,7 @@ const specialProgramRoutes = require('./routes/special_programs');
 const ipPoolRoutes = require('./routes/ip-pools');
 const vendorRoutes = require("./routes/vendors");
 const backupRoutes = require("./routes/backups");
+const passwordRoutes = require("./routes/passwordEntries");
 
 
 
@@ -106,6 +107,7 @@ app.use('/api/public', publicRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/vendors", authMiddleware, vendorRoutes);
 app.use("/api/backups",backupRoutes);
+app.use("/api/passwords", passwordRoutes);
 
 
 
