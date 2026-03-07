@@ -98,7 +98,7 @@ function AddAssetPage() {
       } catch (error) {
         console.error("Failed to fetch initial data for the form:", error);
         alert(
-          "Error: Could not load data for the form. Please check the API connection and refresh the page."
+          "Error: Could not load data for the form. Please check the API connection and refresh the page.",
         );
       } finally {
         setLoading(false);
@@ -110,7 +110,31 @@ function AddAssetPage() {
 
   const handleSubmit = async ({ data, file }) => {
     try {
-      const response = await api.post("/assets", data);
+      const payload = {
+        ...data,
+        start_date: data.start_date || null,
+        end_date: data.end_date || null,
+        maintenance_start_date: data.maintenance_start_date || null,
+        maintenance_end_date: data.maintenance_end_date || null,
+        maintenance_price: data.maintenance_price
+          ? parseFloat(data.maintenance_price)
+          : null,
+        category_id: data.category_id || null,
+        brand_id: data.brand_id || null,
+        model_id: data.model_id || null,
+        cpu_id: data.cpu_id || null,
+        ram_id: data.ram_id || null,
+        storage_id: data.storage_id || null,
+        status_id: data.status_id || null,
+        department_id: data.department_id || null,
+        location_id: data.location_id || null,
+        windows_version_id: data.windows_version_id || null,
+        office_version_id: data.office_version_id || null,
+        antivirus_id: data.antivirus_id || null,
+        employee_id: data.employee_id || null,
+      };
+
+      const response = await api.post("/assets", payload);
       const newAssetId = response.data.id;
 
       if (file && newAssetId) {
@@ -121,7 +145,7 @@ function AddAssetPage() {
           formDataUpload,
           {
             headers: { "Content-Type": "multipart/form-data" },
-          }
+          },
         );
       }
 
@@ -129,9 +153,10 @@ function AddAssetPage() {
       navigate("/assets");
     } catch (error) {
       console.error("Error creating asset:", error);
-      const errorMessage =
-        error.response?.data?.error || "Unable to add the asset.";
-      alert(errorMessage);
+      const errorMessage = error.response?.data?.details
+        ? JSON.stringify(error.response.data.details)
+        : error.response?.data?.error || "Unable to add the asset.";
+      alert(`Error: ${errorMessage}`);
     }
   };
 

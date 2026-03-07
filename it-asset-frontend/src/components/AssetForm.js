@@ -54,7 +54,7 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
   });
 
   const [assignedIpIds, setAssignedIpIds] = useState(
-    formData.assignedIps?.map((ip) => ip.id) || []
+    formData.assignedIps?.map((ip) => ip.id) || [],
   );
 
   const handleFormSubmit = async (data) => {
@@ -68,59 +68,59 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
   // --- Prepare Dropdown Options ---
   const modelOptions = useMemo(
     () => (masterData.model || []).map((v) => ({ value: v, label: v })),
-    [masterData.model]
+    [masterData.model],
   );
   const cpuOptions = useMemo(
     () => (masterData.cpu || []).map((v) => ({ value: v, label: v })),
-    [masterData.cpu]
+    [masterData.cpu],
   );
   const categoryOptions = useMemo(
     () => (masterData.category || []).map((v) => ({ value: v, label: v })),
-    [masterData.category]
+    [masterData.category],
   );
   const subcategoryOptions = useMemo(
     () => (masterData.subcategory || []).map((v) => ({ value: v, label: v })),
-    [masterData.subcategory]
+    [masterData.subcategory],
   );
   const brandOptions = useMemo(
     () => (masterData.brand || []).map((v) => ({ value: v, label: v })),
-    [masterData.brand]
+    [masterData.brand],
   );
   const ramOptions = useMemo(
     () => (masterData.ram || []).map((v) => ({ value: v, label: v })),
-    [masterData.ram]
+    [masterData.ram],
   );
   const storageOptions = useMemo(
     () => (masterData.storage || []).map((v) => ({ value: v, label: v })),
-    [masterData.storage]
+    [masterData.storage],
   );
   const windowsOptions = useMemo(
     () => (masterData.windows || []).map((v) => ({ value: v, label: v })),
-    [masterData.windows]
+    [masterData.windows],
   );
   const officeOptions = useMemo(
     () => (masterData.office || []).map((v) => ({ value: v, label: v })),
-    [masterData.office]
+    [masterData.office],
   );
   const antivirusOptions = useMemo(
     () => (masterData.antivirus || []).map((v) => ({ value: v, label: v })),
-    [masterData.antivirus]
+    [masterData.antivirus],
   );
   const departmentOptions = useMemo(
     () => (masterData.department || []).map((v) => ({ value: v, label: v })),
-    [masterData.department]
+    [masterData.department],
   );
   const locationOptions = useMemo(
     () => (masterData.location || []).map((v) => ({ value: v, label: v })),
-    [masterData.location]
+    [masterData.location],
   );
   const statusOptions = useMemo(
     () => (masterData.status || []).map((v) => ({ value: v, label: v })),
-    [masterData.status]
+    [masterData.status],
   );
   const userNameOptions = useMemo(
     () => (masterData.user_name || []).map((v) => ({ value: v, label: v })),
-    [masterData.user_name]
+    [masterData.user_name],
   );
   const specialProgramOptions = useMemo(
     () =>
@@ -128,7 +128,7 @@ function AssetForm({ isEditing, formData, onSubmit, onCancel, masterData }) {
         value: p.id,
         label: p.name,
       })),
-    [masterData.special_program]
+    [masterData.special_program],
   );
 
   const wifiStatusOptions = [

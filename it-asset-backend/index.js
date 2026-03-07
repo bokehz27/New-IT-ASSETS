@@ -1,10 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 const sequelize = require("./config/database");
-require('./models');
+require("./models");
 require("./cron");
 
-const path = require('path');
+const path = require("path");
 
 const authRoutes = require("./routes/auth");
 const assetRoutes = require("./routes/assets");
@@ -31,38 +31,32 @@ const switchRoutes = require("./routes/switchRoutes");
 const rackRoutes = require("./routes/rackRoutes");
 const publicRoutes = require("./routes/public");
 const ticketRoutes = require("./routes/tickets");
-const ticketsRouter = require('./routes/tickets');
+const ticketsRouter = require("./routes/tickets");
 const faqRoutes = require("./routes/faqs");
 const reportRoutes = require("./routes/reports");
 const dashboardRoutes = require("./routes/dashboard");
 const userRoutes = require("./routes/users");
 const SwitchPort = require("./models/SwitchPort");
-const vlanRoutes = require('./routes/vlans');
-const ipRoutes = require('./routes/ips');
-const specialProgramRoutes = require('./routes/special_programs');
-const ipPoolRoutes = require('./routes/ip-pools');
+const vlanRoutes = require("./routes/vlans");
+const ipRoutes = require("./routes/ips");
+const specialProgramRoutes = require("./routes/special_programs");
+const ipPoolRoutes = require("./routes/ip-pools");
 const vendorRoutes = require("./routes/vendors");
 const backupRoutes = require("./routes/backups");
 const passwordRoutes = require("./routes/passwordEntries");
 
-
-
-
-
-
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://172.18.1.61:3000"],
+    origin: true,
     credentials: true,
-  })
+  }),
 );
-
+app.options(/.*/, cors());
 
 // เพิ่ม limit ขนาด body (เช่น 50MB)
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Public Routes
 app.use("/api/auth", authRoutes);
@@ -85,9 +79,13 @@ app.use("/api/locations", authMiddleware, locationRoutes);
 app.use("/api/positions", authMiddleware, positionRoutes);
 app.use("/api/emails", authMiddleware, emailRoutes);
 app.use("/api/employees", employeeRoutes);
-app.use("/api/asset_special_programs", authMiddleware, assetSpecialProgramRoutes);
+app.use(
+  "/api/asset_special_programs",
+  authMiddleware,
+  assetSpecialProgramRoutes,
+);
 app.use("/api/tickets", ticketRoutes);
-app.use('/api/tickets', ticketsRouter);
+app.use("/api/tickets", ticketsRouter);
 app.use("/api/switches", authMiddleware, switchRoutes);
 app.use("/api/racks", authMiddleware, rackRoutes);
 app.use("/api/faqs", faqRoutes);
@@ -98,25 +96,20 @@ app.use("/api/reports", authMiddleware, reportRoutes);
 app.use("/api/dashboard", authMiddleware, dashboardRoutes);
 app.use("/api/ports", authMiddleware, portRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use('/api/vlans', vlanRoutes);
-app.use('/api/ips', ipRoutes);
-app.use('/api/special-programs', specialProgramRoutes);
-app.use('/api/ip-pools', ipPoolRoutes);
-app.use('/api/tickets', ticketRoutes);
-app.use('/api/public', publicRoutes);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/api/vlans", vlanRoutes);
+app.use("/api/ips", ipRoutes);
+app.use("/api/special-programs", specialProgramRoutes);
+app.use("/api/ip-pools", ipPoolRoutes);
+app.use("/api/tickets", ticketRoutes);
+app.use("/api/public", publicRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/vendors", authMiddleware, vendorRoutes);
-app.use("/api/backups",backupRoutes);
+app.use("/api/backups", backupRoutes);
 app.use("/api/passwords", passwordRoutes);
-
-
-
-
-
 
 // Database connection
 sequelize
-  .sync()  // ปิด alter:true เพื่อไม่ให้ Sequelize ไปสร้าง/แก้ตารางเอง
+  .sync() // ปิด alter:true เพื่อไม่ให้ Sequelize ไปสร้าง/แก้ตารางเอง
   .then(() => {
     console.log("✅ Database connected successfully.");
   })
@@ -125,6 +118,6 @@ sequelize
   });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
 });

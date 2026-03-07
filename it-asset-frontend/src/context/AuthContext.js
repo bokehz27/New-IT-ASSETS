@@ -4,7 +4,10 @@ import axios from "axios";
 const AuthContext = createContext(null);
 
 // --- กำหนด API URL จาก .env ---
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+// --- กำหนด API URL ให้รองรับทั้ง localhost และ IP ---
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  `http://${window.location.hostname}:5000/api`;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

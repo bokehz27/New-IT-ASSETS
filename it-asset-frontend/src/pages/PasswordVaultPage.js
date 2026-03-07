@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../api";
-import { FaPlus, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaPlus, FaEye, FaEyeSlash, FaCopy } from "react-icons/fa";
+
 import { Button } from "primereact/button";
 
 /* ================================
@@ -192,6 +193,8 @@ function PasswordVaultPage() {
 
   /* Track password visibility */
   const [visiblePasswords, setVisiblePasswords] = useState({});
+  /* Track copied password */
+  const [copiedId, setCopiedId] = useState(null);
 
   /* Fetch list */
   const fetchEntries = useCallback(async () => {
@@ -254,6 +257,37 @@ function PasswordVaultPage() {
       ...prev,
       [id]: !prev[id],
     }));
+  };
+
+  /* Copy password */
+  const copyPassword = async (id, password) => {
+    try {
+      // Modern way
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(password);
+      } else {
+        // Fallback old way
+        const textarea = document.createElement("textarea");
+        textarea.value = password;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+
+        textarea.focus();
+        textarea.select();
+
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+
+      // ✅ Show tooltip
+      setCopiedId(id);
+
+      // Hide after 1.5 sec
+      setTimeout(() => setCopiedId(null), 1500);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   /* Format date */
@@ -340,9 +374,6 @@ function PasswordVaultPage() {
                       )}
                     </td>
 
-                    <td className="p-3">{e.username || "-"}</td>
-
-                    {/* Password */}
                     <td className="p-3">
                       <div className="flex items-center justify-center gap-2">
                         {/* Password Text */}
@@ -354,7 +385,7 @@ function PasswordVaultPage() {
                         <button
                           onClick={() => togglePassword(e.id)}
                           className="w-8 h-8 flex items-center justify-center rounded-full
-                 hover:bg-slate-100 text-blue-600 transition"
+      hover:bg-slate-100 text-blue-600 transition"
                           title={
                             visiblePasswords[e.id]
                               ? "Hide Password"
@@ -367,6 +398,37 @@ function PasswordVaultPage() {
                             <FaEye size={16} />
                           )}
                         </button>
+
+                        {/* Copy Button */}
+                        <div className="relative flex items-center">
+                          <button
+                            onClick={() => copyPassword(e.id, e.password)}
+                            className="w-8 h-8 flex items-center justify-center rounded-full
+    hover:bg-slate-100 text-green-600 transition"
+                            title="Copy Password"
+                          >
+                            <FaCopy size={16} />
+                          </button>
+
+                          {/* ✅ Beautiful Tooltip */}
+                          {copiedId === e.id && (
+                            <div
+                              className="absolute -top-10 left-1/2 -translate-x-1/2
+      px-3 py-1 rounded-full text-xs font-semibold
+      bg-gradient-to-r from-green-500 to-emerald-400
+      text-white shadow-lg flex items-center gap-1
+      animate-fadeUp"
+                            >
+                              Copied
+                              {/* little arrow */}
+                              <span
+                                className="absolute -bottom-1 left-1/2 -translate-x-1/2
+        w-2 h-2 rotate-45
+        bg-emerald-400"
+                              ></span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
 

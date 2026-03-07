@@ -1,51 +1,68 @@
 import axios from "axios";
 import Swal from "sweetalert2";
 
-// สร้าง instance ของ axios พร้อมกำหนดค่าเริ่มต้น
+/* =========================================
+   ✅ API Instance (Fixed for LAN / IP Access)
+========================================= */
+
+/*
+  🔥 สำคัญมาก:
+  - ถ้าเข้าเว็บจาก localhost → backend จะเป็น localhost:5000
+  - ถ้าเข้าเว็บจาก IP เช่น 172.18.1.61 → backend จะเป็น 172.18.1.61:5000
+*/
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: `http://${window.location.hostname}:5000/api`,
 });
 
-// แนบ Token ไปทุก request
+/* =========================================
+   ✅ Request Interceptor (Attach Token)
+========================================= */
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
+
   if (token) {
     config.headers["x-auth-token"] = token;
   }
+
   return config;
 });
 
-// ดักจับ response error แบบ Global
+/* =========================================
+   ✅ Global Response Error Handler
+========================================= */
+
 api.interceptors.response.use(
   (response) => response,
+
   async (error) => {
-    // ลอง log ดูก่อนว่า backend ส่งอะไรมา
     console.log("API ERROR >>>", error?.response);
 
-    // ถ้าเป็น network error / server ไม่ตอบเลย
+    /* Network Error (Backend Down / Wrong IP) */
     if (!error.response) {
       await Swal.fire({
         icon: "error",
         title: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
         text: "กรุณาลองใหม่อีกครั้ง หรือติดต่อผู้ดูแลระบบ",
       });
+
       return Promise.reject(error);
     }
 
     const status = error.response.status;
     const data = error.response.data;
+
     const msg =
       (typeof data === "string" && data) ||
       data?.msg ||
       data?.message ||
       "";
 
-    // เงื่อนไขจับ session หมดอายุ / token มีปัญหา
+    /* Token Expired / Unauthorized */
     const isTokenError =
       status === 401 ||
       status === 403 ||
-      (status === 400 &&
-        msg.toLowerCase().includes("token")); // กันเคส backend ส่ง 400 + ข้อความเกี่ยวกับ token
+      (status === 400 && msg.toLowerCase().includes("token"));
 
     if (isTokenError) {
       await Swal.fire({
@@ -56,10 +73,10 @@ api.interceptors.response.use(
         confirmButtonText: "เข้าสู่ระบบใหม่",
       });
 
-      // Clear Token
+      /* Clear Token */
       localStorage.removeItem("token");
 
-      // Redirect to login
+      /* Redirect */
       window.location.href = "/login";
     }
 

@@ -88,8 +88,9 @@ function App() {
               <Route path="/manage-tickets" element={<ManageTicketsPage />} />
               <Route path="/vendors" element={<VendorManagementPage />} />
               <Route path="/backups" element={<BackupManagerPage />} />
+              <Route path="/passwords" element={<PasswordVaultPage />} />
             </Route>
-            <Route path="/passwords" element={<PasswordVaultPage />} />
+            
             
             {/* ✨ 2. อัปเดตเฉพาะ Route ภายใต้ /settings ✨ */}
             <Route

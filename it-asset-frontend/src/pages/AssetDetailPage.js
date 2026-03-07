@@ -105,7 +105,7 @@ function AssetDetailPage() {
   const handleReplaceSuccess = (newAsset) => {
     setReplaceModalOpen(false);
     alert(
-      `Asset ${asset.asset_name} replaced by ${newAsset.asset_name} successfully!`
+      `Asset ${asset.asset_name} replaced by ${newAsset.asset_name} successfully!`,
     );
     navigate(`/asset/${newAsset.id}`);
   };
@@ -113,7 +113,7 @@ function AssetDetailPage() {
   const handleDelete = async () => {
     if (
       window.confirm(
-        `Are you sure you want to delete this asset: ${asset.asset_name}?`
+        `Are you sure you want to delete this asset: ${asset.asset_name}?`,
       )
     ) {
       try {
@@ -257,7 +257,7 @@ function AssetDetailPage() {
                       .sort((a, b) =>
                         a.program_name.localeCompare(b.program_name, "en", {
                           sensitivity: "base",
-                        })
+                        }),
                       )
                       .map((prog) => (
                         <tr key={prog.id}>
@@ -288,10 +288,7 @@ function AssetDetailPage() {
                   </div>
                   <div className="ml-4 flex-shrink-0">
                     <a
-                      href={`${process.env.REACT_APP_API_URL.replace(
-                        "/api",
-                        ""
-                      )}${asset.bitlocker_csv_file}`}
+                      href={`${(process.env.REACT_APP_API_URL || "").replace("/api", "")}${asset.bitlocker_csv_file}`}
                       target="_blank"
                       rel="noreferrer"
                       className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"

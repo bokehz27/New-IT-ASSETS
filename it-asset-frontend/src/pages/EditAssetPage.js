@@ -109,7 +109,7 @@ function EditAssetPage() {
 
     payload.start_date = normalizeDate(payload.start_date);
     payload.maintenance_start_date = normalizeDate(
-      payload.maintenance_start_date
+      payload.maintenance_start_date,
     );
     payload.maintenance_end_date = normalizeDate(payload.maintenance_end_date);
 
